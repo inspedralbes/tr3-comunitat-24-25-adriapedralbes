@@ -1,5 +1,6 @@
-import React from 'react';
 import { ChevronLeft, ChevronRight, List, Calendar as CalendarIcon } from 'lucide-react';
+import React from 'react';
+
 import { getMonthName } from '@/utils/calendarUtils';
 
 interface CalendarHeaderProps {

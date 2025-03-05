@@ -2,9 +2,10 @@ import { ThumbsUp, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
 
-import { UserBadge } from '@/components/Community/UserBadge';
 import { CommentAvatars } from '@/components/Community/Comments/CommentAvatars';
+import { UserBadge } from '@/components/Community/UserBadge';
 import { commentsByPostId } from '@/mockData/mockComments';
+import { Comment } from '@/types/Comment';
 
 interface PostCardProps {
     id: string;
@@ -54,7 +55,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     const commenterSet = new Set<string>();
 
     // Función recursiva para extraer comentadores de comentarios y respuestas
-    const extractCommenters = (comments: any[]) => {
+    const extractCommenters = (comments: Comment[]) => {
         comments.forEach(comment => {
             const username = comment.author.username;
             if (!commenterSet.has(username)) {
@@ -96,10 +97,21 @@ export const PostCard: React.FC<PostCardProps> = ({
         onPostClick(id);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+        }
+    };
+
     return (
         <div
             className={`bg-[#323230] rounded-lg p-4 my-3 mx-4 sm:mx-2 md:mx-0 ${isPinned ? 'border-l-4 border-amber-500' : 'border border-white/10'} cursor-pointer hover:bg-[#3a3a38] transition-colors`}
             onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            aria-label={`Post: ${title}`}
         >
             <UserBadge
                 username={author.username}
@@ -153,6 +165,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                                 e.stopPropagation(); // Evitar que se abra el modal al dar like
                                 // Aquí iría la lógica para dar like
                             }}
+                            aria-label="Like this post"
                         >
                             <ThumbsUp size={16} />
                         </button>
@@ -165,6 +178,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                                 e.stopPropagation(); // Evitar que se abra el modal al comentar
                                 // Aquí iría la lógica para ir directamente a comentar
                             }}
+                            aria-label="Comment on this post"
                         >
                             <MessageCircle size={16} />
                         </button>

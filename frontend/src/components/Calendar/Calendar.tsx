@@ -1,10 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { CalendarHeader } from './CalendarHeader';
-import { CalendarMonthView } from './CalendarMonthView';
+
 import { CalendarEvent, MonthData, ViewMode } from '@/types/Calendar';
 import { getMonthData } from '@/utils/calendarUtils';
+
+import { CalendarHeader } from './CalendarHeader';
+import { CalendarMonthView } from './CalendarMonthView';
+
+// Definición de tipo para las vistas que soporta CalendarHeader
+type HeaderViewMode = "month" | "list";
 
 interface CalendarProps {
     events: CalendarEvent[];
@@ -15,7 +20,7 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onEventClick }) => {
     // Estado para la fecha actual del calendario
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthData, setMonthData] = useState<MonthData | null>(null);
-    const [viewMode, setViewMode] = useState<ViewMode>('month');
+    const [viewMode, setViewMode] = useState<HeaderViewMode>('month');
 
     useEffect(() => {
         // Generar los datos del mes actual
@@ -48,7 +53,15 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onEventClick }) => {
     };
 
     const handleViewChange = (view: ViewMode) => {
-        setViewMode(view);
+        // Solo permitimos actualizar el estado con valores compatibles
+        if (view === 'month' || view === 'list') {
+            setViewMode(view);
+        } else {
+            // Si view es 'week' u otro valor no compatible,
+            // establecemos un valor por defecto
+            console.warn(`Vista "${view}" no soportada actualmente, usando "month"`);
+            setViewMode('month');
+        }
     };
 
     if (!monthData) {
@@ -74,7 +87,13 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onEventClick }) => {
                 />
             )}
 
-            {/* Aquí se pueden agregar otras vistas (semana, día, lista) */}
+            {viewMode === 'list' && (
+                // Placeholder para la vista de lista
+                <div className="p-4">
+                    <h3 className="text-lg font-medium">Vista de Lista</h3>
+                    <p>Vista de lista no implementada aún.</p>
+                </div>
+            )}
         </div>
     );
 };

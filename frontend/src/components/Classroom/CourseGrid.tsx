@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { CourseCard } from './CourseCard';
 
 export interface Course {

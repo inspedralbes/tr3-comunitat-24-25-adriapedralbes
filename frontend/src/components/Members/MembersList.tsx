@@ -28,7 +28,7 @@ export function MembersList({ members }: MembersListProps) {
 
     return (
         <div className="bg-[#1d1d1d] rounded-lg overflow-hidden">
-            {members.map((member, index) => (
+            {members.map((member) => (
                 <MemberCard key={member.id} member={member} />
             ))}
         </div>

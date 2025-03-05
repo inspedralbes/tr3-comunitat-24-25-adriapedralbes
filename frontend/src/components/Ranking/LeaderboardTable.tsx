@@ -1,5 +1,5 @@
-import React from 'react';
 import Image from 'next/image';
+import React from 'react';
 
 export interface LeaderboardUser {
     position: number;
@@ -39,9 +39,11 @@ export const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ title, users
                             {user.position}
                         </div>
                         <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20">
-                            <img
+                            <Image
                                 src={user.avatarUrl}
                                 alt={user.username}
+                                width={40}
+                                height={40}
                                 className="w-full h-full object-cover"
                             />
                         </div>

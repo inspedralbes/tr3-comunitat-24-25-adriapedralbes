@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { LucideIcon, User, Settings, LogOut } from "lucide-react";
+import Image from 'next/image';
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
 
@@ -20,9 +21,9 @@ interface NavBarProps {
 }
 
 export function NavBar({ items, className }: NavBarProps) {
-  // Encuentra el ítem activo por la propiedad 'active' en lugar de mantener estado local
-  const activeItem = items.find(item => item.active) || items[0];
-  const [isMobile, setIsMobile] = useState(false);
+  // Encuentra el ítem activo por la propiedad 'active'
+  const _activeItem = items.find(item => item.active) || items[0];
+  const [_isMobile, setIsMobile] = useState(false);
 
   // Estado para nuestro menú desplegable personalizado
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -81,6 +82,7 @@ export function NavBar({ items, className }: NavBarProps) {
                   ? "bg-[#323230]/80 text-white"
                   : "text-zinc-400 hover:text-zinc-200"
               )}
+              aria-current={isActive ? "page" : undefined}
             >
               <span className="hidden md:inline">{item.name}</span>
               <span className="md:hidden">
@@ -135,17 +137,22 @@ export function NavBar({ items, className }: NavBarProps) {
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center justify-center overflow-hidden rounded-full w-10 h-10 hover:ring-2 hover:ring-white/30 transition-all bg-[#323230] border border-white/10"
+            aria-haspopup="true"
+            aria-expanded={isDropdownOpen}
+            aria-label="User profile menu"
           >
-            <img
+            <Image
               src="https://github.com/shadcn.png"
               alt="Foto de perfil"
+              width={40}
+              height={40}
               className="w-full h-full object-cover"
             />
           </button>
 
           {/* Menú desplegable personalizado */}
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg shadow-lg bg-[#1d1d1b] border border-white/10 text-white z-50 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg shadow-lg bg-[#1d1d1b] border border-white/10 text-white z-50 overflow-hidden" role="menu">
               <div className="px-4 py-3 border-b border-white/10">
                 <p className="font-semibold text-white">Mi Cuenta</p>
               </div>
@@ -157,6 +164,7 @@ export function NavBar({ items, className }: NavBarProps) {
                     // Acción para Perfil
                     setIsDropdownOpen(false);
                   }}
+                  role="menuitem"
                 >
                   <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
@@ -168,6 +176,7 @@ export function NavBar({ items, className }: NavBarProps) {
                     // Acción para Configuración
                     setIsDropdownOpen(false);
                   }}
+                  role="menuitem"
                 >
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Configuración</span>
@@ -181,6 +190,7 @@ export function NavBar({ items, className }: NavBarProps) {
                     // Acción para Cerrar sesión
                     setIsDropdownOpen(false);
                   }}
+                  role="menuitem"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Cerrar sesión</span>

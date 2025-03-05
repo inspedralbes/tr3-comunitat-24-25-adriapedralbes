@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from 'react';
-import MainLayout from '@/components/layouts/MainLayout';
+
 import { Calendar } from '@/components/Calendar/Calendar';
 import { EventDetailModal } from '@/components/Calendar/EventDetailModel';
+import MainLayout from '@/components/layouts/MainLayout';
 import { mockEvents } from '@/mockData/calendarEvents';
 import { CalendarEvent } from '@/types/Calendar';
 

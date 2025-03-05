@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import { Check, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Check, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+
 import { CourseWithLessons, Lesson } from '@/types/Lesson';
 
 interface CourseDetailProps {
@@ -49,7 +50,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
     };
 
     // Navegar a la lección siguiente
-    const goToNextLesson = () => {
+    const _goToNextLesson = () => {
         const currentIndex = lessons.findIndex(lesson => lesson.id === activeLessonId);
         if (currentIndex < lessons.length - 1) {
             setActiveLessonId(lessons[currentIndex + 1].id);
@@ -57,10 +58,17 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
     };
 
     // Navegar a la lección anterior
-    const goToPrevLesson = () => {
+    const _goToPrevLesson = () => {
         const currentIndex = lessons.findIndex(lesson => lesson.id === activeLessonId);
         if (currentIndex > 0) {
             setActiveLessonId(lessons[currentIndex - 1].id);
+        }
+    };
+
+    const handleKeyDownClick = (e: React.KeyboardEvent, lessonId: string) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            changeLesson(lessonId);
         }
     };
 
@@ -101,6 +109,9 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                                 : 'hover:bg-[#323230] text-white/80'
                                 } transition-colors`}
                             onClick={() => changeLesson(lesson.id)}
+                            onKeyDown={(e) => handleKeyDownClick(e, lesson.id)}
+                            role="button"
+                            tabIndex={0}
                         >
                             <span>{lesson.title}</span>
                             {lesson.isCompleted && (
@@ -125,6 +136,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                             ? 'bg-green-500 text-white'
                             : 'bg-white/10 text-white/50 hover:bg-white/20'
                             }`}
+                        aria-label={activeLesson.isCompleted ? "Mark as incomplete" : "Mark as complete"}
                     >
                         <Check size={18} />
                     </button>

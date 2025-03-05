@@ -1,6 +1,6 @@
 import { User, Paperclip, Link2, Video, BarChart2, Smile } from 'lucide-react';
+// Image no se utiliza, se elimina
 import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 
 export const WritePostComponent: React.FC = () => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -8,6 +8,7 @@ export const WritePostComponent: React.FC = () => {
     const [postTitle, setPostTitle] = useState('');
     const [postContent, setPostContent] = useState('');
     const componentRef = useRef<HTMLDivElement>(null);
+    const titleInputRef = useRef<HTMLInputElement>(null);
 
     // Detectar si estamos en vista móvil
     useEffect(() => {
@@ -25,6 +26,13 @@ export const WritePostComponent: React.FC = () => {
             window.removeEventListener('resize', checkIfMobile);
         };
     }, []);
+
+    // Enfocar el input de título cuando se expande
+    useEffect(() => {
+        if (isExpanded && titleInputRef.current) {
+            titleInputRef.current.focus();
+        }
+    }, [isExpanded]);
 
     const handleExpand = () => {
         setIsExpanded(true);
@@ -55,12 +63,21 @@ export const WritePostComponent: React.FC = () => {
     // Manejar el envío del post
     const handleSubmit = () => {
         // Aquí iría la lógica para enviar el post
-        console.log("Post enviado:", { title: postTitle, content: postContent });
+        // Usando console.warn en lugar de console.log según las reglas de ESLint
+        console.warn("Post enviado:", { title: postTitle, content: postContent });
 
         // Limpiar el formulario y cerrar
         setPostTitle('');
         setPostContent('');
         setIsExpanded(false);
+    };
+
+    // Funciones para manejar eventos de teclado
+    const handleExpandKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleExpand();
+        }
     };
 
     // Clases personalizadas para la sombra (solo lados y abajo, no arriba)
@@ -73,6 +90,7 @@ export const WritePostComponent: React.FC = () => {
                 <div
                     className={`fixed inset-0 bg-black/60 z-30 ${isMobile ? 'pt-16' : 'pt-20'}`}
                     onClick={handleOverlayClick}
+                    role="presentation"
                 />
             )}
 
@@ -97,7 +115,9 @@ export const WritePostComponent: React.FC = () => {
                         <div className="flex-1">
                             <button
                                 onClick={handleExpand}
+                                onKeyDown={handleExpandKeyDown}
                                 className="w-full text-left text-zinc-300 px-4 py-2 bg-[#444442] rounded-lg hover:bg-[#505050] transition-colors border border-white/5"
+                                aria-label="Write a post"
                             >
                                 Write something
                             </button>
@@ -113,8 +133,7 @@ export const WritePostComponent: React.FC = () => {
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
                                     1
-                                </div>
-                            </div>
+                                </div></div>
                             <div className="text-sm text-zinc-300">
                                 Ad EstMarq posting in <span className="text-white">DevAccelerator</span>
                             </div>
@@ -123,12 +142,12 @@ export const WritePostComponent: React.FC = () => {
                         {/* Campo de título */}
                         <div className="mb-4">
                             <input
+                                ref={titleInputRef}
                                 type="text"
                                 placeholder="Title"
                                 value={postTitle}
                                 onChange={(e) => setPostTitle(e.target.value)}
                                 className="w-full bg-transparent text-xl font-medium text-white border-none outline-none placeholder-zinc-500"
-                                autoFocus
                             />
                         </div>
 
@@ -145,29 +164,51 @@ export const WritePostComponent: React.FC = () => {
                         {/* Barra de herramientas */}
                         <div className="flex flex-wrap items-center">
                             <div className="flex flex-wrap space-x-2 mb-2 sm:mb-0">
-                                <button className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5">
+                                <button
+                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
+                                    aria-label="Attach file"
+                                >
                                     <Paperclip size={20} />
                                 </button>
-                                <button className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5">
+                                <button
+                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
+                                    aria-label="Add link"
+                                >
                                     <Link2 size={20} />
                                 </button>
-                                <button className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5">
+                                <button
+                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
+                                    aria-label="Add video"
+                                >
                                     <Video size={20} />
                                 </button>
-                                <button className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5">
+                                <button
+                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
+                                    aria-label="Add chart"
+                                >
                                     <BarChart2 size={20} />
                                 </button>
-                                <button className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5">
+                                <button
+                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
+                                    aria-label="Add emoji"
+                                >
                                     <Smile size={20} />
                                 </button>
-                                <button className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5">
+                                <button
+                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
+                                    aria-label="Add GIF"
+                                >
                                     <span className="font-bold">GIF</span>
                                 </button>
                             </div>
 
                             <div className="ml-auto flex flex-wrap items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                                 <div className="relative">
-                                    <button className="px-3 py-1.5 text-zinc-300 bg-[#444442] rounded-lg flex items-center gap-2 text-sm border border-white/5">
+                                    <button
+                                        className="px-3 py-1.5 text-zinc-300 bg-[#444442] rounded-lg flex items-center gap-2 text-sm border border-white/5"
+                                        aria-haspopup="listbox"
+                                        aria-expanded="false"
+                                    >
                                         Select a category <span className="ml-1">▼</span>
                                     </button>
                                 </div>

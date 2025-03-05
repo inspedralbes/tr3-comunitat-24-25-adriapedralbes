@@ -1,0 +1,138 @@
+2025-03-05T23:13:55Z INF Traefik version 3.3.3 built on 2025-01-31T14:55:01Z version=3.3.3
+2025-03-05T23:13:55Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-03-05T23:13:55Z ERR The ACME resolve is skipped from the resolvers list error="unable to get ACME account: permissions 755 for /acme.json are too open, please use 600" resolver=letsencrypt
+2025-03-05T23:13:55Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-03-05T23:13:55Z INF Starting provider *file.Provider
+2025-03-05T23:13:55Z INF Starting provider *traefik.Provider
+2025-03-05T23:13:55Z INF Starting provider *acme.ChallengeTLSALPN
+2025-03-05T23:13:55Z INF Starting provider *docker.Provider
+2025-03-05T23:13:55Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:13:55Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:13:55Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:13:55Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=adminer@docker
+2025-03-05T23:13:55Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=django@docker
+2025-03-05T23:13:57Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:13:57Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=django@docker
+2025-03-05T23:13:57Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nextjs@docker
+2025-03-05T23:13:57Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nginx@docker
+2025-03-05T23:13:57Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:13:57Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=adminer@docker
+2025-03-05T23:14:01Z INF I have to go...
+2025-03-05T23:14:01Z INF Stopping server gracefully
+2025-03-05T23:14:01Z ERR error="accept tcp [::]:443: use of closed network connection" entryPointName=websecure
+2025-03-05T23:14:01Z ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=web
+2025-03-05T23:14:01Z ERR Error while starting server error="accept tcp [::]:443: use of closed network connection" entryPointName=websecure
+2025-03-05T23:14:01Z ERR error="close tcp [::]:443: use of closed network connection" entryPointName=websecure
+2025-03-05T23:14:01Z ERR error="close tcp [::]:80: use of closed network connection" entryPointName=web
+2025-03-05T23:14:01Z INF Server stopped
+2025-03-05T23:14:01Z INF Shutting down
+2025-03-05T23:14:12Z INF Traefik version 3.3.3 built on 2025-01-31T14:55:01Z version=3.3.3
+2025-03-05T23:14:12Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-03-05T23:14:12Z ERR The ACME resolve is skipped from the resolvers list error="unable to get ACME account: permissions 755 for /acme.json are too open, please use 600" resolver=letsencrypt
+2025-03-05T23:14:12Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-03-05T23:14:12Z INF Starting provider *file.Provider
+2025-03-05T23:14:12Z INF Starting provider *traefik.Provider
+2025-03-05T23:14:13Z INF Starting provider *acme.ChallengeTLSALPN
+2025-03-05T23:14:13Z INF Starting provider *docker.Provider
+2025-03-05T23:14:13Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:14:13Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:14:13Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:14:15Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:14:15Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nextjs@docker
+2025-03-05T23:14:15Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nginx@docker
+2025-03-05T23:14:15Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:14:15Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=adminer@docker
+2025-03-05T23:14:15Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=django@docker
+2025-03-05T23:14:23Z ERR error="service \"nextjs\" error: unable to find the IP address for the container \"/nextjs-app-prod\": the server is ignored" container=nextjs-tr3-comunitat-24-25-adriapedralbes-1e3806301b8336983c915d64a901163a3c8d6ca87dbfbbae9369921cc29ede77 providerName=docker
+2025-03-05T23:14:26Z ERR error="service \"nextjs\" error: unable to find the IP address for the container \"/nextjs-app-prod\": the server is ignored" container=nextjs-tr3-comunitat-24-25-adriapedralbes-1e3806301b8336983c915d64a901163a3c8d6ca87dbfbbae9369921cc29ede77 providerName=docker
+2025-03-05T23:14:26Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:14:26Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:14:26Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=adminer@docker
+2025-03-05T23:14:26Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=django@docker
+2025-03-05T23:14:26Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nginx@docker
+2025-03-05T23:14:28Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:14:28Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=django@docker
+2025-03-05T23:14:28Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nextjs@docker
+2025-03-05T23:14:28Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nginx@docker
+2025-03-05T23:14:28Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:14:28Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=adminer@docker
+2025-03-05T23:14:30Z ERR error="service \"nextjs\" error: unable to find the IP address for the container \"/nextjs-app-prod\": the server is ignored" container=nextjs-tr3-comunitat-24-25-adriapedralbes-1e3806301b8336983c915d64a901163a3c8d6ca87dbfbbae9369921cc29ede77 providerName=docker
+2025-03-05T23:14:30Z ERR error="service \"nextjs\" error: unable to find the IP address for the container \"/nextjs-app-prod\": the server is ignored" container=nextjs-tr3-comunitat-24-25-adriapedralbes-1e3806301b8336983c915d64a901163a3c8d6ca87dbfbbae9369921cc29ede77 providerName=docker
+2025-03-05T23:14:34Z ERR error="service \"nextjs\" error: unable to find the IP address for the container \"/nextjs-app-prod\": the server is ignored" container=nextjs-tr3-comunitat-24-25-adriapedralbes-1e3806301b8336983c915d64a901163a3c8d6ca87dbfbbae9369921cc29ede77 providerName=docker
+2025-03-05T23:14:34Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:14:34Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nginx@docker
+2025-03-05T23:14:34Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:14:34Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=adminer@docker
+2025-03-05T23:14:34Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=django@docker
+2025-03-05T23:14:36Z INF I have to go...
+2025-03-05T23:14:36Z INF Stopping server gracefully
+2025-03-05T23:14:36Z ERR error="accept tcp [::]:443: use of closed network connection" entryPointName=websecure
+2025-03-05T23:14:36Z ERR Error while starting server error="accept tcp [::]:443: use of closed network connection" entryPointName=websecure
+2025-03-05T23:14:36Z ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=web
+2025-03-05T23:14:36Z ERR Error while starting server error="accept tcp [::]:80: use of closed network connection" entryPointName=web
+2025-03-05T23:14:36Z INF Server stopped
+2025-03-05T23:14:36Z INF Shutting down
+2025-03-05T23:16:17Z INF Traefik version 3.3.3 built on 2025-01-31T14:55:01Z version=3.3.3
+2025-03-05T23:16:17Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-03-05T23:16:17Z ERR The ACME resolve is skipped from the resolvers list error="unable to get ACME account: permissions 755 for /acme.json are too open, please use 600" resolver=letsencrypt
+2025-03-05T23:16:17Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-03-05T23:16:17Z INF Starting provider *file.Provider
+2025-03-05T23:16:17Z INF Starting provider *traefik.Provider
+2025-03-05T23:16:17Z INF Starting provider *acme.ChallengeTLSALPN
+2025-03-05T23:16:17Z INF Starting provider *docker.Provider
+2025-03-05T23:16:17Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:16:17Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:16:17Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=adminer@docker
+2025-03-05T23:16:17Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=django@docker
+2025-03-05T23:16:17Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nextjs@docker
+2025-03-05T23:16:17Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nginx@docker
+2025-03-05T23:16:17Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:16:19Z INF I have to go...
+2025-03-05T23:16:19Z INF Stopping server gracefully
+2025-03-05T23:16:19Z ERR error="accept tcp [::]:443: use of closed network connection" entryPointName=websecure
+2025-03-05T23:16:19Z ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=web
+2025-03-05T23:16:19Z ERR error="close tcp [::]:80: use of closed network connection" entryPointName=web
+2025-03-05T23:16:19Z ERR error="close tcp [::]:443: use of closed network connection" entryPointName=websecure
+2025-03-05T23:16:19Z INF Server stopped
+2025-03-05T23:16:19Z INF Shutting down
+2025-03-05T23:16:50Z INF Traefik version 3.3.3 built on 2025-01-31T14:55:01Z version=3.3.3
+2025-03-05T23:16:50Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-03-05T23:16:50Z ERR The ACME resolve is skipped from the resolvers list error="unable to get ACME account: permissions 755 for /acme.json are too open, please use 600" resolver=letsencrypt
+2025-03-05T23:16:50Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-03-05T23:16:50Z INF Starting provider *file.Provider
+2025-03-05T23:16:50Z INF Starting provider *traefik.Provider
+2025-03-05T23:16:50Z INF Starting provider *docker.Provider
+2025-03-05T23:16:50Z INF Starting provider *acme.ChallengeTLSALPN
+2025-03-05T23:16:51Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:16:51Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:16:51Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:16:53Z ERR error="HTTP challenge is not enabled" entryPointName=web routerName=acme-http@internal
+2025-03-05T23:16:53Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nginx@docker
+2025-03-05T23:16:53Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=traefik-dashboard@docker
+2025-03-05T23:16:53Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=adminer@docker
+2025-03-05T23:16:53Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=django@docker
+2025-03-05T23:16:53Z ERR Router uses a nonexistent certificate resolver certificateResolver=letsencrypt routerName=nextjs@docker
+2025-03-05T23:16:56Z INF I have to go...
+2025-03-05T23:16:56Z INF Stopping server gracefully
+2025-03-05T23:16:56Z ERR error="accept tcp [::]:443: use of closed network connection" entryPointName=websecure
+2025-03-05T23:16:56Z ERR Error while starting server error="accept tcp [::]:443: use of closed network connection" entryPointName=websecure
+2025-03-05T23:16:56Z ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=web
+2025-03-05T23:16:56Z ERR error="close tcp [::]:80: use of closed network connection" entryPointName=web
+2025-03-05T23:16:56Z INF Server stopped
+2025-03-05T23:16:56Z INF Shutting down

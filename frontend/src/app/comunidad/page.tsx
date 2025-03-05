@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from 'react';
-import MainLayout from '@/components/layouts/MainLayout';
-import { WritePostComponent } from "@/components/Community/Posts/WritePostComponent";
+
 import { CategoryFilter } from "@/components/Community/CategoryFilter";
-import { PinnedPostsSection } from "@/components/Community/Posts/PinnedPostsSection";
-import { PostFeed } from "@/components/Community/Posts/PostFeed";
 import { LeaderboardWidget } from "@/components/Community/LeaderboardWidget";
+import { PinnedPostsSection } from "@/components/Community/Posts/PinnedPostsSection";
 import { PostDetailModal } from "@/components/Community/Posts/PostDetailModal";
-import { pinnedPosts, regularPosts } from "@/mockData/mockData";
+import { PostFeed } from "@/components/Community/Posts/PostFeed";
+import { WritePostComponent } from "@/components/Community/Posts/WritePostComponent";
+import MainLayout from '@/components/layouts/MainLayout';
 import { topUsers } from "@/leaderboardData";
+import { pinnedPosts, regularPosts } from "@/mockData/mockData";
 import { Post } from "@/types/Post";
 
 export default function CommunityPage() {

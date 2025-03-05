@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from 'react';
-import MainLayout from '@/components/layouts/MainLayout';
-import { CourseGrid, Course } from '@/components/Classroom/CourseGrid';
+
+import { CourseGrid } from '@/components/Classroom/CourseGrid';
 import { CourseDetail } from '@/components/Classroom/Courses/CourseDetail';
+import MainLayout from '@/components/layouts/MainLayout';
 import { mockCourses, mockCoursesWithLessons } from '@/mockData/mockCoursesData';
 import { CourseWithLessons } from '@/types/Lesson';
 

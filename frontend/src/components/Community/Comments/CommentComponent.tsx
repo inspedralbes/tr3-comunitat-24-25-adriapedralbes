@@ -1,6 +1,6 @@
-import React from 'react';
 import { ThumbsUp, Reply } from 'lucide-react';
 import Image from 'next/image';
+import React from 'react';
 
 interface CommentComponentProps {
     username: string;
@@ -19,7 +19,7 @@ export const CommentComponent: React.FC<CommentComponentProps> = ({
     content,
     level,
     avatarUrl,
-    likes,
+    likes: _likesCount, // Renombramos con guion bajo para indicar que no se usa
     onReply,
     onLike
 }) => {
@@ -65,12 +65,14 @@ export const CommentComponent: React.FC<CommentComponentProps> = ({
                         <button
                             className="flex items-center text-zinc-400 hover:text-zinc-300"
                             onClick={onLike}
+                            aria-label={`Like comment from ${username}`}
                         >
                             <ThumbsUp size={16} className="mr-1" />
                         </button>
                         <button
                             className="flex items-center text-zinc-400 hover:text-zinc-300"
                             onClick={onReply}
+                            aria-label={`Reply to ${username}`}
                         >
                             <Reply size={16} className="mr-1" /> Reply
                         </button>

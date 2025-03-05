@@ -1,12 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
 import { ThumbsUp, MessageCircle, Bell, Smile, CornerUpRight } from 'lucide-react';
 import Image from 'next/image';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
-import { Post } from '@/types/Post';
-import { Comment } from '@/types/Comment';
 import { UserBadge } from '@/components/Community/UserBadge';
 import { Button } from '@/components/ui/button';
 import { commentsByPostId } from '@/mockData/mockComments';
+import { Comment } from '@/types/Comment';
+import { Post } from '@/types/Post';
 
 interface PostDetailModalProps {
     post: Post | null;
@@ -45,15 +45,15 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const [comments, setComments] = useState<EnhancedComment[]>([]);
 
     // Array plano de todos los comentarios/respuestas para búsqueda fácil
-    const [allComments, setAllComments] = useState<{ [key: string]: EnhancedComment }>({});
+    const [_allComments, setAllComments] = useState<{ [key: string]: EnhancedComment }>({});
 
     // Función para confirmar salida si hay comentario pendiente
-    const confirmDiscardComment = (): boolean => {
+    const confirmDiscardComment = useCallback((): boolean => {
         if (comment.trim() !== '') {
             return window.confirm("Aún no has terminado tu comentario. ¿Quieres irte sin terminar?");
         }
         return true;
-    };
+    }, [comment]);
 
     // Close on click outside
     useEffect(() => {
@@ -74,7 +74,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isOpen, onClose, comment]);
+    }, [isOpen, onClose, comment, confirmDiscardComment]);
 
     // Close on escape key
     useEffect(() => {
@@ -94,7 +94,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         return () => {
             document.removeEventListener('keydown', handleEscapeKey);
         };
-    }, [isOpen, onClose, comment]);
+    }, [isOpen, onClose, comment, confirmDiscardComment]);
 
     // Handle like action
     const handleLike = () => {
@@ -336,6 +336,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             <div className="flex items-center gap-1">
                                 <button
                                     className="p-1 rounded-full text-zinc-400 hover:text-zinc-300"
+                                    aria-label={`Like comment from ${comment.author.username}`}
                                 >
                                     <ThumbsUp size={14} />
                                 </button>
@@ -353,6 +354,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     nestingLevel,
                                     comment.parentCommentId
                                 )}
+                                aria-label={`Reply to ${comment.author.username}`}
                             >
                                 <CornerUpRight size={14} />
                                 Reply
@@ -399,6 +401,9 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
             <div
                 ref={modalRef}
                 className="bg-[#1f1f1e] w-full max-w-3xl mx-4 rounded-lg border border-white/10 shadow-xl"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="post-detail-title"
             >
                 {/* Header */}
                 <div className="flex justify-between items-center px-5 py-2.5 border-b border-white/10">
@@ -411,6 +416,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     <button
                         onClick={onClose}
                         className="text-zinc-400 hover:text-white text-xl"
+                        aria-label="Close dialog"
                     >
                         &times;
                     </button>
@@ -436,10 +442,10 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     {isReply ? (
                         <div className="mt-2 mb-1 font-medium flex items-center">
                             <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                            <h2 className="text-white text-lg">{title}</h2>
+                            <h2 id="post-detail-title" className="text-white text-lg">{title}</h2>
                         </div>
                     ) : (
-                        <h2 className="mt-2 mb-1 font-medium text-white text-lg">{title}</h2>
+                        <h2 id="post-detail-title" className="mt-2 mb-1 font-medium text-white text-lg">{title}</h2>
                     )}
 
                     {/* Body */}
@@ -466,13 +472,18 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             <button
                                 className={`p-1 rounded-full ${liked ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-[#444442]'}`}
                                 onClick={handleLike}
+                                aria-label={liked ? "Unlike post" : "Like post"}
+                                aria-pressed={liked}
                             >
                                 <ThumbsUp size={16} />
                             </button>
                             <span className="text-sm">{likesCount}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                            <button className="p-1 hover:bg-[#444442] rounded-full">
+                            <button
+                                className="p-1 hover:bg-[#444442] rounded-full"
+                                aria-label="View comments"
+                            >
                                 <MessageCircle size={16} />
                             </button>
                             <span className="text-sm">{post.comments}</span>
@@ -524,6 +535,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                         <button
                                             onClick={cancelReply}
                                             className="text-zinc-400 hover:text-zinc-300 ml-2"
+                                            aria-label="Cancel reply"
                                         >
                                             ×
                                         </button>
@@ -543,6 +555,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                                 lastRespondedComment.parentCommentId
                                             )}
                                             className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                            aria-label={`Reply again to ${lastRespondedComment.username}`}
                                         >
                                             <CornerUpRight size={14} />
                                             Responder de nuevo a {lastRespondedComment.username}
@@ -558,12 +571,19 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                         onChange={(e) => setComment(e.target.value)}
                                         placeholder="Your comment"
                                         className="flex-1 bg-transparent text-zinc-200 outline-none px-3 py-1.5 text-sm rounded-full"
+                                        aria-label="Write a comment"
                                     />
                                     <div className="flex items-center mr-3 space-x-1">
-                                        <button className="p-1 text-zinc-500 hover:text-zinc-300">
+                                        <button
+                                            className="p-1 text-zinc-500 hover:text-zinc-300"
+                                            aria-label="Add GIF"
+                                        >
                                             <span className="text-xs font-bold">GIF</span>
                                         </button>
-                                        <button className="p-1 text-zinc-500 hover:text-zinc-300">
+                                        <button
+                                            className="p-1 text-zinc-500 hover:text-zinc-300"
+                                            aria-label="Add emoji"
+                                        >
                                             <Smile size={16} />
                                         </button>
                                     </div>

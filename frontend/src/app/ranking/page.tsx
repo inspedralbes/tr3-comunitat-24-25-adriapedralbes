@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
+
 import MainLayout from '@/components/layouts/MainLayout';
-import { ProfileLevelComponent } from '@/components/Ranking/ProfileLevelComponent';
 import { LeaderboardTable } from '@/components/Ranking/LeaderboardTable';
+import { ProfileLevelComponent } from '@/components/Ranking/ProfileLevelComponent';
 import { weeklyUsers, monthlyUsers, allTimeUsers, userProfile } from '@/mockData/leaderboardsData';
 
 export default function RankingPage() {

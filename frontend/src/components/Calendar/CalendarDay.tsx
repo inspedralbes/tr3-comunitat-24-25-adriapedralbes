@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { CalendarDay as CalendarDayType, CalendarEvent } from '@/types/Calendar';
+
 import { CalendarEvent as CalendarEventComponent } from './CalendarEvent';
 
 interface CalendarDayProps {

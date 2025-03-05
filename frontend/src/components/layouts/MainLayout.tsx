@@ -1,8 +1,9 @@
 "use client";
 
-import React, { ReactNode } from 'react';
-import { NavBar } from "@/components/ui/Community/tubelight-navbar";
 import { Users, GraduationCap, Calendar, User, Trophy, Info } from "lucide-react";
+import React, { ReactNode } from 'react';
+
+import { NavBar } from "@/components/ui/Community/tubelight-navbar";
 
 interface MainLayoutProps {
     children: ReactNode;
