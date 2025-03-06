@@ -14,9 +14,29 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+# urls.py en la carpeta config
 from django.contrib import admin
 from django.urls import path
+from django.http import HttpResponse
+
+def index(request):
+    return HttpResponse("""
+    <html>
+        <head>
+            <title>API de FuturPrivé</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                h1 { color: #333; }
+            </style>
+        </head>
+        <body>
+            <h1>API de FuturPrivé</h1>
+            <p>La API está funcionando correctamente.</p>
+        </body>
+    </html>
+    """)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', index),
 ]
