@@ -38,9 +38,9 @@ export default function Home() {
 
           {/* Subtitle */}
           <p className="mb-8 text-lg text-gray-400">
-            ¿Listo para impulsar tu proyecto con tecnología?
+            ¿Cansado de pagar por tecnología que nadie usa en tu empresa?
             <br />
-            Agenda tu consultoría gratuita ahora y te mostraremos cómo.
+            Agenda tu consultoría gratuita y descubre lo que los gurús tecnológicos no quieren que sepas.
           </p>
 
           {/* CTA Button */}
@@ -50,7 +50,7 @@ export default function Home() {
             className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
             asChild
           >
-            <Link href="/comunidad">
+            <Link href="https://cal.com/futurprive/consultoria-gratis">
               Agenda tu Consultoría Gratuita Ahora
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -72,10 +72,9 @@ export default function Home() {
             Nuestros Servicios
           </h1>
           <p className="mt-5 text-lg text-gray-400">
-            Acompañamos a tu proyecto en la implementación, desarrollo de
-            tecnologías IA y soluciones de automatización, <br />
-            asegurando una transición fluida desde inicio hasta el despliegue y
-            el logro de resultados tangibles.
+            Te voy a contar un secreto: el 87% de las implementaciones de IA fracasan.
+            ¿Por qué? Porque la mayoría de expertos venden soluciones genéricas para problemas específicos. <br />
+            Nosotros hacemos justo lo contrario: diseñamos tecnología que se adapta a TU negocio, no al revés.
           </p>
         </div>
         <BentoDemo />
@@ -89,9 +88,9 @@ export default function Home() {
             en 3 pasos
           </h1>
           <p className="mt-5 text-lg text-gray-400">
-            Agenda tu llamada, obten recomendación y recibe tu solución.
+            ¿Sabes qué es peor que no tener IA? Implementarla mal y tirar tu dinero.
             <br />
-            Nuestro equipo de expertos te acompañará en cada paso.
+            Nuestro equipo habla tu idioma, no tecnicismos que nadie entiende.
           </p>
         </div>
         <MagicCardDemo />

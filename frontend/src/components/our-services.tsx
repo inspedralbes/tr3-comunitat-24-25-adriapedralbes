@@ -35,9 +35,9 @@ const features = [
   {
     Icon: FileTextIcon,
     name: "Aprendizaje Automático",
-    description: "Sistemas de aprendizaje automático personalizados.",
+    description: "Sistemas que no solo recopilan datos, sino que los convierten en decisiones rentables. Así de simple.",
     href: "#",
-    cta: "Learn more",
+    cta: "Ver más",
     className: "col-span-3 lg:col-span-1",
     background: (
       <Marquee
@@ -69,10 +69,10 @@ const features = [
   },
   {
     Icon: BellIcon,
-    name: "Notificaciones",
-    description: "Automatiza notificaciones en tiempo real.",
+    name: "Notificaciones Inteligentes",
+    description: "Automatizamos alertas que te avisan solo de lo importante. Nada de interrupciones inútiles que roban tu tiempo.",
     href: "#",
-    cta: "Learn more",
+    cta: "Ver más",
     className: "col-span-3 lg:col-span-2",
     background: (
       <AnimatedListDemo className="absolute right-2 top-4 h-[300px] w-full scale-75 border-none transition-all duration-300 ease-out [mask-image:linear-gradient(to_top,transparent_10%,#000_100%)] group-hover:scale-90" />
@@ -81,9 +81,9 @@ const features = [
   {
     Icon: Share2Icon,
     name: "Integraciones",
-    description: "Conecta +100 integraciones y sigue aumentando.",
+    description: "Conectamos tus herramientas favoritas para que trabajen juntas. Como un equipo bien pagado, pero sin vacaciones ni quejas.",
     href: "#",
-    cta: "Learn more",
+    cta: "Ver más",
     className: "col-span-3 lg:col-span-2",
     background: (
       <AnimatedBeamMultipleOutputDemo className="absolute right-2 top-4 h-[300px] border-none transition-all duration-300 ease-out [mask-image:linear-gradient(to_top,transparent_10%,#000_100%)] group-hover:scale-105" />
@@ -92,10 +92,10 @@ const features = [
   {
     Icon: CalendarIcon,
     name: "Calendario",
-    description: "Automatiza tus citas y eventos.",
+    description: "Automatiza tus citas mientras duermes. Deja que la IA negocie por ti mientras disfrutas de ese café.",
     className: "col-span-3 lg:col-span-1",
     href: "#",
-    cta: "Learn more",
+    cta: "Ver más",
     background: (
       <Calendar
         mode="single"

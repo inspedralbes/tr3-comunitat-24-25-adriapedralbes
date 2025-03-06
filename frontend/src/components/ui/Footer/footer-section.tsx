@@ -26,8 +26,7 @@ function Footerdemo() {
               Mantente Conectado
             </h2>
             <p className="mb-6 text-muted-foreground">
-              Únete a nuestro boletín para recibir las últimas actualizaciones y
-              ofertas exclusivas.
+              Únete a los que YA están automatizando su camino al éxito. Recibe estrategias exclusivas que no compartimos en público.
             </p>
             <form className="relative">
               <Input
