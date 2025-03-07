@@ -9,6 +9,7 @@ import { BentoDemo } from "@/components/our-services";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 import { Button } from "@/components/ui/button";
 import { VideoPresentation } from "@/components/video-presentation";
+import { MarqueeDemo } from "@/components/testimonials";
 
 export default function Home() {
   return (
@@ -26,7 +27,7 @@ export default function Home() {
         <div className="mx-auto max-w-4xl">
           {/* Badge */}
           <div className="flex justify-center mb-3">
-            <DialogNewsletter />
+            {/* <DialogNewsletter /> */}
           </div>
           {/* Heading */}
           <h1 className="mb-6 text-5xl font-bold tracking-tight lg:text-5xl">
@@ -55,17 +56,18 @@ export default function Home() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          {/* Dashboard Preview */}
-          <div className="relative mt-16">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-[500px] w-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-[100px]" />
-            </div>
-            {/* Añadir aqui */}
-            <VideoPresentation />
-          </div>
         </div>
       </main>
-      <section className="mx-auto max-w-[1400px] text-center">
+
+      {/* Testimonials section con transición suave desde el main, ocupando todo el ancho */}
+      <section className="relative w-full overflow-hidden -mt-12 md:-mt-16 bg-[#0a0a0a]">
+        <div className="absolute inset-0 flex items-center justify-center -z-10">
+          <div className="h-full w-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-[120px]" />
+        </div>
+        <MarqueeDemo />
+      </section>
+
+      <section className="mx-auto max-w-[1400px] text-center pt-16">
         <AnimatedButton>Tendencias</AnimatedButton>
         <div>
           <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-5xl">
