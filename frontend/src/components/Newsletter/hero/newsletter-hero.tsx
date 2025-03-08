@@ -11,6 +11,55 @@ export function NewsletterHero() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [accepted, setAccepted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    
+    if (!email) {
+      setErrorMessage("Por favor, introduce tu email");
+      return;
+    }
+    
+    if (!accepted) {
+      setErrorMessage("Debes aceptar la política de privacidad");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch("http://localhost:8000/api/newsletter/subscribe/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setIsSuccess(true);
+        setName("");
+        setEmail("");
+        setAccepted(false);
+      } else {
+        setErrorMessage(data.message || "Ha ocurrido un error. Por favor, inténtalo de nuevo.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setErrorMessage("Ha ocurrido un error. Por favor, inténtalo de nuevo.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <section id="newsletter-form" className="relative min-h-[600px] flex items-center justify-center overflow-hidden pb-24">
@@ -37,6 +86,12 @@ export function NewsletterHero() {
         {/* Subscription Form */}
         <div className="bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 max-w-xl mx-auto space-y-4">
           <NewsletterAvatarCircles />
+          
+          {errorMessage && (
+            <div className="text-red-400 bg-red-500/20 p-3 rounded-lg text-sm text-center">
+              {errorMessage}
+            </div>
+          )}
           
           <Input 
             type="text" 
@@ -68,9 +123,19 @@ export function NewsletterHero() {
           </div>
           
           <div className="pt-2">
-            <RainbowButtonDemo>
-              UNIRME AHORA GRATIS
-            </RainbowButtonDemo>
+            {isSuccess ? (
+              <div className="text-green-400 bg-green-400/20 p-4 rounded-lg">
+                <p>¡Gracias por suscribirte! Por favor, revisa tu correo para confirmar tu suscripción.</p>
+              </div>
+            ) : (
+              <RainbowButtonDemo 
+                onClick={handleSubmit} 
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                {isSubmitting ? "ENVIANDO..." : "UNIRME AHORA GRATIS"}
+              </RainbowButtonDemo>
+            )}
           </div>
         </div>
       </div>
