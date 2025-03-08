@@ -18,7 +18,8 @@ export default function Home() {
       {/* Navigation */}
       <nav className="flex items-center justify-between px-6 py-4 lg:px-8">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-xl font-semibold">
+          <Link href="/" className="flex items-center gap-2 text-xl font-semibold">
+            <img src="/logo_futurprive_sinfondo.png" alt="FuturPrive Logo" className="h-8 w-auto" />
             FuturPrive
           </Link>
         </div>

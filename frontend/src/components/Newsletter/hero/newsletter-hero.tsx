@@ -28,6 +28,9 @@ export function NewsletterHero() {
 
       {/* Contenido */}
       <div className="relative z-20 text-center px-4 max-w-3xl mx-auto">
+        <div className="flex justify-center mb-4">
+          <img src="/logo_futurprive_sinfondo.png" alt="FuturPrive Logo" className="h-24 w-auto" />
+        </div>
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
           Newsletter <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">FuturPrive</span>
         </h1>
