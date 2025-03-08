@@ -157,7 +157,7 @@ export function MarqueeDemo() {
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden py-4">
             {/* Title para introducir las testimoniales */}
             <div className="text-center mb-4 mt-0 w-full px-4">
-                <h2 className="text-2xl md:text-3xl font-bold mb-0">Resultados reales</h2>
+                <h2 className="text-2xl md:text-3xl font-bold">Resultados reales</h2>
             </div>
 
             {/* Container que ocupa todo el ancho */}
