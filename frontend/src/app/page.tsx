@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { AnimatedButton } from "@/components/animatedButton";
+import { AvatarCirclesDemo } from "@/components/avatarCircles";
 import { DialogNewsletter } from "@/components/dialogButton";
 import { Footer } from "@/components/footer-component";
 import { MagicCardDemo } from "@/components/magicCard";
@@ -26,8 +27,12 @@ export default function Home() {
       <main className="relative px-6 py-16 text-center lg:px-8 lg:py-24">
         <div className="mx-auto max-w-4xl">
           {/* Badge */}
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center mb-8">
             {/* <DialogNewsletter /> */}
+            <div className="flex flex-col items-center space-y-2">
+              <AvatarCirclesDemo />
+              <p className="text-purple-400 font-semibold text-sm">+100 empresas transformadas</p>
+            </div>
           </div>
           {/* Heading */}
           <h1 className="mb-6 text-5xl font-bold tracking-tight lg:text-5xl">
@@ -37,11 +42,9 @@ export default function Home() {
             </span>
           </h1>
 
-          {/* Subtitle */}
+          {/* Subtitle - Simplificado */}
           <p className="mb-8 text-lg text-gray-400">
-            ¿Listo para impulsar tu proyecto con tecnología?
-            <br />
-            Agenda tu consultoría gratuita ahora y te mostraremos cómo.
+            Agenda tu consultoría gratuita y descubre cómo impulsar tu negocio
           </p>
 
           {/* CTA Button */}
@@ -51,7 +54,7 @@ export default function Home() {
             className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
             asChild
           >
-            <Link href="/comunidad">
+            <Link href="https://cal.com/futurprive/consultoria-gratis">
               Agenda tu Consultoría Gratuita Ahora
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -64,7 +67,12 @@ export default function Home() {
         <div className="absolute inset-0 flex items-center justify-center -z-10">
           <div className="h-full w-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-[120px]" />
         </div>
-        <MarqueeDemo />
+        <div className="text-center pb-0 mb-0 mt-8">
+          <AnimatedButton>Testimonios</AnimatedButton>
+        </div>
+        <div className="mt-[-20px]">
+          <MarqueeDemo />
+        </div>
       </section>
 
       <section className="mx-auto max-w-[1400px] text-center pt-16">
@@ -98,9 +106,11 @@ export default function Home() {
         </div>
         <MagicCardDemo />
         <div className="mt-14">
-          <RainbowButtonDemo>
-            Agenda tu Consultoría Gratuita Ahora
-          </RainbowButtonDemo>
+          <Link href="https://cal.com/futurprive/consultoria-gratis" className="block">
+            <RainbowButtonDemo>
+              Agenda tu Consultoría Gratuita Ahora
+            </RainbowButtonDemo>
+          </Link>
         </div>
       </section>
       <section>
