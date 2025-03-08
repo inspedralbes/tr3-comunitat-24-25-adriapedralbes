@@ -14,19 +14,19 @@ export function NewsletterGifts() {
           <div className="md:w-1/2">
             <div className="relative max-w-md mx-auto md:mx-0">
               {/* Efecto de luz detrás de las cards */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#C9A880]/30 rounded-full blur-3xl"></div>
 
               {/* Cards de regalos */}
               <div className="relative">
                 <div className="flex -space-x-6 transform rotate-[-8deg]">
-                  <Card className="w-44 h-64 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[-2deg] transition-transform">
+                  <Card className="w-44 h-64 bg-gradient-to-br from-[#C9A880] to-[#A78355] rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[-2deg] transition-transform">
                     <div className="text-center">
                       <div className="text-4xl mb-2">🤖</div>
                       <div className="font-bold">+5000 HERRAMIENTAS IA PARA 40+ SECTORES</div>
                     </div>
                   </Card>
 
-                  <Card className="w-44 h-64 bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[2deg] transition-transform z-10">
+                  <Card className="w-44 h-64 bg-gradient-to-br from-[#C9A880] to-[#A78355] rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[2deg] transition-transform z-10">
                     <div className="text-center">
                       <div className="text-4xl mb-2">💬</div>
                       <div className="font-bold">+300 PROMPTS PARA MASTERIZAR CHATGPT</div>
@@ -35,14 +35,14 @@ export function NewsletterGifts() {
                 </div>
 
                 <div className="flex -space-x-6 -mt-16 transform rotate-[5deg] z-20">
-                  <Card className="w-44 h-64 bg-gradient-to-br from-green-700 to-green-900 rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[-2deg] transition-transform z-20">
+                  <Card className="w-44 h-64 bg-gradient-to-br from-[#C9A880] to-[#A78355] rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[-2deg] transition-transform z-20">
                     <div className="text-center">
                       <div className="text-4xl mb-2">💰</div>
                       <div className="font-bold">IDEAS PARA GANAR DINERO CON CHATGPT</div>
                     </div>
                   </Card>
 
-                  <Card className="w-44 h-64 bg-gradient-to-br from-indigo-800 to-indigo-900 rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[2deg] transition-transform">
+                  <Card className="w-44 h-64 bg-gradient-to-br from-[#C9A880] to-[#A78355] rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[2deg] transition-transform">
                     <div className="text-center">
                       <div className="text-4xl mb-2">🔌</div>
                       <div className="font-bold">LAS MEJORES EXTENSIONES DE CHATGPT</div>
@@ -59,7 +59,7 @@ export function NewsletterGifts() {
             </div>
 
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white text-center md:text-left">
-              ¡Apúntate y llévate <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">4 regalos!</span>
+              ¡Apúntate y llévate <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">4 regalos!</span>
             </h2>
 
             <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl border border-white/10">

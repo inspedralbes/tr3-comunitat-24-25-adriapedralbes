@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { AnimatedButton } from "@/components/animatedButton";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
-import { Star } from "lucide-react";
+import { Star, Quote } from "lucide-react";
 import Link from "next/link";
 
 export function NewsletterTestimonials() {
@@ -13,8 +13,8 @@ export function NewsletterTestimonials() {
       text: "La Newsletter de FuturPrive es muy interesante porque aporta buenos consejos y contenido que ayuda a impulsar y conocer más del Marketing Digital y la IA.",
       name: "Claudia Garzón",
       initial: "C",
-      bgColor: "bg-purple-300",
-      textColor: "text-purple-700"
+      bgColor: "bg-[#C9A880]",
+      textColor: "text-black"
     },
     {
       stars: 5,
@@ -39,8 +39,8 @@ export function NewsletterTestimonials() {
       text: "De los pocos que ofrecen contenido gratuito de valor. Otros venden humo para que compren sus productos. ¡FuturPrive habla con consejos reales!",
       name: "Bryan Morales",
       initial: "B",
-      bgColor: "bg-blue-300",
-      textColor: "text-blue-700"
+      bgColor: "bg-[#C9A880]",
+      textColor: "text-black"
     },
     {
       stars: 5,
@@ -51,52 +51,64 @@ export function NewsletterTestimonials() {
   ];
 
   return (
-    <section className="py-16 bg-gradient-to-b from-black to-[#0a0a0a]">
+    <section className="bg-black">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="flex justify-center mb-2">
+        <div className="flex justify-center mb-4">
           <AnimatedButton>Opiniones</AnimatedButton>
         </div>
         
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 text-white">
-          Esto dicen de <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">nosotros</span>...
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white">
+          Esto dicen de <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">nosotros</span>...
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Testimonios destacados (versión móvil: 1 columna, tablet: 2 columnas, desktop: 3 columnas) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700/30 p-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="flex text-yellow-500 mb-3">
+            <Card 
+              key={index} 
+              className="relative overflow-hidden border-0 h-full bg-gradient-to-br from-gray-900/80 to-black backdrop-blur-sm p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {/* Cuota decorativa */}
+              <div className="absolute -top-2 -right-2 text-[#C9A880]/10">
+                <Quote size={80} />
+              </div>
+              
+              {/* Estrellas de valoración */}
+              <div className="flex text-[#C9A880] mb-4">
                 {Array.from({ length: testimonial.stars }).map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
               </div>
               
-              <p className="text-gray-300 text-sm mb-6 line-clamp-4">
-                "{testimonial.text}"
+              {/* Texto del testimonio */}
+              <p className="text-white/90 text-base font-light mb-6 leading-relaxed italic relative z-10">
+                <span className="text-[#C9A880] text-xl font-serif">“</span>{testimonial.text}<span className="text-[#C9A880] text-xl font-serif">”</span>
               </p>
               
-              <div className="flex items-center mt-auto">
+              {/* Información del usuario */}
+              <div className="flex items-center mt-auto pt-4 border-t border-[#C9A880]/20">
                 {testimonial.image ? (
                   <img 
                     src={testimonial.image} 
                     alt={testimonial.name} 
-                    className="w-10 h-10 rounded-full mr-3 border-2 border-white/10"
+                    className="w-12 h-12 rounded-full mr-4 border-2 border-[#C9A880]/30"
                   />
                 ) : (
-                  <div className={`w-10 h-10 rounded-full ${testimonial.bgColor} flex items-center justify-center ${testimonial.textColor} font-bold mr-3`}>
+                  <div className={`w-12 h-12 rounded-full ${testimonial.bgColor} flex items-center justify-center ${testimonial.textColor} font-bold mr-4 border-2 border-[#C9A880]/30`}>
                     {testimonial.initial}
                   </div>
                 )}
                 
                 <div>
-                  <h4 className="font-bold text-white">{testimonial.name}</h4>
-                  <p className="text-xs text-gray-400">Suscriptor/a de la Newsletter</p>
+                  <h4 className="font-bold text-white text-base">{testimonial.name}</h4>
+                  <p className="text-xs text-[#C9A880]/80">Suscriptor/a de la Newsletter</p>
                 </div>
               </div>
             </Card>
           ))}
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-16">
           <Link href="#newsletter-form" scroll={false}>
             <RainbowButtonDemo>
               Sí, quiero recibir la newsletter

@@ -11,7 +11,7 @@ export function MagicCardDemo() {
   const cards = [
     {
       icon: (
-        <Upload className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-purple-400" />
+        <Upload className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />
       ),
       title: "Agenda tu consulta",
       description:
@@ -19,7 +19,7 @@ export function MagicCardDemo() {
     },
     {
       icon: (
-        <Wand2 className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-purple-400" />
+        <Wand2 className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />
       ),
       title: "Planificar Soluciones",
       description:
@@ -27,7 +27,7 @@ export function MagicCardDemo() {
     },
     {
       icon: (
-        <Download className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-purple-400" />
+        <Download className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />
       ),
       title: "Implementar automatización",
       description: "Implementamos soluciones personalizadas para tu proyecto.",
@@ -42,17 +42,17 @@ export function MagicCardDemo() {
           className="cursor-pointer p-6 h-[220px] min-h-[220px] flex flex-col justify-center text-left relative"
           gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
           gradientSize={300}
-          gradientFrom="#6366f1"
-          gradientTo="#8b5cf6"
+          gradientFrom="#C9A880"
+          gradientTo="#A78355"
         >
           {/* Número de paso en la esquina superior derecha */}
-          <div className="absolute top-4 right-4 flex items-center justify-center w-10 h-10 rounded-full border border-gray-500/30 text-white text-xl font-bold transition-colors duration-300 group-hover:border-purple-500/80">
+          <div className="absolute top-4 right-4 flex items-center justify-center w-10 h-10 rounded-full border border-gray-500/30 text-white text-xl font-bold transition-colors duration-300 group-hover:border-[#C9A880]/80">
             {index + 1}
           </div>
 
           <div className="flex flex-col items-start">
             {card.icon}
-            <h3 className="text-lg font-semibold mb-2 text-white transition-colors duration-300 group-hover:text-purple-400">
+            <h3 className="text-lg font-semibold mb-2 text-white transition-colors duration-300 group-hover:text-[#C9A880]">
               {card.title}
             </h3>
             <p className="text-gray-400 text-sm leading-relaxed">

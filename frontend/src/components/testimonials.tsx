@@ -131,11 +131,11 @@ const ReviewCard = ({
             className={cn(
                 "relative h-full w-56 sm:w-60 md:w-64 cursor-pointer overflow-hidden rounded-xl border p-3 mx-2 transition-all duration-300 opacity-90 hover:opacity-100 hover:scale-[1.02]",
                 // light styles
-                "border-purple-500/20 bg-gray-950/[.01] hover:bg-gray-950/[.05]",
+                "border-[#C9A880]/40 bg-gray-950/[.01] hover:bg-gray-950/[.05]",
                 // dark styles
-                "dark:border-purple-500/20 dark:bg-gray-50/[.05] dark:hover:bg-gray-50/[.08]",
+                "dark:border-[#C9A880]/40 dark:bg-gray-50/[.05] dark:hover:bg-gray-50/[.08]",
                 // Responsive shadow for better visibility
-                "shadow-md shadow-purple-500/5"
+                "shadow-md shadow-[#C9A880]/10"
             )}
         >
             <div className="flex flex-row items-center gap-2">
@@ -144,7 +144,7 @@ const ReviewCard = ({
                     <figcaption className="text-sm font-medium text-white">
                         {name}
                     </figcaption>
-                    <p className="text-xs font-medium text-purple-400/70">{username}</p>
+                    <p className="text-xs font-medium text-[#C9A880]">{username}</p>
                 </div>
             </div>
             <blockquote className="mt-2 text-sm font-medium">{body}</blockquote>

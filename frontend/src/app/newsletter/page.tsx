@@ -2,7 +2,6 @@
 
 import { Footer } from "@/components/footer-component";
 import { NewsletterHero } from "@/components/Newsletter/hero/newsletter-hero";
-import { NewsletterStats } from "@/components/Newsletter/stats/newsletter-stats";
 import { NewsletterBenefits } from "@/components/Newsletter/benefits/newsletter-benefits";
 import { NewsletterGifts } from "@/components/Newsletter/gifts/newsletter-gifts";
 import { NewsletterTestimonials } from "@/components/Newsletter/testimonials/newsletter-testimonials";
@@ -38,12 +37,9 @@ export default function NewsletterPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Hero Section */}
       <NewsletterHero />
-
-      {/* Stats Section */}
-      <NewsletterStats />
 
       {/* Benefits Section */}
       <NewsletterBenefits />
@@ -51,7 +47,7 @@ export default function NewsletterPage() {
       {/* Testimonials Marquee - Se ha eliminado el padding vertical en esta sección */}
       <section className="relative w-full overflow-hidden bg-[#0a0a0a] pt-0">
         <div className="absolute inset-0 flex items-center justify-center -z-10">
-          <div className="h-full w-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-[120px]" />
+          <div className="h-full w-full bg-gradient-to-r from-[#C9A880]/20 to-[#C9A880]/10 blur-[120px]" />
         </div>
         <MarqueeDemo />
       </section>
@@ -59,8 +55,10 @@ export default function NewsletterPage() {
       {/* Free Gifts Section */}
       <NewsletterGifts />
 
-      {/* Testimonials Section */}
-      <NewsletterTestimonials />
+      {/* Testimonials Section - mejorado para mejor visibilidad */}
+      <section className="py-16 bg-black border-t border-[#C9A880]/10">
+        <NewsletterTestimonials />
+      </section>
 
       {/* Footer */}
       <Footer />

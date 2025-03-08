@@ -32,13 +32,13 @@ export default function Home() {
             {/* <DialogNewsletter /> */}
             <div className="flex flex-col items-center space-y-2">
               <AvatarCirclesDemo />
-              <p className="text-purple-400 font-semibold text-sm">+100 empresas transformadas</p>
+              <p className="text-[#C9A880] font-semibold text-sm">+100 empresas transformadas</p>
             </div>
           </div>
           {/* Heading */}
           <h1 className="mb-6 text-5xl font-bold tracking-tight lg:text-5xl">
             Soluciones IA personalizadas. <br /> Reducen Costes y Maximizan{" "}
-            <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">
               Beneficio
             </span>
           </h1>
@@ -66,7 +66,7 @@ export default function Home() {
       {/* Testimonials section con transición suave desde el main, ocupando todo el ancho */}
       <section className="relative w-full overflow-hidden -mt-12 md:-mt-16 bg-[#0a0a0a]">
         <div className="absolute inset-0 flex items-center justify-center -z-10">
-          <div className="h-full w-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-[120px]" />
+          <div className="h-full w-full bg-gradient-to-r from-[#C9A880]/20 to-[#C9A880]/10 blur-[120px]" />
         </div>
         <div className="text-center pb-0 mb-0 mt-8">
           <AnimatedButton>Testimonios</AnimatedButton>

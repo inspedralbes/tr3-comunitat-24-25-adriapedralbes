@@ -11,7 +11,7 @@ export function NewsletterBenefits() {
 
   const benefits = [
     {
-      icon: <AlertCircle className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-purple-400" />,
+      icon: <AlertCircle className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
       title: "Entérate el primero de todo",
       content: [
         `Te voy a confesar algo: hace dos años, cuando GPT-3 salió, yo pensaba que era "otra moda pasajera". Ignoré todo sobre IA durante 3 meses... y me arrepentí como nunca cuando vi a mi competencia avanzar a pasos agigantados con ella.`,
@@ -19,7 +19,7 @@ export function NewsletterBenefits() {
       ]
     },
     {
-      icon: <Zap className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-purple-400" />,
+      icon: <Zap className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
       title: "Nos mojamos",
       content: [
         `"¿Esto de la IA es realmente tan revolucionario como dicen?" - me preguntó un cliente ayer. Mi respuesta fue clara: "Para algunos negocios ha sido transformador, para otros un despilfarro de dinero." Y esa honestidad brutal es lo que nos diferencia.`,
@@ -27,7 +27,7 @@ export function NewsletterBenefits() {
       ]
     },
     {
-      icon: <Coffee className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-purple-400" />,
+      icon: <Coffee className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
       title: "No bullshit",
       content: [
         "Si te digo que el mes pasado probé personalmente 17 herramientas de IA para un proyecto de automatización de marketing, ¿sabes cuántas valían realmente la pena? Solo 2. Las otras 15 eran básicamente una interfaz bonita sobre tecnologías genéricas.",
@@ -37,14 +37,14 @@ export function NewsletterBenefits() {
   ];
 
   return (
-    <section className="py-16 pb-8 bg-[#0a0a0a]">
+    <section className="py-16 pb-8 bg-[#0a0a0a] mt-16">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-center mb-2">
           <AnimatedButton>Nuestra filosofía</AnimatedButton>
         </div>
 
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white">
-          La actualidad de la mano de <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">expertos del sector</span>
+          La actualidad de la mano de <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">expertos del sector</span>
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -54,12 +54,12 @@ export function NewsletterBenefits() {
               className="cursor-pointer p-6 h-auto min-h-[320px] flex flex-col text-left"
               gradientColor={theme === "dark" ? "#262626" : "#D9D9D955"}
               gradientSize={300}
-              gradientFrom="#6366f1"
-              gradientTo="#8b5cf6"
+              gradientFrom="#C9A880"
+              gradientTo="#A78355"
             >
               <div className="flex flex-col h-full">
                 {benefit.icon}
-                <h3 className="text-xl font-bold mb-4 text-white transition-colors duration-300 group-hover:text-purple-400">
+                <h3 className="text-xl font-bold mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]">
                   {benefit.title}
                 </h3>
                 <div className="space-y-4 text-gray-300 text-sm leading-relaxed flex-grow">
