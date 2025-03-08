@@ -20,19 +20,19 @@ export function NewsletterTestimonials() {
       stars: 5,
       text: "Amo sus Newsletters. Mucha info fácil de leer y entender. Realmente han transformado mi forma de aplicar la IA en mi negocio.",
       name: "Natalia Gómez",
-      image: "https://i.pravatar.cc/150?img=23"
+      image: "https://randomuser.me/api/portraits/women/23.jpg"
     },
     {
       stars: 5,
       text: "Me encanta su dinamismo en las Newsletters. El contenido es muy valioso hasta para los que estamos empezando en el mundo de la IA y el Marketing Digital.",
       name: "Cindy González",
-      image: "https://i.pravatar.cc/150?img=47"
+      image: "https://randomuser.me/api/portraits/women/47.jpg"
     },
     {
       stars: 5,
       text: "¡Siempre el mejor contenido! Son inspiración pura y mi fuente más confiable de noticias y tendencias relacionadas con el Marketing, el SEO y la IA.",
       name: "Pablo Martín Guanca",
-      image: "https://i.pravatar.cc/150?img=8"
+      image: "https://randomuser.me/api/portraits/men/15.jpg"
     },
     {
       stars: 5,
@@ -46,7 +46,7 @@ export function NewsletterTestimonials() {
       stars: 5,
       text: "Extraordinario contenido que imparten de forma gratuita. Sus consejos sobre automatización con IA me han ahorrado horas de trabajo. Muchas gracias.",
       name: "Ana Claramonte",
-      image: "https://i.pravatar.cc/150?img=45"
+      image: "https://randomuser.me/api/portraits/women/45.jpg"
     }
   ];
 
