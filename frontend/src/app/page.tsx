@@ -107,7 +107,7 @@ export default function Home() {
         <MagicCardDemo />
         <div className="mt-14">
           <Link href="https://cal.com/futurprive/consultoria-gratis" className="block">
-            <div className="btn-blink inline-block rounded-xl">
+            <div className="btn-blink inline-block rounded-xl overflow-hidden">
               <RainbowButtonDemo>
                 Agenda tu Consultoría Gratuita Ahora
               </RainbowButtonDemo>
