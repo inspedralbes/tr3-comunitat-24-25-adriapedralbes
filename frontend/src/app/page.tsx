@@ -51,7 +51,7 @@ export default function Home() {
           <Button
             variant="white"
             size="lg"
-            className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
+            className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300 btn-blink"
             asChild
           >
             <Link href="https://cal.com/futurprive/consultoria-gratis">
@@ -107,9 +107,11 @@ export default function Home() {
         <MagicCardDemo />
         <div className="mt-14">
           <Link href="https://cal.com/futurprive/consultoria-gratis" className="block">
-            <RainbowButtonDemo>
-              Agenda tu Consultoría Gratuita Ahora
-            </RainbowButtonDemo>
+            <div className="btn-blink inline-block rounded-xl">
+              <RainbowButtonDemo>
+                Agenda tu Consultoría Gratuita Ahora
+              </RainbowButtonDemo>
+            </div>
           </Link>
         </div>
       </section>

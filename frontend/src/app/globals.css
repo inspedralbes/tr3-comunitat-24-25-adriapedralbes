@@ -146,3 +146,47 @@ body {
 .btn-attention {
   animation: subtle-bounce 2s ease-in-out 1s infinite;
 }
+
+/* Efecto de parpadeo llamativo para CTA */
+@keyframes blink-effect {
+  0%, 100% {
+    box-shadow: 0 0 10px 3px rgba(139, 92, 246, 0.8);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px 5px rgba(139, 92, 246, 0.5);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes initial-attention {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0px 0px rgba(139, 92, 246, 0);
+  }
+  40% {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px 8px rgba(139, 92, 246, 0.9);
+  }
+  60% {
+    transform: scale(1.08);
+    box-shadow: 0 0 20px 5px rgba(139, 92, 246, 0.7);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px 3px rgba(139, 92, 246, 0.8);
+  }
+}
+
+.btn-blink {
+  animation: initial-attention 1.5s ease-out forwards, blink-effect 1.5s 1.5s infinite;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.btn-blink:hover {
+  animation: none;
+  transform: scale(1.05);
+  box-shadow: 0 0 15px 5px rgba(139, 92, 246, 0.9);
+}
