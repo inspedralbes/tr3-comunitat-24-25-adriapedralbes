@@ -9,7 +9,49 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.urls import reverse
 from .welcome_email import send_welcome_email
+from .beehiiv import add_subscriber_to_beehiiv
 import uuid
+
+@api_view(['POST'])
+def test_beehiiv(request):
+    """
+    Endpoint de prueba para verificar la integración con Beehiiv.
+    """
+    email = request.data.get('email', 'test@example.com')
+    name = request.data.get('name', 'Usuario de Prueba')
+    
+    try:
+        print("\n[TEST BEEHIIV] Iniciando prueba de integración con Beehiiv")
+        success, message = add_subscriber_to_beehiiv(
+            email=email,
+            name=name,
+            source="Test Integration",
+            is_confirmed=True
+        )
+        
+        if success:
+            print(f"[TEST BEEHIIV] ÉXITO: {message}")
+            return Response({
+                'success': True,
+                'message': message
+            })
+        else:
+            print(f"[TEST BEEHIIV] ERROR: {message}")
+            return Response({
+                'success': False,
+                'message': message
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        error_message = f"Error en prueba de integración con Beehiiv: {str(e)}"
+        print(f"[TEST BEEHIIV] EXCEPCIÓN: {error_message}")
+        import traceback
+        print(traceback.format_exc())
+        
+        return Response({
+            'success': False,
+            'message': error_message
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 def subscribe(request):
@@ -50,6 +92,23 @@ def subscribe(request):
         try:
             send_confirmation_email(subscriber)
             
+            # También registramos en Beehiiv (con confirmed=false)
+            try:
+                print("\n[BEEHIIV-PRE] Registrando preliminarmente en Beehiiv (antes de confirmación)")
+                success, message = add_subscriber_to_beehiiv(
+                    email=subscriber.email,
+                    name=subscriber.name,
+                    source="FuturPrive-PreConfirmation",
+                    is_confirmed=False
+                )
+                if success:
+                    print(f"[BEEHIIV-PRE] ÉXITO en registro preliminar: {message}")
+                else:
+                    print(f"[BEEHIIV-PRE] ERROR en registro preliminar: {message}")
+            except Exception as e:
+                print(f"[BEEHIIV-PRE] EXCEPCIÓN en registro preliminar: {str(e)}")
+                # No bloqueamos el flujo principal
+            
             return Response({
                 'success': True,
                 'message': 'Te hemos enviado un correo para confirmar tu suscripción.'
@@ -83,14 +142,48 @@ def confirm_subscription(request, token):
         subscriber = Subscriber.objects.get(confirmation_token=token)
         
         if not subscriber.confirmed:
+            print(f"\n[CONFIRMACIÓN] Confirmando suscripción para: {subscriber.email}")
             subscriber.confirmed = True
             subscriber.save(update_fields=['confirmed'])
             
             # Enviar email de bienvenida con los recursos prometidos
             try:
                 send_welcome_email(subscriber)
+                print(f"[CONFIRMACIÓN] Email de bienvenida enviado a: {subscriber.email}")
             except Exception as e:
-                print(f"Error enviando email de bienvenida: {e}")
+                print(f"Error enviando email de bienvenida: {str(e)}")
+                import traceback
+                print(traceback.format_exc())
+            
+            # Agregar a Beehiiv
+            try:
+                print("\n[BEEHIIV] Iniciando registro en Beehiiv para suscriptor confirmado")
+                success, message = add_subscriber_to_beehiiv(
+                    email=subscriber.email,
+                    name=subscriber.name,
+                    source="FuturPrive Newsletter",
+                    is_confirmed=True
+                )
+                if success:
+                    print(f"[BEEHIIV] ÉXITO: Usuario {subscriber.email} registrado en Beehiiv. {message}")
+                else:
+                    print(f"[BEEHIIV] ERROR: {message}")
+                    # Intentar con correo directo
+                    print("[BEEHIIV] Intentando suscripción directa como fallback...")
+                    # Hacemos una llamada al endpoint de prueba como fallback
+                    import requests
+                    fallback_url = f"{settings.SITE_URL}/api/test/beehiiv/"
+                    fallback_data = {
+                        "email": subscriber.email,
+                        "name": subscriber.name if subscriber.name else "Suscriptor"
+                    }
+                    fallback_response = requests.post(fallback_url, json=fallback_data)
+                    print(f"[BEEHIIV] Respuesta de fallback: {fallback_response.status_code} - {fallback_response.text}")
+            except Exception as e:
+                print(f"[BEEHIIV] EXCEPCIÓN al registrar en Beehiiv: {str(e)}")
+                import traceback
+                print(traceback.format_exc())
+                # No hacemos que falle todo el proceso si hay un error con Beehiiv
             
             return Response({
                 'success': True,
