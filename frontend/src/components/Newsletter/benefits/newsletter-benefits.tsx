@@ -28,7 +28,7 @@ export function NewsletterBenefits() {
     },
     {
       icon: <Coffee className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
-      title: "No bullshit",
+      title: "Sin tonterías",
       content: [
         "Si te digo que el mes pasado probé personalmente 17 herramientas de IA para un proyecto de automatización de marketing, ¿sabes cuántas valían realmente la pena? Solo 2. Las otras 15 eran básicamente una interfaz bonita sobre tecnologías genéricas.",
         "Cada email que te envío tiene al menos una acción concreta que puedes implementar HOY MISMO. Sin teoría para impresionar, sin jerga técnica para parecer más inteligente, sin relleno. Solo estrategias prácticas que puedes aplicar inmediatamente. Porque la vida es demasiado corta para contenido que no te ayude a crecer."
