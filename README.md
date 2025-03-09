@@ -5,26 +5,28 @@
 ### Desarrollo
 
 1. Clona el repositorio:
+
    ```bash
    git clone https://github.com/tu-usuario/tr3-comunitat-24-25-adriapedralbes.git
    cd tr3-comunitat-24-25-adriapedralbes
    ```
 
 2. Crea un archivo `.env` en la raíz del proyecto con las siguientes variables:
+
    ```
    DATABASE_NAME=futurprive
-   DATABASE_USER=adriaroot
-   DATABASE_PASSWORD=adriaestevez321322610
+   DATABASE_USER=usuario
+   DATABASE_PASSWORD=contraseña
    ```
 
 3. Inicia los contenedores:
+
    ```bash
    docker-compose up -d
    ```
 
 4. Accede a la aplicación en: http://localhost:3000
-   
-5. Accede a Adminer en: http://localhost:8080 
+5. Accede a Adminer en: http://localhost:8080
    - Sistema: PostgreSQL
    - Servidor: postgres
    - Usuario: adriaroot
@@ -35,13 +37,14 @@
 
 1. Asegúrate de tener configurados los dominios `futurprive.com` y `api.futurprive.com` apuntando a tu servidor.
 
-2. Crea los archivos `.env` en la raíz del proyecto y en la carpeta `backend/`:
-   
+2. Crea los archivos de entorno necesarios:
+
    - `.env` (raíz):
+
      ```
-     DATABASE_NAME=futurprive
-     DATABASE_USER=adriaroot
-     DATABASE_PASSWORD=adriaestevez321322610
+     DATABASE_NAME=futurpriveprod
+     DATABASE_USER=adriarootprod
+     DATABASE_PASSWORD=tusuperpassword
      DATABASE_ENGINE=django.db.backends.postgresql
      DATABASE_PORT=5432
      DEBUG=False
@@ -49,6 +52,12 @@
      ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,futurprive.com,api.futurprive.com
      ```
 
+   - `.env.prod` (raíz) - ¡NO subir a Git!:
+     ```
+     POSTGRES_DB=futurpriveprod
+     POSTGRES_USER=adriarootprod
+     POSTGRES_PASSWORD=tusuperpassword
+     ```
    - `backend/.env`:
      ```
      EMAIL_HOST=mail.privateemail.com
@@ -63,10 +72,16 @@
      SITE_URL=https://futurprive.com
      SECRET_KEY=tu_clave_secreta
      DEBUG=False
-     ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,futurprive.com,api.futurprive.com
+     ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,futurprive.com,api.futurprive.com,django
+     DATABASE_ENGINE=django.db.backends.postgresql
+     DATABASE_NAME=futurpriveprod
+     DATABASE_USER=adriarootprod
+     DATABASE_PASSWORD=tusuperpassword
+     DATABASE_PORT=5432
      ```
 
 3. Asegúrate de que el archivo `traefik/acme.json` existe y tiene los permisos adecuados:
+
    ```bash
    mkdir -p traefik
    touch traefik/acme.json
@@ -74,11 +89,26 @@
    ```
 
 4. Ejecuta el script de despliegue:
+
    ```bash
    chmod +x deploy.sh
+   chmod +x reset-ssl.sh
+   chmod +x check-django.sh
    ./deploy.sh
    ```
 
-5. La aplicación estará disponible en:
+5. Si encuentras problemas con el API:
+
+   ```bash
+   ./check-django.sh
+   ```
+
+6. Si encuentras problemas con SSL:
+
+   ```bash
+   ./reset-ssl.sh
+   ```
+
+7. La aplicación estará disponible en:
    - Frontend: https://futurprive.com
    - API: https://api.futurprive.com

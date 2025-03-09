@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
+# Copiar .env si existe (opcional pero útil para python-dotenv)
+COPY .env* .
+
 # Copiar el proyecto
 COPY . .
 

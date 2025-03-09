@@ -101,13 +101,13 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Configuración de correo - TLS
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'mail.privateemail.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT')) if os.environ.get('EMAIL_PORT') and os.environ.get('EMAIL_PORT').strip() else 587
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 30))
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT')) if os.environ.get('EMAIL_TIMEOUT') and os.environ.get('EMAIL_TIMEOUT').strip() else 30
 SERVER_EMAIL = os.environ.get('SERVER_EMAIL', EMAIL_HOST_USER)
 
 # URL del sitio para generar enlaces
