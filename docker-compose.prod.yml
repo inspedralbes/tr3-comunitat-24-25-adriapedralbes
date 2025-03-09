@@ -42,24 +42,54 @@ services:
       - "traefik.http.routers.nextjs.tls.certresolver=leresolver"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
 
+  postgres:
+    image: postgres:14-alpine
+    container_name: postgres-db
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    networks:
+      - web
+
   django:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
     container_name: django-app
     restart: always
-    command: >
-      sh -c "sleep 30 && python manage.py runserver 0.0.0.0:8000"
+    command: >-
+      sh -c "/app/entrypoint.sh"
     environment:
-      - DEBUG=True
-      - SECRET_KEY=debug_secret_key
-      - ALLOWED_HOSTS=*
-      - DATABASE_ENGINE=django.db.backends.sqlite3
-      - DATABASE_NAME=db.sqlite3
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - DATABASE_ENGINE=${DATABASE_ENGINE}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=${DATABASE_PORT}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+      - EMAIL_TIMEOUT=${EMAIL_TIMEOUT}
+      - SERVER_EMAIL=${SERVER_EMAIL}
+      - SITE_URL=${SITE_URL}
     networks:
       - web
     volumes:
-      - ./backend:/app
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    depends_on:
+      - postgres
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.django.rule=Host(`api.futurprive.com`)"
@@ -69,3 +99,8 @@ services:
 
 networks:
   web:
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:

@@ -11,17 +11,21 @@ Django settings for config project.
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', '1234567890')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -94,28 +98,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Configuración de CORS
 CORS_ALLOW_ALL_ORIGINS = True
 
-# Configuración de correo - SSL
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'mail.privateemail.com'
-# EMAIL_PORT = 465  # Puerto para SMTP con SSL
-# EMAIL_USE_SSL = True
-# EMAIL_HOST_USER = 'adria@futurprive.com'
-# EMAIL_HOST_PASSWORD = 'boruto321322610'
-# DEFAULT_FROM_EMAIL = 'adria@futurprive.com'
-# EMAIL_TIMEOUT = 30  # Tiempo de espera en segundos
-# SERVER_EMAIL = 'adria@futurprive.com'  # Para correos de error
-
-# Configuración de correo - TLS (alternativa)
+# Configuración de correo - TLS
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'mail.privateemail.com'
-EMAIL_PORT = 587  # Puerto para TLS
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'adria@futurprive.com'
-EMAIL_HOST_PASSWORD = 'boruto321322610'
-DEFAULT_FROM_EMAIL = 'adria@futurprive.com'
-EMAIL_TIMEOUT = 30
-SERVER_EMAIL = 'adria@futurprive.com'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'mail.privateemail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 30))
+SERVER_EMAIL = os.environ.get('SERVER_EMAIL', EMAIL_HOST_USER)
 
 # URL del sitio para generar enlaces
-SITE_URL = 'http://localhost:3000'
+SITE_URL = os.environ.get('SITE_URL', 'http://localhost:3000')
