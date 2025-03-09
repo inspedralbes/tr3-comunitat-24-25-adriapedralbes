@@ -16,13 +16,15 @@ services:
       - "--accesslog=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.network=web"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      - "--certificatesresolvers.leresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.leresolver.acme.email=talkcompiler@gmail.com"
       - "--certificatesresolvers.leresolver.acme.storage=/acme.json"
+      - "--certificatesresolvers.leresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
 
   nextjs:
     build:
@@ -62,7 +64,8 @@ services:
     container_name: django-app
     restart: always
     command: >-
-      sh -c "/app/entrypoint.sh"
+      sh -c "python manage.py migrate && 
+             gunicorn --bind 0.0.0.0:8000 config.wsgi:application"
     environment:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY}
@@ -96,6 +99,10 @@ services:
       - "traefik.http.routers.django.entrypoints=websecure"
       - "traefik.http.routers.django.tls.certresolver=leresolver"
       - "traefik.http.services.django.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.django-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.django-http.entrypoints=web"
+      - "traefik.http.routers.django-http.rule=Host(`api.futurprive.com`)"
+      - "traefik.http.routers.django-http.middlewares=django-https-redirect"
 
 networks:
   web:
