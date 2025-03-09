@@ -26,16 +26,16 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - DEBUG=1
-      - SECRET_KEY=secret
-      - ALLOWED_HOSTS=localhost,127.0.0.1,django
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       # Configuración de PostgreSQL
-      - DATABASE_ENGINE=django.db.backends.postgresql
-      - DATABASE_NAME=futurprive
-      - DATABASE_USER=futurpriveuser
-      - DATABASE_PASSWORD=futurprivepass
+      - DATABASE_ENGINE=${DATABASE_ENGINE}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
+      - DATABASE_PORT=${DATABASE_PORT}
     restart: on-failure
     command: >
       sh -c "sleep 10 &&
@@ -52,9 +52,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=futurprive
-      - POSTGRES_USER=futurpriveuser
-      - POSTGRES_PASSWORD=futurprivepass
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     restart: on-failure
 
   adminer:
