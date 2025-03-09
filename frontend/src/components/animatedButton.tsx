@@ -14,7 +14,7 @@ export function AnimatedButton({ children }: AnimatedButtonProps) {
         borderRadius={9999}
         borderWidth={2}
         duration={60}
-        color={["rgba(139, 92, 246, 1)", "#8B5CF6aa", "rgba(139, 92, 246, 1)"]}
+        color={["#E9DCCC", "#E9DCCCaa", "#E9DCCC"]}
         className={cn(
           "group min-h-0 min-w-0 rounded-full border border-white/5 bg-black text-xs transition-all ease-in hover:cursor-pointer hover:bg-neutral-900 px-4 py-2",
           "dark:bg-black dark:hover:bg-neutral-900",

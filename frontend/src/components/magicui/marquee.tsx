@@ -1,6 +1,5 @@
-import { ComponentPropsWithoutRef } from "react";
-
 import { cn } from "@/lib/utils";
+import { ComponentPropsWithoutRef } from "react";
 
 interface MarqueeProps extends ComponentPropsWithoutRef<"div"> {
   /**
@@ -39,7 +38,7 @@ export function Marquee({
   pauseOnHover = false,
   children,
   vertical = false,
-  repeat = 4,
+  repeat = 6, // Aumentado para garantizar que no haya huecos en pantallas anchas
   ...props
 }: MarqueeProps) {
   return (
@@ -65,6 +64,10 @@ export function Marquee({
               "group-hover:[animation-play-state:paused]": pauseOnHover,
               "[animation-direction:reverse]": reverse,
             })}
+            style={{
+              animationFillMode: "both", // Asegura que los elementos mantienen el estado de animación al inicio y final
+              animationDelay: `${i * 0.1}s`, // Pequeño retraso escalonado para una entrada más suave
+            }}
           >
             {children}
           </div>

@@ -16,27 +16,9 @@ Including another URLconf
 """
 # urls.py en la carpeta config
 from django.contrib import admin
-from django.urls import path
-from django.http import HttpResponse
-
-def index(request):
-    return HttpResponse("""
-    <html>
-        <head>
-            <title>API de FuturPrivé</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 40px; }
-                h1 { color: #333; }
-            </style>
-        </head>
-        <body>
-            <h1>API de FuturPrivé</h1>
-            <p>La API está funcionando correctamente.</p>
-        </body>
-    </html>
-    """)
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', index),
+    path('api/', include('api.urls')),
 ]

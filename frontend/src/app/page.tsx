@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { AnimatedButton } from "@/components/animatedButton";
+import { AvatarCirclesDemo } from "@/components/avatarCircles";
 import { DialogNewsletter } from "@/components/dialogButton";
 import { Footer } from "@/components/footer-component";
 import { MagicCardDemo } from "@/components/magicCard";
@@ -9,6 +10,7 @@ import { BentoDemo } from "@/components/our-services";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 import { Button } from "@/components/ui/button";
 import { VideoPresentation } from "@/components/video-presentation";
+import { MarqueeDemo } from "@/components/testimonials";
 
 export default function Home() {
   return (
@@ -16,7 +18,8 @@ export default function Home() {
       {/* Navigation */}
       <nav className="flex items-center justify-between px-6 py-4 lg:px-8">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-xl font-semibold">
+          <Link href="/" className="flex items-center gap-2 text-xl font-semibold">
+            <img src="/logo_futurprive_sinfondo.png" alt="FuturPrive Logo" className="h-8 w-auto" />
             FuturPrive
           </Link>
         </div>
@@ -25,29 +28,31 @@ export default function Home() {
       <main className="relative px-6 py-16 text-center lg:px-8 lg:py-24">
         <div className="mx-auto max-w-4xl">
           {/* Badge */}
-          <div className="flex justify-center mb-3">
-            <DialogNewsletter />
+          <div className="flex justify-center mb-8">
+            {/* <DialogNewsletter /> */}
+            <div className="flex flex-col items-center space-y-2">
+              <AvatarCirclesDemo />
+              <p className="text-[#C9A880] font-semibold text-sm">+100 empresas transformadas</p>
+            </div>
           </div>
           {/* Heading */}
           <h1 className="mb-6 text-5xl font-bold tracking-tight lg:text-5xl">
             Soluciones IA personalizadas. <br /> Reducen Costes y Maximizan{" "}
-            <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">
               Beneficio
             </span>
           </h1>
 
-          {/* Subtitle */}
+          {/* Subtitle - Simplificado */}
           <p className="mb-8 text-lg text-gray-400">
-            ¿Cansado de pagar por tecnología que nadie usa en tu empresa?
-            <br />
-            Agenda tu consultoría gratuita y descubre lo que los gurús tecnológicos no quieren que sepas.
+            Agenda tu consultoría gratuita y descubre cómo impulsar tu negocio
           </p>
 
           {/* CTA Button */}
           <Button
             variant="white"
             size="lg"
-            className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
+            className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300 btn-blink"
             asChild
           >
             <Link href="https://cal.com/futurprive/consultoria-gratis">
@@ -55,17 +60,23 @@ export default function Home() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          {/* Dashboard Preview */}
-          <div className="relative mt-16">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-[500px] w-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-[100px]" />
-            </div>
-            {/* Añadir aqui */}
-            <VideoPresentation />
-          </div>
         </div>
       </main>
-      <section className="mx-auto max-w-[1400px] text-center">
+
+      {/* Testimonials section con transición suave desde el main, ocupando todo el ancho */}
+      <section className="relative w-full overflow-hidden -mt-12 md:-mt-16 bg-[#0a0a0a]">
+        <div className="absolute inset-0 flex items-center justify-center -z-10">
+          <div className="h-full w-full bg-gradient-to-r from-[#C9A880]/20 to-[#C9A880]/10 blur-[120px]" />
+        </div>
+        <div className="text-center pb-0 mb-0 mt-8">
+          <AnimatedButton>Testimonios</AnimatedButton>
+        </div>
+        <div className="mt-[-20px]">
+          <MarqueeDemo />
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1400px] text-center pt-16">
         <AnimatedButton>Tendencias</AnimatedButton>
         <div>
           <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-5xl">
@@ -95,9 +106,13 @@ export default function Home() {
         </div>
         <MagicCardDemo />
         <div className="mt-14">
-          <RainbowButtonDemo>
-            Agenda tu Consultoría Gratuita Ahora
-          </RainbowButtonDemo>
+          <Link href="https://cal.com/futurprive/consultoria-gratis" className="block">
+            <div className="btn-blink inline-block rounded-xl overflow-hidden">
+              <RainbowButtonDemo>
+                Agenda tu Consultoría Gratuita Ahora
+              </RainbowButtonDemo>
+            </div>
+          </Link>
         </div>
       </section>
       <section>

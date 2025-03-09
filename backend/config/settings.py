@@ -31,11 +31,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'api.apps.ApiConfig',
+    'corsheaders',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -86,3 +90,32 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configuración de CORS
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Configuración de correo - SSL
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'mail.privateemail.com'
+# EMAIL_PORT = 465  # Puerto para SMTP con SSL
+# EMAIL_USE_SSL = True
+# EMAIL_HOST_USER = 'adria@futurprive.com'
+# EMAIL_HOST_PASSWORD = 'boruto321322610'
+# DEFAULT_FROM_EMAIL = 'adria@futurprive.com'
+# EMAIL_TIMEOUT = 30  # Tiempo de espera en segundos
+# SERVER_EMAIL = 'adria@futurprive.com'  # Para correos de error
+
+# Configuración de correo - TLS (alternativa)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.privateemail.com'
+EMAIL_PORT = 587  # Puerto para TLS
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'adria@futurprive.com'
+EMAIL_HOST_PASSWORD = 'boruto321322610'
+DEFAULT_FROM_EMAIL = 'adria@futurprive.com'
+EMAIL_TIMEOUT = 30
+SERVER_EMAIL = 'adria@futurprive.com'
+
+# URL del sitio para generar enlaces
+SITE_URL = 'http://localhost:3000'
