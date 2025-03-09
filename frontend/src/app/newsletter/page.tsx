@@ -1,12 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { Footer } from "@/components/footer-component";
-import { NewsletterHero } from "@/components/Newsletter/hero/newsletter-hero";
 import { NewsletterBenefits } from "@/components/Newsletter/benefits/newsletter-benefits";
 import { NewsletterGifts } from "@/components/Newsletter/gifts/newsletter-gifts";
+import { NewsletterHero } from "@/components/Newsletter/hero/newsletter-hero";
 import { NewsletterTestimonials } from "@/components/Newsletter/testimonials/newsletter-testimonials";
 import { MarqueeDemo } from "@/components/testimonials";
-import { useEffect } from "react";
 
 export default function NewsletterPage() {
   // Implementar scroll suave para los enlaces de anclaje

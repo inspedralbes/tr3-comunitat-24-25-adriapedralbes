@@ -1,10 +1,11 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { RainbowButtonDemo } from "@/components/rainbowButton";
-import { AnimatedButton } from "@/components/animatedButton";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
+
+import { AnimatedButton } from "@/components/animatedButton";
+import { RainbowButtonDemo } from "@/components/rainbowButton";
+import { Card } from "@/components/ui/card";
 
 export function NewsletterGifts() {
   return (
@@ -64,11 +65,11 @@ export function NewsletterGifts() {
 
             <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl border border-white/10">
               <p className="text-lg mb-6 text-gray-300">
-                Te voy a contar algo que me pasó la semana pasada: un cliente me dijo <span className="italic">"Llevo 3 meses usando ChatGPT y siento que apenas estoy arañando la superficie"</span>.
+                Te voy a contar algo que me pasó la semana pasada: un cliente me dijo <span className="italic">&quot;Llevo 3 meses usando ChatGPT y siento que apenas estoy arañando la superficie&quot;</span>.
               </p>
 
               <p className="mb-6 text-gray-300">
-                ¿Sabes qué le envié? Exactamente la misma colección de recursos que recibirás tú ahora. Su mensaje dos días después: <span className="font-semibold text-white">"He conseguido en una semana lo que no logré en tres meses por mi cuenta"</span>.
+                ¿Sabes qué le envié? Exactamente la misma colección de recursos que recibirás tú ahora. Su mensaje dos días después: <span className="font-semibold text-white">&quot;He conseguido en una semana lo que no logré en tres meses por mi cuenta&quot;</span>.
               </p>
 
               <p className="mb-6 text-gray-300">

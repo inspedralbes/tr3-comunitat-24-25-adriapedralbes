@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+
 import { AnimatedButton } from "@/components/animatedButton";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 
@@ -29,7 +30,12 @@ export function ScrollTopButton({
 
   if (type === "rainbow") {
     return (
-      <div onClick={handleClick}>
+      <div 
+        onClick={handleClick} 
+        onKeyDown={(e) => e.key === 'Enter' && handleClick()} 
+        role="button" 
+        tabIndex={0}
+      >
         <RainbowButtonDemo>
           {children}
         </RainbowButtonDemo>
@@ -38,7 +44,12 @@ export function ScrollTopButton({
   }
 
   return (
-    <div onClick={handleClick}>
+    <div 
+      onClick={handleClick} 
+      onKeyDown={(e) => e.key === 'Enter' && handleClick()} 
+      role="button" 
+      tabIndex={0}
+    >
       <AnimatedButton>
         {children}
       </AnimatedButton>

@@ -1,10 +1,12 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import { Star, Quote } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+
 import { AnimatedButton } from "@/components/animatedButton";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
-import { Star, Quote } from "lucide-react";
-import Link from "next/link";
+import { Card } from "@/components/ui/card";
 
 export function NewsletterTestimonials() {
   const testimonials = [
@@ -88,10 +90,12 @@ export function NewsletterTestimonials() {
               {/* Información del usuario */}
               <div className="flex items-center mt-auto pt-4 border-t border-[#C9A880]/20">
                 {testimonial.image ? (
-                  <img 
+                  <Image 
                     src={testimonial.image} 
                     alt={testimonial.name} 
                     className="w-12 h-12 rounded-full mr-4 border-2 border-[#C9A880]/30"
+                    width={48}
+                    height={48}
                   />
                 ) : (
                   <div className={`w-12 h-12 rounded-full ${testimonial.bgColor} flex items-center justify-center ${testimonial.textColor} font-bold mr-4 border-2 border-[#C9A880]/30`}>
