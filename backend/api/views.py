@@ -11,6 +11,23 @@ from django.urls import reverse
 from .welcome_email import send_welcome_email
 import uuid
 
+# Vista para la ruta raíz
+@api_view(['GET'])
+def api_root(request):
+    """
+    Vista para la página principal de la API
+    """
+    return Response({
+        'status': 'online',
+        'message': 'Bienvenido a la API de FuturPrive',
+        'version': '1.0',
+        'endpoints': {
+            'newsletter_subscribe': '/api/newsletter/subscribe/',
+            'newsletter_confirm': '/api/newsletter/confirm/{token}/',
+            'newsletter_unsubscribe': '/api/newsletter/unsubscribe/{token}/'
+        }
+    })
+
 @api_view(['POST'])
 def subscribe(request):
     """

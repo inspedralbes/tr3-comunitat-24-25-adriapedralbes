@@ -14,6 +14,7 @@ fi
 # Asegurar que los scripts sean ejecutables
 chmod +x ./reset-ssl.sh
 chmod +x ./check-django.sh
+chmod +x ./restart-django.sh
 
 # Asegurar que el archivo acme.json tenga los permisos adecuados
 chmod 600 ./traefik/acme.json
@@ -33,7 +34,7 @@ sleep 15
 
 # Reiniciar el servicio de Django
 echo "Reiniciando servicio de Django..."
-docker-compose -f docker-compose.prod.yml restart django
+docker compose -f docker-compose.prod.yml restart django
 
 echo "Despliegue completado."
 echo "La aplicación debería estar disponible en https://futurprive.com"
