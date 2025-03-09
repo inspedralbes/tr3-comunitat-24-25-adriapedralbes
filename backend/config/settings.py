@@ -12,6 +12,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,12 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-70j7r56er(lph4wc26o-xd7+!9ssh7m!)rln6@t!#z7_69-&02'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-dev-only-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
 
 # Application definition
@@ -133,28 +139,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Configuración de CORS
 CORS_ALLOW_ALL_ORIGINS = True
 
-# Configuración de correo - SSL
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'mail.privateemail.com'
-# EMAIL_PORT = 465  # Puerto para SMTP con SSL
-# EMAIL_USE_SSL = True
-# EMAIL_HOST_USER = 'adria@futurprive.com'
-# EMAIL_HOST_PASSWORD = 'boruto321322610'
-# DEFAULT_FROM_EMAIL = 'adria@futurprive.com'
-# EMAIL_TIMEOUT = 30  # Tiempo de espera en segundos
-# SERVER_EMAIL = 'adria@futurprive.com'  # Para correos de error
-
-# Configuración de correo - TLS (alternativa)
+# Configuración de correo desde variables de entorno
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'mail.privateemail.com'
-EMAIL_PORT = 587  # Puerto para TLS
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'adria@futurprive.com'
-EMAIL_HOST_PASSWORD = 'oWeivoryMESc'
-DEFAULT_FROM_EMAIL = 'adria@futurprive.com'
-EMAIL_TIMEOUT = 30
-SERVER_EMAIL = 'adria@futurprive.com'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', '')
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 30))
+SERVER_EMAIL = os.environ.get('SERVER_EMAIL', '')
 
 # URL del sitio para generar enlaces
-SITE_URL = 'http://localhost:3000'
+SITE_URL = os.environ.get('SITE_URL', 'http://localhost:3000')
+
+# Beehiiv API configuration
+BEEHIIV_API_KEY = os.environ.get('BEEHIIV_API_KEY', '')
+BEEHIIV_PUBLICATION_ID = os.environ.get('BEEHIIV_PUBLICATION_ID', '')
