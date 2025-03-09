@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function ConfirmPage({ params }: { params: { token: string } }) {
+export default function ConfirmPage() {
+  const params = useParams();
+  const token = params.token as string;
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    // Accedemos al token desde los parámetros directamente
-    const token = params.token;
-    
     const confirmSubscription = async () => {
       try {
         const response = await fetch(
@@ -35,7 +35,7 @@ export default function ConfirmPage({ params }: { params: { token: string } }) {
     };
 
     confirmSubscription();
-  }, [params.token]); // Dependencia correcta
+  }, [token]); // Dependencia correcta
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
