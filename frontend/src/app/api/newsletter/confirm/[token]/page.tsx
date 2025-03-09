@@ -14,7 +14,7 @@ export default function ConfirmPage() {
     const confirmSubscription = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/api/newsletter/confirm/${token}/`
+          `https://api.futurprive.com/api/newsletter/confirm/${token}/`
         );
         const data = await response.json();
 
@@ -72,7 +72,7 @@ export default function ConfirmPage() {
               Pasa un gran día,<br />
               Adrià Estévez
             </p>
-            
+
             <Link
               href="/"
               className="inline-block px-6 py-3 bg-[#C9A880] text-white rounded-lg font-medium hover:bg-[#B89770] transition-colors"
