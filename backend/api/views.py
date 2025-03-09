@@ -10,6 +10,7 @@ from django.utils.html import strip_tags
 from django.urls import reverse
 from .welcome_email import send_welcome_email
 from .email_debug import test_email_connection
+from .cors import add_cors_headers
 import uuid
 import json
 import logging
@@ -17,6 +18,7 @@ import traceback
 
 # Vista para la ruta raíz
 @api_view(['GET'])
+@add_cors_headers
 def api_root(request):
     """
     Vista para la página principal de la API
@@ -33,24 +35,29 @@ def api_root(request):
     })
 
 @api_view(['GET'])
+@add_cors_headers
 def test_email(request):
     """
     Endpoint para probar la conexión de correo
-    Solo accesible en modo debug
     """
-    if not settings.DEBUG:
-        return Response({
-            'error': 'Este endpoint solo está disponible en modo DEBUG'
-        }, status=status.HTTP_403_FORBIDDEN)
-    
+    # Eliminamos la restricción de DEBUG para permitir diagnóstico
     results = test_email_connection()
     return Response(results)
 
-@api_view(['POST'])
+@api_view(['POST', 'OPTIONS'])
+@add_cors_headers
 def subscribe(request):
     """
     API endpoint para suscribirse a la newsletter.
     """
+    # Asegurarnos de que tenemos encabezados CORS para esta vista
+    if request.method == 'OPTIONS':
+        response = Response({})
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Allow-Methods"] = "*"
+        return response
+        
     serializer = SubscriberSerializer(data=request.data)
     
     if serializer.is_valid():
@@ -85,10 +92,17 @@ def subscribe(request):
         try:
             send_confirmation_email(subscriber)
             
-            return Response({
+            response = Response({
                 'success': True,
                 'message': 'Te hemos enviado un correo para confirmar tu suscripción.'
             }, status=status.HTTP_201_CREATED)
+            
+            # Añadir encabezados CORS
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Headers"] = "*"
+            response["Access-Control-Allow-Methods"] = "*"
+            
+            return response
             
         except Exception as e:
             # Logging detallado del error
@@ -117,19 +131,34 @@ def subscribe(request):
                 print(f"Error during email diagnostics: {debug_error}")
             
             # Guardamos el suscriptor pero informamos del problema con el correo
-            return Response({
+            response = Response({
                 'success': False,
                 'message': 'Hubo un problema al enviar el correo de confirmación, pero tus datos se han guardado. El administrador te contactará para confirmar.'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # Añadir encabezados CORS
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Headers"] = "*"
+            response["Access-Control-Allow-Methods"] = "*"
+            
+            return response
     
-    return Response({
+    response = Response({
         'success': False,
         'message': 'Los datos proporcionados no son válidos.',
         'errors': serializer.errors
     }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Añadir encabezados CORS
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Headers"] = "*"
+    response["Access-Control-Allow-Methods"] = "*"
+    
+    return response
 
 
 @api_view(['GET'])
+@add_cors_headers
 def confirm_subscription(request, token):
     """
     API endpoint para confirmar la suscripción.
@@ -147,43 +176,87 @@ def confirm_subscription(request, token):
             except Exception as e:
                 print(f"Error enviando email de bienvenida: {e}")
             
-            return Response({
+            response = Response({
                 'success': True,
                 'message': '¡Gracias! Tu suscripción ha sido confirmada con éxito.'
             })
+            
+            # Añadir encabezados CORS
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Headers"] = "*"
+            response["Access-Control-Allow-Methods"] = "*"
+            
+            return response
         
-        return Response({
+        response = Response({
             'success': True,
             'message': 'Tu suscripción ya ha sido confirmada anteriormente.'
         })
         
+        # Añadir encabezados CORS
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Allow-Methods"] = "*"
+        
+        return response
+        
     except Subscriber.DoesNotExist:
-        return Response({
+        response = Response({
             'success': False,
             'message': 'El token de confirmación no es válido.'
         }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Añadir encabezados CORS
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Allow-Methods"] = "*"
+        
+        return response
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'OPTIONS'])
+@add_cors_headers
 def unsubscribe(request, token):
     """
     API endpoint para cancelar la suscripción.
     """
+    # Asegurarnos de que tenemos encabezados CORS para esta vista
+    if request.method == 'OPTIONS':
+        response = Response({})
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Allow-Methods"] = "*"
+        return response
+        
     try:
         subscriber = Subscriber.objects.get(confirmation_token=token)
         email = subscriber.email
         subscriber.delete()
         
-        return Response({
+        response = Response({
             'success': True,
             'message': f'El correo {email} ha sido eliminado de nuestra lista.'
         })
         
+        # Añadir encabezados CORS
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Allow-Methods"] = "*"
+        
+        return response
+        
     except Subscriber.DoesNotExist:
-        return Response({
+        response = Response({
             'success': False,
             'message': 'El token de cancelación no es válido.'
         }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Añadir encabezados CORS
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Allow-Methods"] = "*"
+        
+        return response
 
 
 def send_confirmation_email(subscriber):

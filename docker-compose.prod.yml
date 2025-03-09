@@ -62,7 +62,9 @@ services:
     container_name: django-app
     restart: always
     command: >-
-      sh -c "python manage.py migrate && 
+      sh -c "python manage.py collectstatic --noinput &&
+             python manage.py makemigrations &&
+             python manage.py migrate && 
              gunicorn --bind 0.0.0.0:8000 config.wsgi:application"
     env_file:
       - ./backend/.env

@@ -15,6 +15,10 @@ fi
 chmod +x ./reset-ssl.sh
 chmod +x ./check-django.sh
 chmod +x ./restart-django.sh
+chmod +x ./rebuild-django.sh
+chmod +x ./test-email.sh
+chmod +x ./fix-all.sh
+chmod +x ./fix-cors.sh
 
 # Asegurar que el archivo acme.json tenga los permisos adecuados
 chmod 600 ./traefik/acme.json
