@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    domains: ['via.placeholder.com', 'github.com'], // Dominios permitidos para las imágenes
+    domains: ['via.placeholder.com', 'github.com', 'futurprive.com', 'i.pravatar.cc', 'randomuser.me'], // Dominios permitidos para las imágenes
   },
   experimental: {
     // Esta configuración evita advertencias con params en componentes cliente
