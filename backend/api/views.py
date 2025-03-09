@@ -9,7 +9,11 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.urls import reverse
 from .welcome_email import send_welcome_email
+from .email_debug import test_email_connection
 import uuid
+import json
+import logging
+import traceback
 
 # Vista para la ruta raíz
 @api_view(['GET'])
@@ -27,6 +31,20 @@ def api_root(request):
             'newsletter_unsubscribe': '/api/newsletter/unsubscribe/{token}/'
         }
     })
+
+@api_view(['GET'])
+def test_email(request):
+    """
+    Endpoint para probar la conexión de correo
+    Solo accesible en modo debug
+    """
+    if not settings.DEBUG:
+        return Response({
+            'error': 'Este endpoint solo está disponible en modo DEBUG'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    results = test_email_connection()
+    return Response(results)
 
 @api_view(['POST'])
 def subscribe(request):
@@ -73,10 +91,30 @@ def subscribe(request):
             }, status=status.HTTP_201_CREATED)
             
         except Exception as e:
-            # Log del error
-            import traceback
-            print(f"Error enviando email: {e}")
-            print(traceback.format_exc())
+            # Logging detallado del error
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error enviando email a {subscriber.email}: {str(e)}")
+            logger.error(traceback.format_exc())
+            
+            # Diagnóstico de conexión
+            try:
+                connection_test = test_email_connection()
+                error_details = {
+                    'error_type': type(e).__name__,
+                    'error_message': str(e),
+                    'email_settings': {
+                        'EMAIL_HOST': settings.EMAIL_HOST,
+                        'EMAIL_PORT': settings.EMAIL_PORT,
+                        'EMAIL_USE_TLS': settings.EMAIL_USE_TLS,
+                        'EMAIL_USE_SSL': settings.EMAIL_USE_SSL,
+                    },
+                    'connection_test': connection_test
+                }
+                print("========= EMAIL ERROR DIAGNOSIS =========")
+                print(json.dumps(error_details, indent=2))
+                print("=======================================")
+            except Exception as debug_error:
+                print(f"Error during email diagnostics: {debug_error}")
             
             # Guardamos el suscriptor pero informamos del problema con el correo
             return Response({
@@ -126,7 +164,7 @@ def confirm_subscription(request, token):
         }, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def unsubscribe(request, token):
     """
     API endpoint para cancelar la suscripción.
