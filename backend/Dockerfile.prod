@@ -1,0 +1,45 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar dependencias de Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt gunicorn
+
+# Copiar .env si existe (opcional pero útil para python-dotenv)
+COPY .env* .
+
+# Copiar el proyecto
+COPY . .
+
+# No ejecutamos collectstatic durante la construcción
+# será ejecutado durante el inicio del contenedor
+
+# Exponer puerto
+EXPOSE 8000
+
+# Crear script de inicio
+RUN echo '#!/bin/bash\n\
+# Configurar STATIC_ROOT si no está presente\n\
+if ! grep -q "STATIC_ROOT" */settings.py; then\n\
+  # Buscar archivo de settings.py\n\
+  SETTINGS_FILE=$(find . -name "settings.py" | grep -v "venv" | head -1)\n\
+  echo "\\n# Static files settings for production\\nSTATIC_ROOT = \\"\\$(BASE_DIR) / \\\"staticfiles\\\"\\n" >> $SETTINGS_FILE\n\
+  mkdir -p staticfiles\n\
+fi\n\
+# Ejecutar collectstatic\n\
+python manage.py collectstatic --noinput\n\
+# Migrar base de datos\n\
+python manage.py migrate\n\
+# Obtener el nombre del proyecto y ejecutar gunicorn\n\
+PROJECT_NAME=$(find . -type f -name "wsgi.py" | grep -v "venv" | head -1 | xargs dirname | xargs basename)\n\
+gunicorn --bind 0.0.0.0:8000 ${PROJECT_NAME}.wsgi:application\n\
+' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
+# Ejecutar el script de inicio
+CMD ["/app/entrypoint.sh"]

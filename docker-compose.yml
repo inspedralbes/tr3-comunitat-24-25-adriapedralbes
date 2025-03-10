@@ -1,0 +1,74 @@
+services:
+  nextjs:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nextjs-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://django:8000
+    command: pnpm dev
+    depends_on:
+      - django
+
+  django:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: django-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=secret
+      - ALLOWED_HOSTS=localhost,127.0.0.1,django
+      # Configuración de PostgreSQL
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=futurprive
+      - DATABASE_USER=futurpriveuser
+      - DATABASE_PASSWORD=futurprivepass
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+    restart: on-failure
+    command: >
+      sh -c "sleep 10 &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:14-alpine
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=futurprive
+      - POSTGRES_USER=futurpriveuser
+      - POSTGRES_PASSWORD=futurprivepass
+    restart: on-failure
+
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+      - ADMINER_DESIGN=pepa-linha
+    depends_on:
+      - postgres
+    restart: on-failure
+
+volumes:
+  node_modules:
+  postgres_data:
