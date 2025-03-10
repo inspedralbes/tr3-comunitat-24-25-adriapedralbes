@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layouts/MainLayout';
 import { WritePostComponent } from "@/components/Community/Posts/WritePostComponent";
 import { CategoryFilter } from "@/components/Community/CategoryFilter";
@@ -8,31 +8,90 @@ import { PinnedPostsSection } from "@/components/Community/Posts/PinnedPostsSect
 import { PostFeed } from "@/components/Community/Posts/PostFeed";
 import { LeaderboardWidget } from "@/components/Community/LeaderboardWidget";
 import { PostDetailModal } from "@/components/Community/Posts/PostDetailModal";
-import { pinnedPosts, regularPosts } from "@/mockData/mockData";
-import { topUsers } from "@/leaderboardData";
+// import { pinnedPosts, regularPosts } from "@/mockData/mockData"; // Comentado para usar datos reales de la API
+// import { topUsers } from "@/leaderboardData"; // Comentado para usar datos reales de la API
 import { Post } from "@/types/Post";
+import { communityService } from '@/services/community';
+import { authService } from '@/services/auth';
 
 export default function CommunityPage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [pinnedPosts, setPinnedPosts] = useState<Post[]>([]);
+  const [regularPosts, setRegularPosts] = useState<Post[]>([]);
+  const [leaderboardUsers, setLeaderboardUsers] = useState([]);
+  const [error, setError] = useState('');
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setIsLoading(true);
+      setError('');
+      
+      try {
+        // Obtener categorías
+        const categoriesData = await communityService.getAllCategories();
+        setCategories(categoriesData);
+        
+        // Obtener posts fijados
+        const pinnedData = await communityService.getPinnedPosts();
+        setPinnedPosts(pinnedData);
+        
+        // Obtener posts regulares
+        const postsData = await communityService.getAllPosts();
+        setRegularPosts(postsData.results || postsData);
+        
+        // Obtener leaderboard
+        const leaderboardData = await communityService.getLeaderboard();
+        setLeaderboardUsers(leaderboardData);
+      } catch (err) {
+        console.error('Error al cargar datos:', err);
+        setError('Hubo un error al cargar los datos. Por favor, intenta nuevamente.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchInitialData();
+  }, []);
+
+  // Cargar posts filtrados por categoría
+  useEffect(() => {
+    const fetchFilteredPosts = async () => {
+      if (!activeCategory || activeCategory === 'all') return;
+      
+      setIsLoading(true);
+      try {
+        const postsData = await communityService.getAllPosts(activeCategory);
+        setRegularPosts(postsData.results || postsData);
+      } catch (err) {
+        console.error('Error al filtrar posts:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchFilteredPosts();
+  }, [activeCategory]);
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
   };
 
-  const handlePostClick = (postId: string) => {
-    // Buscar primero en posts fijados
-    let post = pinnedPosts.find(p => p.id === postId);
-
-    // Si no está en los fijados, buscar en los regulares
-    if (!post) {
-      post = regularPosts.find(p => p.id === postId);
-    }
-
-    if (post) {
-      setSelectedPost(post);
-      setIsModalOpen(true);
+  const handlePostClick = async (postId: string) => {
+    try {
+      // Obtener los detalles del post directamente de la API
+      const post = await communityService.getPostById(postId);
+      
+      if (post) {
+        setSelectedPost(post);
+        setIsModalOpen(true);
+      }
+    } catch (err) {
+      console.error('Error al obtener detalles del post:', err);
     }
   };
 
@@ -40,33 +99,68 @@ export default function CommunityPage() {
     setIsModalOpen(false);
   };
 
+  // Función para crear un nuevo post
+  const handleCreatePost = async (content: string, categoryId?: number) => {
+    try {
+      await communityService.createPost({
+        content,
+        category_id: categoryId
+      });
+      
+      // Recargar posts después de crear uno nuevo
+      const postsData = await communityService.getAllPosts(activeCategory !== 'all' ? activeCategory : undefined);
+      setRegularPosts(postsData.results || postsData);
+      
+      return true;
+    } catch (err) {
+      console.error('Error al crear post:', err);
+      return false;
+    }
+  };
+
   return (
     <MainLayout activeTab="community">
       {/* Contenido principal con dos columnas */}
       <div className="container mx-auto px-4 max-w-6xl pt-6 sm:pt-8">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+        
         <div className="flex flex-col md:flex-row gap-6">
           {/* Columna principal (izquierda) */}
           <div className="flex-1">
             {/* Componente para escribir nuevos posts */}
-            <WritePostComponent />
+            <WritePostComponent onSubmit={handleCreatePost} categories={categories} />
 
             {/* Filtros de categoría */}
             <CategoryFilter
               activeCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
+              categories={categories}
             />
 
             {/* Publicaciones fijadas */}
-            <PinnedPostsSection pinnedPosts={pinnedPosts} onPostClick={handlePostClick} />
+            <PinnedPostsSection 
+              pinnedPosts={pinnedPosts} 
+              onPostClick={handlePostClick} 
+              isLoading={isLoading}
+            />
 
             {/* Feed de publicaciones */}
-            <PostFeed posts={regularPosts} filter={activeCategory} onPostClick={handlePostClick} />
+            <PostFeed 
+              posts={regularPosts} 
+              filter={activeCategory} 
+              onPostClick={handlePostClick} 
+              isLoading={isLoading}
+            />
           </div>
 
           {/* Columna lateral (derecha) - oculta en móvil */}
           <div className="hidden md:block md:w-80 space-y-6">
             {/* Widget de Leaderboard */}
-            <LeaderboardWidget users={topUsers} />
+            <LeaderboardWidget users={leaderboardUsers} />
 
             {/* Aquí se pueden añadir más widgets laterales en el futuro */}
           </div>

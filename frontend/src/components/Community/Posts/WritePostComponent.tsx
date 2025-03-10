@@ -1,13 +1,36 @@
 import { User, Paperclip, Link2, Video, BarChart2, Smile } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { authService } from '@/services/auth';
 
-export const WritePostComponent: React.FC = () => {
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    color: string;
+}
+
+interface WritePostComponentProps {
+    onSubmit?: (content: string, categoryId?: number) => Promise<boolean>;
+    categories?: Category[];
+}
+
+export const WritePostComponent: React.FC<WritePostComponentProps> = ({ 
+    onSubmit,
+    categories = [] 
+}) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [postTitle, setPostTitle] = useState('');
     const [postContent, setPostContent] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
+    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    const [error, setError] = useState('');
+    const [user, setUser] = useState<any>(null);
+    
     const componentRef = useRef<HTMLDivElement>(null);
+    const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
     // Detectar si estamos en vista móvil
     useEffect(() => {
@@ -26,7 +49,47 @@ export const WritePostComponent: React.FC = () => {
         };
     }, []);
 
+    // Obtener información del usuario si está autenticado
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                if (authService.isAuthenticated()) {
+                    const userProfile = await authService.getProfile();
+                    setUser(userProfile);
+                }
+            } catch (error) {
+                console.error('Error al obtener perfil de usuario:', error);
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
+
+    // Cerrar dropdown de categorías al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                showCategoryDropdown &&
+                categoryDropdownRef.current &&
+                !categoryDropdownRef.current.contains(event.target as Node)
+            ) {
+                setShowCategoryDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showCategoryDropdown]);
+
     const handleExpand = () => {
+        // Verificar si el usuario está autenticado
+        if (!authService.isAuthenticated()) {
+            alert('Debes iniciar sesión para publicar en la comunidad');
+            return;
+        }
+        
         setIsExpanded(true);
     };
 
@@ -34,6 +97,8 @@ export const WritePostComponent: React.FC = () => {
         setIsExpanded(false);
         setPostTitle('');
         setPostContent('');
+        setSelectedCategory(undefined);
+        setError('');
     };
 
     // Cierra el componente al hacer clic fuera de él
@@ -45,6 +110,8 @@ export const WritePostComponent: React.FC = () => {
                     setIsExpanded(false);
                     setPostTitle('');
                     setPostContent('');
+                    setSelectedCategory(undefined);
+                    setError('');
                 }
             } else {
                 setIsExpanded(false);
@@ -52,16 +119,48 @@ export const WritePostComponent: React.FC = () => {
         }
     };
 
-    // Manejar el envío del post
-    const handleSubmit = () => {
-        // Aquí iría la lógica para enviar el post
-        console.log("Post enviado:", { title: postTitle, content: postContent });
-
-        // Limpiar el formulario y cerrar
-        setPostTitle('');
-        setPostContent('');
-        setIsExpanded(false);
+    // Maneja el cambio de categoría
+    const handleCategoryChange = (categoryId: number) => {
+        setSelectedCategory(categoryId);
+        setShowCategoryDropdown(false);
     };
+
+    // Manejar el envío del post
+    const handleSubmit = async () => {
+        if (!postContent.trim()) {
+            setError('El contenido del post no puede estar vacío');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setError('');
+
+        try {
+            if (onSubmit) {
+                const success = await onSubmit(postContent, selectedCategory);
+                
+                if (success) {
+                    // Limpiar el formulario y cerrar
+                    setPostTitle('');
+                    setPostContent('');
+                    setSelectedCategory(undefined);
+                    setIsExpanded(false);
+                } else {
+                    setError('Hubo un error al publicar tu mensaje. Inténtalo de nuevo.');
+                }
+            }
+        } catch (err) {
+            console.error('Error al enviar post:', err);
+            setError('Hubo un error al publicar tu mensaje. Inténtalo de nuevo.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Encontrar la categoría seleccionada
+    const selectedCategoryName = selectedCategory
+        ? categories.find(cat => cat.id === selectedCategory)?.name || 'Categoría'
+        : 'Selecciona una categoría';
 
     // Clases personalizadas para la sombra (solo lados y abajo, no arriba)
     const shadowClasses = "shadow-[0_9px_10px_0_rgba(0,0,0,0.3),_-5px_0_15px_-5px_rgba(0,0,0,0.2),_5px_0_15px_-5px_rgba(0,0,0,0.2)]";
@@ -88,18 +187,30 @@ export const WritePostComponent: React.FC = () => {
                     <div className="flex items-center gap-3">
                         <div className="relative flex-shrink-0 self-start">
                             <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
-                                <User className="text-zinc-300" size={18} />
+                                {user?.avatar_url ? (
+                                    <Image 
+                                        src={user.avatar_url} 
+                                        alt={user.username} 
+                                        width={32} 
+                                        height={32} 
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <User className="text-zinc-300" size={18} />
+                                )}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
-                                1
-                            </div>
+                            {user?.level && (
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
+                                    {user.level}
+                                </div>
+                            )}
                         </div>
                         <div className="flex-1">
                             <button
                                 onClick={handleExpand}
                                 className="w-full text-left text-zinc-300 px-4 py-2 bg-[#444442] rounded-lg hover:bg-[#505050] transition-colors border border-white/5"
                             >
-                                Write something
+                                Escribe algo...
                             </button>
                         </div>
                     </div>
@@ -109,22 +220,41 @@ export const WritePostComponent: React.FC = () => {
                         <div className="flex items-center gap-2 mb-4">
                             <div className="relative flex-shrink-0 self-start">
                                 <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
-                                    <User className="text-zinc-300" size={18} />
+                                    {user?.avatar_url ? (
+                                        <Image 
+                                            src={user.avatar_url} 
+                                            alt={user.username} 
+                                            width={32} 
+                                            height={32} 
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <User className="text-zinc-300" size={18} />
+                                    )}
                                 </div>
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
-                                    1
-                                </div>
+                                {user?.level && (
+                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
+                                        {user.level}
+                                    </div>
+                                )}
                             </div>
                             <div className="text-sm text-zinc-300">
-                                Ad EstMarq posting in <span className="text-white">DevAccelerator</span>
+                                {user?.username || 'Usuario'} publicando en <span className="text-white">DevAccelerator</span>
                             </div>
                         </div>
+
+                        {/* Error message */}
+                        {error && (
+                            <div className="mb-4 p-2 bg-red-500/20 text-red-300 text-sm rounded border border-red-500/30">
+                                {error}
+                            </div>
+                        )}
 
                         {/* Campo de título */}
                         <div className="mb-4">
                             <input
                                 type="text"
-                                placeholder="Title"
+                                placeholder="Título (opcional)"
                                 value={postTitle}
                                 onChange={(e) => setPostTitle(e.target.value)}
                                 className="w-full bg-transparent text-xl font-medium text-white border-none outline-none placeholder-zinc-500"
@@ -135,7 +265,7 @@ export const WritePostComponent: React.FC = () => {
                         {/* Campo de contenido */}
                         <div className="mb-8">
                             <textarea
-                                placeholder="Write something..."
+                                placeholder="Escribe algo..."
                                 value={postContent}
                                 onChange={(e) => setPostContent(e.target.value)}
                                 className="w-full h-32 bg-transparent text-zinc-200 border-none outline-none resize-none placeholder-zinc-500"
@@ -166,25 +296,46 @@ export const WritePostComponent: React.FC = () => {
                             </div>
 
                             <div className="ml-auto flex flex-wrap items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
-                                <div className="relative">
-                                    <button className="px-3 py-1.5 text-zinc-300 bg-[#444442] rounded-lg flex items-center gap-2 text-sm border border-white/5">
-                                        Select a category <span className="ml-1">▼</span>
+                                <div className="relative" ref={categoryDropdownRef}>
+                                    <button 
+                                        className="px-3 py-1.5 text-zinc-300 bg-[#444442] rounded-lg flex items-center gap-2 text-sm border border-white/5"
+                                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                                    >
+                                        {selectedCategoryName} <span className="ml-1">▼</span>
                                     </button>
+
+                                    {showCategoryDropdown && categories.length > 0 && (
+                                        <div className="absolute top-full left-0 mt-1 bg-[#323230] rounded-lg shadow-lg z-10 py-1 min-w-[180px] border border-white/10">
+                                            {categories.map((category) => (
+                                                <button
+                                                    key={category.id}
+                                                    className={`flex items-center gap-2 px-4 py-2 w-full text-left text-sm
+                                                        ${selectedCategory === category.id
+                                                            ? 'bg-[#444442] text-white'
+                                                            : 'text-zinc-300 hover:bg-[#444442]'
+                                                        }`}
+                                                    onClick={() => handleCategoryChange(category.id)}
+                                                >
+                                                    {category.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <button
                                     onClick={handleCancel}
                                     className="px-4 py-1.5 text-zinc-300 hover:text-white text-sm font-medium"
                                 >
-                                    CANCEL
+                                    CANCELAR
                                 </button>
 
                                 <button
                                     onClick={handleSubmit}
-                                    className="px-4 py-1.5 bg-[#444442] text-white rounded-lg hover:bg-[#505050] text-sm font-medium border border-white/5"
-                                    disabled={!postTitle.trim() && !postContent.trim()}
+                                    className={`px-4 py-1.5 ${isSubmitting ? 'bg-blue-600/50' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg text-sm font-medium border border-white/5 transition-colors`}
+                                    disabled={!postContent.trim() || isSubmitting}
                                 >
-                                    POST
+                                    {isSubmitting ? 'PUBLICANDO...' : 'PUBLICAR'}
                                 </button>
                             </div>
                         </div>

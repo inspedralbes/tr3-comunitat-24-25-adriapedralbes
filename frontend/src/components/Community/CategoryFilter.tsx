@@ -1,14 +1,23 @@
 import { MessageSquare, Megaphone, HelpCircle, Trophy, SlidersHorizontal, ArrowUpNarrowWide, Clock, Pin } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    color: string;
+}
+
 interface CategoryFilterProps {
     activeCategory: string;
     onCategoryChange: (category: string) => void;
+    categories?: Category[];
 }
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     activeCategory,
-    onCategoryChange
+    onCategoryChange,
+    categories = []
 }) => {
     const [showDropdown, setShowDropdown] = useState(false);
     const [activeSortType, setActiveSortType] = useState("default");
@@ -49,12 +58,31 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
         };
     }, [showDropdown, showSortDropdown]);
 
-    const categories = [
-        { id: 'all', label: 'All', icon: null },
-        { id: 'general', label: 'General', icon: <MessageSquare size={16} /> },
-        { id: 'anuncios', label: 'Anuncios', icon: <Megaphone size={16} /> },
-        { id: 'preguntas', label: 'Preguntas', icon: <HelpCircle size={16} /> },
-        { id: 'logros', label: 'Logros', icon: <Trophy size={16} /> },
+    // Mapear iconos adecuados en función del slug de categoría
+    const getCategoryIcon = (slug: string) => {
+        switch(slug) {
+            case 'general':
+                return <MessageSquare size={16} />;
+            case 'anuncios':
+                return <Megaphone size={16} />;
+            case 'preguntas':
+                return <HelpCircle size={16} />;
+            case 'logros':
+                return <Trophy size={16} />;
+            default:
+                return <MessageSquare size={16} />;
+        }
+    };
+
+    // Crear categorías para el componente
+    const categoryItems = [
+        { id: 'all', label: 'Todos', slug: 'all', icon: null },
+        ...categories.map(cat => ({
+            id: cat.slug,
+            label: cat.name,
+            slug: cat.slug,
+            icon: getCategoryIcon(cat.slug)
+        }))
     ];
 
     const sortTypes = [
@@ -65,7 +93,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     ];
 
     // Encontrar la categoría activa para mostrarla en el móvil
-    const activeItem = categories.find(cat => cat.id === activeCategory) || categories[0];
+    const activeItem = categoryItems.find(cat => cat.id === activeCategory) || categoryItems[0];
     const activeSortItem = sortTypes.find(sort => sort.id === activeSortType) || sortTypes[0];
 
     return (
@@ -87,7 +115,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                     <div className="absolute top-12 left-0 right-0 bg-[#323230] rounded-lg shadow-lg z-10 border border-white/10">
                         {/* Sección de categorías */}
                         <div className="py-2">
-                            {categories.map((category) => (
+                            {categoryItems.map((category) => (
                                 <button
                                     key={category.id}
                                     className={`flex items-center gap-2 px-4 py-2 w-full text-left ${activeCategory === category.id
@@ -134,7 +162,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
             {/* Vista desktop - Botones horizontales y dropdown de filtro */}
             <div className="hidden md:flex items-center space-x-2">
-                {categories.map((category) => (
+                {categoryItems.map((category) => (
                     <button
                         key={category.id}
                         className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium border ${activeCategory === category.id
