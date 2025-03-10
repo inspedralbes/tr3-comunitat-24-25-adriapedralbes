@@ -1,0 +1,12 @@
+{% extends "admin/app_index.html" %}
+{% load i18n %}
+
+{% block content %}
+<div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h2 style="color: #333; margin-bottom: 10px;">{% trans 'Panel de Administración - Comunidad' %}</h2>
+    <p style="color: #666;">
+        Bienvenido al panel de administración de la comunidad. Desde aquí puedes gestionar usuarios, posts, categorías y más.
+    </p>
+</div>
+{{ block.super }}
+{% endblock %}

@@ -16,3 +16,4 @@ stripe==8.0.0
 django-filter==23.5
 pyyaml==6.0.1
 requests==2.31.0
+django-admin-interface==0.28.5

@@ -16,8 +16,33 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from api.admin_views import CustomAdminSite
+from api.models import User, Category, Post, Comment, PostLike, CommentLike, Subscriber
+from api.admin import (
+    CustomUserAdmin, CategoryAdmin, PostAdmin, CommentAdmin, 
+    PostLikeAdmin, CommentLikeAdmin, SubscriberAdmin
+)
+
+# Configura el sitio de administración personalizado
+custom_admin = CustomAdminSite(name='customadmin')
+
+# Registra los modelos en el sitio personalizado
+custom_admin.register(User, CustomUserAdmin)
+custom_admin.register(Category, CategoryAdmin)
+custom_admin.register(Post, PostAdmin)
+custom_admin.register(Comment, CommentAdmin)
+custom_admin.register(PostLike, PostLikeAdmin)
+custom_admin.register(CommentLike, CommentLikeAdmin)
+custom_admin.register(Subscriber, SubscriberAdmin)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', custom_admin.urls),
     path('api/', include('api.urls')),
 ]
+
+# Configuración para servir archivos estáticos y multimedia en desarrollo
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
