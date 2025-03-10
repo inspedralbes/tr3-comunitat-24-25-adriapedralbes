@@ -12,5 +12,9 @@ COPY . .
 # Exponer el puerto
 EXPOSE 8000
 
-# Comando para ejecutar la aplicación
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Script para esperar por la base de datos, hacer migraciones y ejecutar el servidor
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Ejecutar entrypoint
+ENTRYPOINT ["/entrypoint.sh"]

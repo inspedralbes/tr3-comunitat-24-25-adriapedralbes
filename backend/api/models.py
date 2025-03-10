@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 import uuid
 
 class Subscriber(models.Model):
@@ -22,6 +22,10 @@ class Subscriber(models.Model):
         return self.email
 
 
+class CustomUserManager(UserManager):
+    pass
+
+
 class User(AbstractUser):
     """
     Modelo personalizado de usuario para la comunidad.
@@ -36,6 +40,8 @@ class User(AbstractUser):
     is_premium = models.BooleanField(default=False)  # Si el usuario es premium
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    objects = CustomUserManager()
     
     class Meta:
         ordering = ['-points']
