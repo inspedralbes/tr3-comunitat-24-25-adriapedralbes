@@ -144,4 +144,4 @@ except ImportError:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # URL del sitio para generar enlaces
-SITE_URL = os.environ.get('SITE_URL', 'http://localhost:3000')
+SITE_URL = os.environ.get('SITE_URL', 'http://futurprive.com')
