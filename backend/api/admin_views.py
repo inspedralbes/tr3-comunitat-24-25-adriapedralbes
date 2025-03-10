@@ -1,22 +1,31 @@
 from django.contrib.admin.sites import AdminSite
 from django.utils import timezone
 from datetime import timedelta
-from .models import User, Post, Comment, Category, Subscriber
+from django.db.models import Count
+from django.template.response import TemplateResponse
 
 class CustomAdminSite(AdminSite):
     site_header = 'DevAccelerator Admin'
     site_title = 'DevAccelerator Admin'
-    index_title = 'Panel de administración'
+    index_title = 'Panel de Control'
+    site_url = '/'
+    
+    def get_app_list(self, request):
+        """Customize the app list to reorder apps."""
+        app_list = super().get_app_list(request)
+        # Ordena las aplicaciones de acuerdo a tus preferencias.
+        return sorted(app_list, key=lambda x: x['name'])
     
     def index(self, request, extra_context=None):
-        """Personaliza la página de inicio del admin con estadísticas."""
+        """Customize the index page with statistics."""
+        from .models import User, Post, Comment, Category, Subscriber
         
-        # Obtén la fecha de hoy y de hace un mes
+        # Get today's date and the date one month ago
         today = timezone.now().date()
         month_ago = today - timedelta(days=30)
         
-        # Prepara el contexto extra con estadísticas
-        extra_stats = {
+        # Prepare extra context with statistics
+        stats_context = {
             'user_count': User.objects.count(),
             'premium_user_count': User.objects.filter(is_premium=True).count(),
             'post_count': Post.objects.count(),
@@ -28,14 +37,26 @@ class CustomAdminSite(AdminSite):
             'confirmed_subscriber_count': Subscriber.objects.filter(confirmed=True).count(),
             'recent_posts': Post.objects.order_by('-created_at')[:5],
             'recent_users': User.objects.order_by('-created_at')[:5],
+            'title': 'Panel de Control',
         }
         
-        # Combina con cualquier contexto extra que se pueda haber pasado
+        # Combine with any extra context that might have been passed
         context = extra_context or {}
-        context.update(extra_stats)
+        context.update(stats_context)
         
-        # Llama al método index del padre con el contexto actualizado
-        return super().index(request, context)
-
-# Instancia personalizada del admin
-custom_admin_site = CustomAdminSite(name='custom_admin')
+        # Get the default app_list
+        app_list = self.get_app_list(request)
+        
+        # Create the final context
+        admin_context = {
+            **self.each_context(request),
+            'title': context.get('title', self.index_title),
+            'subtitle': None,
+            'app_list': app_list,
+            **context,
+        }
+        
+        template_name = self.index_template or 'admin/index.html'
+        
+        # Return the response with our custom template
+        return TemplateResponse(request, template_name, admin_context)

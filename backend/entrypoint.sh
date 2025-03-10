@@ -15,7 +15,7 @@ python manage.py migrate
 
 # Cargar datos iniciales (tema del admin)
 echo "Cargando datos iniciales..."
-python manage.py loaddata api/fixtures/admin_interface_theme_devaccelerator.json
+python manage.py loaddata api/fixtures/admin_interface_theme_devaccelerator.json || echo "No se pudo cargar el tema personalizado, continuando..."
 
 # Crear superusuario si no existe
 echo "Creando superusuario..."

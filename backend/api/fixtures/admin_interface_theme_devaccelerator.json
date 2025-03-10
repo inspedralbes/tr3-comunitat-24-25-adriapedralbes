@@ -25,19 +25,14 @@
       "css_delete_button_background_color": "#e74c3c",
       "css_delete_button_background_hover_color": "#c0392b",
       "css_delete_button_text_color": "#ffffff",
-      "css": ".module h2, .module caption, .inline-group h2 { background-color: #3498db; }\n.button, input[type=submit], input[type=button], .submit-row input, a.button { border-radius: 3px; }\n.object-tools a:hover { background-color: #3498db; }\n.button.default, input[type=submit].default, .submit-row input.default { background: #2ecc71; }\n#content { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); border-radius: 5px; }",
+      "list_filter_dropdown": true,
       "related_modal_active": true,
       "related_modal_background_color": "rgba(0, 0, 0, 0.7)",
       "related_modal_rounded_corners": true,
       "language_chooser_active": true,
-      "list_filter_dropdown": true,
-      "list_filter_sticky": true,
+      "language_chooser_display": "code",
       "form_submit_sticky": true,
-      "form_pagination_sticky": true,
-      "collapsible_stacked_inlines": true,
-      "collapsible_stacked_inlines_collapsed": true,
-      "collapsible_tabular_inlines": true,
-      "collapsible_tabular_inlines_collapsed": true
+      "form_pagination_sticky": true
     }
   }
 ]

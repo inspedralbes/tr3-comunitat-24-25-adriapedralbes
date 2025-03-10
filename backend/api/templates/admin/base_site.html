@@ -1,98 +1,165 @@
-{% extends 'admin/base_site.html' %}
+{% extends 'admin/base.html' %}
 {% load static %}
 
+{% block title %}{{ title }} | DevAccelerator Admin{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}" style="color: white;">
+        DevAccelerator Admin
+    </a>
+</h1>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    :root {
+        --primary: #2c3e50;
+        --secondary: #3498db;
+        --accent: #e74c3c;
+        --primary-fg: #fff;
+        --body-fg: #333;
+        --body-bg: #f8f9fa;
+        --header-color: #ffffff;
+    }
+    
+    #header {
+        background: var(--primary);
+        color: var(--header-color);
+    }
+    .module h2, .module caption, .inline-group h2 {
+        background: var(--secondary);
+    }
+    a:link, a:visited {
+        color: var(--secondary);
+    }
+    .button.default, input[type=submit].default, .submit-row input.default {
+        background: #2ecc71;
+    }
+    div.breadcrumbs {
+        background: #34495e;
+    }
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: var(--secondary);
+        color: var(--primary-fg);
+        border-radius: 4px;
+    }
+    .button:active, input[type=submit]:active, input[type=button]:active,
+    .button:focus, input[type=submit]:focus, input[type=button]:focus,
+    .button:hover, input[type=submit]:hover, input[type=button]:hover {
+        background: #2980b9;
+    }
+    #content-related .module h2 {
+        background: var(--secondary);
+        color: var(--primary-fg);
+    }
+    .delete-button {
+        background: var(--accent);
+    }
+    .delete-button:active,
+    .delete-button:focus,
+    .delete-button:hover {
+        background: #c0392b;
+    }
+    /* Estilo personalizado para tablas */
+    #result_list tbody tr:nth-child(even) {
+        background-color: rgba(52, 152, 219, 0.05);
+    }
+    #result_list tbody tr:hover {
+        background-color: rgba(52, 152, 219, 0.1);
+    }
+    /* Mejoras en formularios */
+    .form-row {
+        border-bottom: 1px solid #eee;
+        padding: 12px 0;
+    }
+    .form-row input, .form-row textarea {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    .form-row select {
+        padding: 6px 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    /* Estilo para fieldsets */
+    fieldset.module {
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    /* Dashboard */
+    .dashboard .module {
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border: 1px solid #e9ecef;
+        margin-bottom: 20px;
+    }
+    .dashboard .module:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: box-shadow 0.3s ease;
+    }
+</style>
+{% endblock %}
+
 {% block extrahead %}
-    {{ block.super }}
-    <style>
-        /* Estilos personalizados adicionales */
-        .field-get_avatar img,
-        .field-get_color_badge span {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+{{ block.super }}
+<style>
+    /* Estilos personalizados adicionales */
+    .field-get_avatar img,
+    .field-get_color_badge span {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
 
-        .field-content_preview {
-            font-family: 'Courier New', monospace;
-            background-color: #f8f9fa;
-            padding: 3px 6px;
-            border-radius: 4px;
-            border-left: 3px solid #007bff;
-        }
+    .field-content_preview {
+        font-family: 'Courier New', monospace;
+        background-color: #f8f9fa;
+        padding: 3px 6px;
+        border-radius: 4px;
+        border-left: 3px solid #007bff;
+    }
 
-        /* Mejorar la lista de acciones */
-        .action-wrapper {
-            margin-bottom: 15px;
-        }
+    /* Mejorar la lista de acciones */
+    .action-wrapper {
+        margin-bottom: 15px;
+    }
 
-        /* Personalizar filas de tablas */
-        #result_list tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.05);
-        }
+    /* Badges para usuarios premium */
+    .premium-badge {
+        background-color: gold;
+        color: #333;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
 
-        /* Mejorar la presentación de formularios */
-        .form-row {
-            margin-bottom: 15px;
-        }
+    /* Campos de solo lectura */
+    .readonly {
+        background-color: #f9f9f9;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #eee;
+    }
 
-        /* Badges para usuarios premium */
-        .premium-badge {
-            background-color: gold;
-            color: #333;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
-
-        /* Campos de solo lectura */
-        .readonly {
-            background-color: #f9f9f9;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #eee;
-        }
-
-        /* Animaciones suaves */
-        .model-list-link,
-        .addlink,
-        .changelink,
-        .deletelink {
-            transition: all 0.2s ease;
-        }
-
-        /* Información emergente */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-    </style>
+    /* Animaciones suaves */
+    .model-list-link,
+    .addlink,
+    .changelink,
+    .deletelink {
+        transition: all 0.2s ease;
+    }
+</style>
 {% endblock %}
 
 {% block welcome-msg %}
     <strong>Bienvenido, {{ user.get_username }}</strong>
     {% if user.is_superuser %}
-        <span class="premium-badge">Admin</span>
+        <span style="background-color: gold; color: #333; padding: 2px 6px; border-radius: 10px; font-size: 0.8em; font-weight: bold; margin-left: 5px;">Admin</span>
     {% endif %}
 {% endblock %}
 

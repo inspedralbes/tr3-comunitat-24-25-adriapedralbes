@@ -26,19 +26,19 @@ from api.admin import (
 )
 
 # Configura el sitio de administración personalizado
-custom_admin = CustomAdminSite(name='customadmin')
+custom_admin_site = CustomAdminSite(name='customadmin')
 
 # Registra los modelos en el sitio personalizado
-custom_admin.register(User, CustomUserAdmin)
-custom_admin.register(Category, CategoryAdmin)
-custom_admin.register(Post, PostAdmin)
-custom_admin.register(Comment, CommentAdmin)
-custom_admin.register(PostLike, PostLikeAdmin)
-custom_admin.register(CommentLike, CommentLikeAdmin)
-custom_admin.register(Subscriber, SubscriberAdmin)
+custom_admin_site.register(User, CustomUserAdmin)
+custom_admin_site.register(Category, CategoryAdmin)
+custom_admin_site.register(Post, PostAdmin)
+custom_admin_site.register(Comment, CommentAdmin)
+custom_admin_site.register(PostLike, PostLikeAdmin)
+custom_admin_site.register(CommentLike, CommentLikeAdmin)
+custom_admin_site.register(Subscriber, SubscriberAdmin)
 
 urlpatterns = [
-    path('admin/', custom_admin.urls),
+    path('admin/', custom_admin_site.urls),
     path('api/', include('api.urls')),
 ]
 
