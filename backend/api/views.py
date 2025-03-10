@@ -1,8 +1,17 @@
-from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework import status, viewsets, permissions, generics, filters
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import Subscriber
-from .serializers import SubscriberSerializer
+from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
+
+from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
+from .serializers import (
+    SubscriberSerializer, UserSerializer, UserRegistrationSerializer, CategorySerializer,
+    PostSerializer, PostDetailSerializer, CommentSerializer, PostLikeSerializer, CommentLikeSerializer, UserShortSerializer
+)
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -299,3 +308,221 @@ def send_confirmation_email(subscriber):
         recipient_list=[subscriber.email],
         fail_silently=False,
     )
+
+
+# ----------------------- API USUARIOS Y COMUNIDAD -----------------------
+
+class StandardResultsSetPagination(PageNumberPagination):
+    """
+    Paginación estándar para las vistas de API.
+    """
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class UserRegistrationView(generics.CreateAPIView):
+    """
+    Vista para registro de usuarios.
+    """
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = UserRegistrationSerializer
+
+
+class UserMeView(APIView):
+    """
+    Vista para obtener o actualizar el perfil del usuario autenticado.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Vista para listar y recuperar usuarios (sólo lectura).
+    """
+    queryset = User.objects.all().order_by('-points')
+    serializer_class = UserSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', 'first_name', 'last_name']
+
+
+class LeaderboardView(generics.ListAPIView):
+    """
+    Vista para obtener el leaderboard de usuarios.
+    """
+    serializer_class = UserShortSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        # Obtener los 10 usuarios con más puntos
+        return User.objects.all().order_by('-points')[:10]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        
+        # Añadir la posición a cada usuario
+        leaderboard_data = serializer.data
+        for i, user in enumerate(leaderboard_data, 1):
+            user['position'] = i
+        
+        return Response(leaderboard_data)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint para Categorías.
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class PostViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint para Posts.
+    """
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['content']
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return PostDetailSerializer
+        return PostSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def get_queryset(self):
+        queryset = Post.objects.all()
+        category = self.request.query_params.get('category', None)
+        if category and category != 'all':
+            queryset = queryset.filter(category__slug=category)
+        return queryset
+
+
+class PinnedPostsView(generics.ListAPIView):
+    """
+    Vista para obtener posts fijados.
+    """
+    serializer_class = PostSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return Post.objects.filter(is_pinned=True).order_by('-created_at')
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint para Comentarios.
+    """
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        post_id = self.request.data.get('post_id')
+        parent_id = self.request.data.get('parent_id')
+        mentioned_user_id = self.request.data.get('mentioned_user_id')
+        
+        post = get_object_or_404(Post, id=post_id)
+        parent = Comment.objects.filter(id=parent_id).first() if parent_id else None
+        mentioned_user = User.objects.filter(id=mentioned_user_id).first() if mentioned_user_id else None
+        
+        serializer.save(
+            author=self.request.user,
+            post=post,
+            parent=parent,
+            mentioned_user=mentioned_user
+        )
+
+
+class PostLikeView(APIView):
+    """
+    Vista para dar/quitar like a un post.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        like, created = PostLike.objects.get_or_create(user=request.user, post=post)
+        
+        if created:
+            # Incrementar contador de likes del post
+            post.likes += 1
+            post.save(update_fields=['likes'])
+            
+            # Si el autor no es el mismo usuario que da like, dar puntos al autor
+            if post.author != request.user:
+                post.author.points += 1
+                post.author.save(update_fields=['points'])
+            
+            return Response({'status': 'liked', 'likes': post.likes})
+        else:
+            # Si ya existe el like, lo eliminamos
+            like.delete()
+            
+            # Decrementar contador de likes del post
+            post.likes = max(0, post.likes - 1)
+            post.save(update_fields=['likes'])
+            
+            # Si el autor no es el mismo usuario, restar puntos
+            if post.author != request.user:
+                post.author.points = max(0, post.author.points - 1)
+                post.author.save(update_fields=['points'])
+            
+            return Response({'status': 'unliked', 'likes': post.likes})
+
+
+class CommentLikeView(APIView):
+    """
+    Vista para dar/quitar like a un comentario.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        like, created = CommentLike.objects.get_or_create(user=request.user, comment=comment)
+        
+        if created:
+            # Incrementar contador de likes del comentario
+            comment.likes += 1
+            comment.save(update_fields=['likes'])
+            
+            # Si el autor no es el mismo usuario que da like, dar puntos al autor
+            if comment.author != request.user:
+                comment.author.points += 1
+                comment.author.save(update_fields=['points'])
+            
+            return Response({'status': 'liked', 'likes': comment.likes})
+        else:
+            # Si ya existe el like, lo eliminamos
+            like.delete()
+            
+            # Decrementar contador de likes del comentario
+            comment.likes = max(0, comment.likes - 1)
+            comment.save(update_fields=['likes'])
+            
+            # Si el autor no es el mismo usuario, restar puntos
+            if comment.author != request.user:
+                comment.author.points = max(0, comment.author.points - 1)
+                comment.author.save(update_fields=['points'])
+            
+            return Response({'status': 'unliked', 'likes': comment.likes})
