@@ -21,8 +21,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
 
-def redirect_to_api(request):
-    return redirect('api/')
+def redirect_to_admin(request):
+    return redirect('admin/')
 
 # Personalizar títulos del administrador
 admin.site.site_header = 'FuturPrive Admin'
@@ -30,7 +30,7 @@ admin.site.site_title = 'FuturPrive Admin'
 admin.site.index_title = 'Panel de Control'
 
 urlpatterns = [
-    path('', redirect_to_api),
+    path('', redirect_to_admin),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
 ]

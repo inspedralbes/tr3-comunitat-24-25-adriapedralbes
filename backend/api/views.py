@@ -70,6 +70,7 @@ def test_email_connection():
 
 # Vista para la ruta raíz
 @api_view(['GET'])
+@permission_classes([AllowAny])
 @add_cors_headers
 def api_root(request):
     """
@@ -77,9 +78,9 @@ def api_root(request):
     """
     return Response({
         'status': 'online',
-        'message': 'Bienvenido a la API de FuturPrive',
+        'message': 'API de FuturPrive - Acceso restringido',
         'version': '1.0',
-        'endpoints': {
+        'endpoints_publicos': {
             'newsletter_subscribe': '/api/newsletter/subscribe/',
             'newsletter_confirm': '/api/newsletter/confirm/{token}/',
             'newsletter_unsubscribe': '/api/newsletter/unsubscribe/{token}/'

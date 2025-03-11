@@ -11,6 +11,9 @@ router.register(r'posts', views.PostViewSet)
 router.register(r'comments', views.CommentViewSet)
 
 urlpatterns = [
+    # Ruta raíz de la API (limitada)
+    path('', views.api_root, name='api-root'),
+    
     # Rutas de autenticación JWT
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

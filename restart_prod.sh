@@ -2,7 +2,13 @@
 # Hacer el script ejecutable
 chmod +x $0
 
-# Script para reiniciar los servicios en producción
+# Asegurarnos de que DEBUG está en False para producción
+echo "🔵 Verificando configuración de DEBUG en .env..."
+if grep -q "DEBUG=True" ./backend/.env; then
+    echo "❌ Se detectó DEBUG=True en producción. Cambiando a False..."
+    sed -i 's/DEBUG=True/DEBUG=False/g' ./backend/.env
+    echo "✅ DEBUG establecido en False para entorno de producción"
+fi
 echo "🔵 Deteniendo los contenedores..."
 docker compose -f docker-compose.prod.yml down
 
