@@ -20,9 +20,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
+from api.views_security import ratelimited_view, locked_out
 
 def redirect_to_admin(request):
-    return redirect('admin/')
+    return redirect('backend-admin/')
 
 # Personalizar títulos del administrador
 admin.site.site_header = 'FuturPrive Admin'
@@ -31,8 +32,15 @@ admin.site.index_title = 'Panel de Control'
 
 urlpatterns = [
     path('', redirect_to_admin),
-    path('admin/', admin.site.urls),
+    # Trampa de miel para ataques al panel de administración (debe estar antes del admin real)
+    path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
+    # Panel de administración real con una URL diferente
+    path('backend-admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    
+    # Rutas de seguridad
+    path('ratelimited/', ratelimited_view, name='ratelimited'),
+    path('accounts/locked/', locked_out, name='locked_out'),
 ]
 
 # Configuración para servir archivos estáticos y multimedia en desarrollo

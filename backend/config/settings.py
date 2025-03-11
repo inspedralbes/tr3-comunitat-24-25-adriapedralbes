@@ -42,6 +42,11 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'api.apps.ApiConfig',
     'corsheaders',
+    
+    # Aplicaciones de seguridad
+    'axes',  # Protección contra fuerza bruta
+    'csp',   # Content Security Policy
+    'admin_honeypot',  # Trampa para ataques al admin
 ]
 
 MIDDLEWARE = [
@@ -55,6 +60,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # Middleware de seguridad
+    'axes.middleware.AxesMiddleware',  # Debe ir después de AuthenticationMiddleware
+    'csp.middleware.CSPMiddleware',  # Content Security Policy
+    'django_ratelimit.middleware.RatelimitMiddleware',  # Rate limiting
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -117,6 +127,7 @@ AUTH_USER_MODEL = 'api.User'
 
 # Configuración de la autenticación
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',  # Primero para bloquear después de demasiados intentos
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -227,3 +238,9 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(hours=1),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
 }
+
+# Importar configuraciones de seguridad
+try:
+    from .security_settings import *
+except ImportError:
+    pass
