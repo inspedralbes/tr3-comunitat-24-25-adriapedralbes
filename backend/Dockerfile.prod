@@ -35,7 +35,11 @@ fi\n\
 # Ejecutar collectstatic\n\
 python manage.py collectstatic --noinput\n\
 # Migrar base de datos\n\
+python manage.py makemigrations\n\
 python manage.py migrate\n\
+# Crear superusuario\n\
+echo "🔵 Configurando superusuario..."\n\
+python create_superuser.py\n\
 # Obtener el nombre del proyecto y ejecutar gunicorn\n\
 PROJECT_NAME=$(find . -type f -name "wsgi.py" | grep -v "venv" | head -1 | xargs dirname | xargs basename)\n\
 gunicorn --bind 0.0.0.0:8000 ${PROJECT_NAME}.wsgi:application\n\

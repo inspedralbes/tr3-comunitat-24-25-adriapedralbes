@@ -7,16 +7,27 @@ django.setup()
 
 from api.models import User
 
-# Verificar si ya existe un superusuario
-if not User.objects.filter(is_superuser=True).exists():
+# Intentar obtener las credenciales de superusuario desde variables de entorno
+username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
+password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin123')
+# Verificar si se debe forzar la creación del superusuario
+force_create = os.environ.get('FORCE_SUPERUSER_CREATE', '').lower() == 'true'
+
+# Verificar si ya existe un superusuario o si se debe forzar la creación
+if not User.objects.filter(is_superuser=True).exists() or force_create:
     # Crear superusuario
     User.objects.create_superuser(
-        username='admin',
-        email='admin@example.com',
-        password='admin123',
+        username=username,
+        email=email,
+        password=password,
         first_name='Admin',
         last_name='User'
     )
-    print('Superusuario creado exitosamente')
+    print(f'Superusuario {username} creado exitosamente')
 else:
-    print('Ya existe un superusuario')
+    # Esto es útil para depuración, verifica si hay algún superusuario existente
+    superusers = User.objects.filter(is_superuser=True)
+    print(f'Ya existen {superusers.count()} superusuarios:')
+    for user in superusers:
+        print(f' - {user.username} ({user.email})')

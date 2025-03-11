@@ -64,12 +64,18 @@ services:
     command: >-
       sh -c "python manage.py collectstatic --noinput &&
              python manage.py makemigrations &&
-             python manage.py migrate && 
+             python manage.py migrate &&
+             python create_superuser.py && 
              gunicorn --bind 0.0.0.0:8000 config.wsgi:application"
     env_file:
       - ./backend/.env
     environment:
       - DATABASE_HOST=postgres
+      # Configuración para garantizar la creación del superusuario
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@example.com
+      - DJANGO_SUPERUSER_PASSWORD=admin123
+      - FORCE_SUPERUSER_CREATE=true
     networks:
       - web
     volumes:
