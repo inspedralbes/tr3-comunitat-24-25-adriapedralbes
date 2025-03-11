@@ -425,12 +425,15 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                         level={post.author.level}
                         avatarUrl={post.author.avatarUrl}
                         timestamp={post.timestamp || post.created_at || 'hace un momento'}
-                        category={post.category}
+                        category={typeof post.category === 'object' ? post.category.name : post.category}
                         categoryColor={
-                            post.category === 'General' ? 'bg-[#444442] border border-white/5' :
-                                post.category === 'Anuncios' ? 'bg-[#444442] border border-white/5' :
-                                    post.category === 'Preguntas' ? 'bg-[#444442] border border-white/5' :
-                                        'bg-[#444442] border border-white/5'
+                            (() => {
+                                const categoryName = typeof post.category === 'object' ? post.category.name : post.category;
+                                if (categoryName === 'General') return 'bg-[#444442] border border-white/5';
+                                if (categoryName === 'Anuncios') return 'bg-[#444442] border border-white/5';
+                                if (categoryName === 'Preguntas') return 'bg-[#444442] border border-white/5';
+                                return 'bg-[#444442] border border-white/5';
+                            })()
                         }
                     />
 
