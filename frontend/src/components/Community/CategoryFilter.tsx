@@ -94,7 +94,6 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
     // Encontrar la categoría activa para mostrarla en el móvil
     const activeItem = categoryItems.find(cat => cat.id === activeCategory) || categoryItems[0];
-    const activeSortItem = sortTypes.find(sort => sort.id === activeSortType) || sortTypes[0];
 
     return (
         <div className="mb-4 mx-4 sm:mx-2 md:mx-0">

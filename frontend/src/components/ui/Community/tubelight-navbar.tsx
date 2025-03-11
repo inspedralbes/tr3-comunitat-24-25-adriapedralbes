@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { LucideIcon, User, Settings, LogOut } from "lucide-react";
-import Image from 'next/image';
+import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
 
@@ -21,10 +21,6 @@ interface NavBarProps {
 }
 
 export function NavBar({ items, className }: NavBarProps) {
-  // Encuentra el ítem activo por la propiedad 'active'
-  const _activeItem = items.find(item => item.active) || items[0];
-  const [_isMobile, setIsMobile] = useState(false);
-
   // Estado para nuestro menú desplegable personalizado
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -49,7 +45,7 @@ export function NavBar({ items, className }: NavBarProps) {
     document.documentElement.style.overflowY = 'scroll';
 
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      // No necesitamos guardar el estado isMobile ya que no lo usamos
     };
 
     handleResize();

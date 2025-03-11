@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
-import { Post } from '@/types/Post';
-import { PostCard } from './PostCard';
 import { PostSkeleton } from '@/components/ui/PostSkeleton';
+import { Post } from '@/types/Post';
+
+import { PostCard } from './PostCard';
 
 interface PostFeedProps {
     posts: Post[];

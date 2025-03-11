@@ -1,6 +1,4 @@
 import { api } from './api';
-import { Post } from '@/types/Post';
-import { Comment } from '@/types/Comment';
 
 // Tipos para el servicio
 export interface CreatePostData {

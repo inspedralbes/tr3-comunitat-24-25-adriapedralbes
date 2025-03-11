@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function ConfirmPage() {
@@ -66,7 +65,7 @@ export default function ConfirmPage() {
             </div>
             <h1 className="text-2xl font-bold mb-4">¡Suscripción confirmada!</h1>
             <p className="mb-6">
-              Ahora vas a recibir un correo titulado &quot;Las Sorpresas de Adrià Estévez&quot; donde tendrás acceso a lo prometido.
+              Ahora vas a recibir un correo titulado &ldquo;Las Sorpresas de Adrià Estévez&rdquo; donde tendrás acceso a lo prometido.
             </p>
             <p className="text-gray-400 mb-8">
               Pasa un gran día,<br />

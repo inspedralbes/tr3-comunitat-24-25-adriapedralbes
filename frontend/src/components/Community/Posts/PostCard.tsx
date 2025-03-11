@@ -30,6 +30,16 @@ interface Commenter {
     avatarUrl?: string;
 }
 
+// Tipo para comentarios con anidación
+interface CommentWithReplies {
+    author: {
+        username: string;
+        avatarUrl?: string;
+    };
+    timestamp: string;
+    replies?: CommentWithReplies[];
+}
+
 export const PostCard: React.FC<PostCardProps> = ({
     id,
     author,
@@ -57,7 +67,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     const commenterSet = new Set<string>();
 
     // Función recursiva para extraer comentadores de comentarios y respuestas
-    const extractCommenters = (comments: Comment[]) => {
+    const extractCommenters = (comments: CommentWithReplies[]) => {
         comments.forEach(comment => {
             const username = comment.author.username;
             if (!commenterSet.has(username)) {
@@ -102,7 +112,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            handleClick();
+            onPostClick(id);
         }
     };
 
@@ -111,8 +121,8 @@ export const PostCard: React.FC<PostCardProps> = ({
             className={`bg-[#323230] rounded-lg p-4 my-3 mx-4 sm:mx-2 md:mx-0 ${isPinned ? 'border-l-4 border-amber-500' : 'border border-white/10'} cursor-pointer hover:bg-[#3a3a38] transition-colors`}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
-            role="button"
             tabIndex={0}
+            role="button"
             aria-label={`Post: ${title}`}
         >
             <UserBadge

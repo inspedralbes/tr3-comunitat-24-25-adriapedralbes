@@ -49,7 +49,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
         setActiveLessonId(lessonId);
     };
 
-    // Navegar a la lección siguiente
+    // Navegar a la lección siguiente (se mantiene para posible uso futuro)
     const _goToNextLesson = () => {
         const currentIndex = lessons.findIndex(lesson => lesson.id === activeLessonId);
         if (currentIndex < lessons.length - 1) {
@@ -57,7 +57,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
         }
     };
 
-    // Navegar a la lección anterior
+    // Navegar a la lección anterior (se mantiene para posible uso futuro)
     const _goToPrevLesson = () => {
         const currentIndex = lessons.findIndex(lesson => lesson.id === activeLessonId);
         if (currentIndex > 0) {
@@ -65,7 +65,8 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
         }
     };
 
-    const handleKeyDownClick = (e: React.KeyboardEvent, lessonId: string) => {
+    // Manejador del teclado para las lecciones
+    const handleLessonKeyDown = (e: React.KeyboardEvent, lessonId: string) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             changeLesson(lessonId);
@@ -109,9 +110,10 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                                 : 'hover:bg-[#323230] text-white/80'
                                 } transition-colors`}
                             onClick={() => changeLesson(lesson.id)}
-                            onKeyDown={(e) => handleKeyDownClick(e, lesson.id)}
-                            role="button"
+                            onKeyDown={(e) => handleLessonKeyDown(e, lesson.id)}
                             tabIndex={0}
+                            role="button"
+                            aria-label={`Lección: ${lesson.title} ${lesson.isCompleted ? '(completada)' : ''}`}
                         >
                             <span>{lesson.title}</span>
                             {lesson.isCompleted && (

@@ -22,7 +22,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            onClick?.();
+            if (onClick) {
+                onClick();
+            }
         }
     };
 
@@ -31,9 +33,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             className="bg-[#323230] rounded-lg overflow-hidden hover:opacity-95 hover:shadow-lg hover:shadow-white/5 transition-all cursor-pointer border border-white/10"
             onClick={onClick}
             onKeyDown={handleKeyDown}
-            role="button"
             tabIndex={0}
-            aria-label={`Course: ${title}${isPrivate ? ' (Private)' : ''}`}
+            role="button"
+            aria-label={`Course: ${title}`}
         >
             <div className="relative h-40">
                 <Image

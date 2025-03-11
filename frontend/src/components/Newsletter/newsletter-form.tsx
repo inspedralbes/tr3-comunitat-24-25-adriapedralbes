@@ -22,15 +22,15 @@ export function NewsletterForm() {
         <div className="relative w-20 h-20 flex items-center justify-center">
           <div className="absolute w-12 h-12 bg-purple-600/20 rounded-full"></div>
           <div className="relative">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="48" 
-              height="48" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
               className="text-white"
             >
@@ -42,33 +42,33 @@ export function NewsletterForm() {
           </div>
         </div>
       </div>
-      
+
       {/* Heading */}
       <h2 className="mb-4 text-3xl font-bold tracking-tight lg:text-4xl">
         Emprende Aprendiendo
       </h2>
-      
+
       {/* Subtitle */}
       <p className="mb-6 text-lg text-gray-400">
-        Suscríbete GRATIS para recibir las últimas tendencias, 
+        Suscríbete GRATIS para recibir las últimas tendencias,
         <br />estrategias, e ideas de negocio <span className="text-yellow-400">💡</span>
       </p>
 
       {/* Copywriting Section */}
       <div className="mb-8 bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 text-left">
         <h3 className="text-xl font-bold mb-3 text-purple-400">Mantente al día de las últimas tendencias en Inteligencia Artificial</h3>
-        
+
         <p className="mb-4 text-gray-300">
-          ¿Te acuerdas de cuando la IA era solo ciencia ficción? Yo sí. Y ahora, mientras escribo esto, tengo 3 herramientas de IA abiertas que están haciendo mi trabajo más fácil (y más divertido). 
+          ¿Te acuerdas de cuando la IA era solo ciencia ficción? Yo sí. Y ahora, mientras escribo esto, tengo 3 herramientas de IA abiertas que están haciendo mi trabajo más fácil (y más divertido).
         </p>
-        
+
         <p className="mb-4 text-gray-300">
           La verdad es que, en mi viaje como emprendedor, he aprendido que no se trata de <span className="italic">tener</span> todas las herramientas, sino de saber <span className="font-semibold">cuáles son las correctas para ti</span>.
         </p>
 
         <div className="mb-4 border-l-4 border-purple-500 pl-4 py-1">
           <p className="text-gray-300">
-            &quot;La diferencia entre quienes despegan y quienes se estancan está en saber qué tendencias de IA realmente importan para tu negocio.&quot;
+            &ldquo;La diferencia entre quienes despegan y quienes se estancan está en saber qué tendencias de IA realmente importan para tu negocio.&rdquo;
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export function NewsletterForm() {
         </ul>
 
         <p className="text-gray-300">
-          ¿Preparado para dejar de preguntarte &quot;¿qué me estoy perdiendo?&quot; y empezar a ser quien está al frente de la revolución?
+          ¿Preparado para dejar de preguntarte &ldquo;¿qué me estoy perdiendo?&rdquo; y empezar a ser quien está al frente de la revolución?
         </p>
       </div>
 
@@ -99,7 +99,7 @@ export function NewsletterForm() {
             required
             className="flex-1 px-4 py-3 bg-[#1c1c1c] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
-          <Button 
+          <Button
             type="submit"
             className="bg-white text-black hover:bg-gray-200 px-8 py-3 font-medium"
           >

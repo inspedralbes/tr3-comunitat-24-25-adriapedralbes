@@ -8,9 +8,6 @@ import { getMonthData } from '@/utils/calendarUtils';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarMonthView } from './CalendarMonthView';
 
-// Definición de tipo para las vistas que soporta CalendarHeader
-type HeaderViewMode = "month" | "list";
-
 interface CalendarProps {
     events: CalendarEvent[];
     onEventClick?: (event: CalendarEvent) => void;

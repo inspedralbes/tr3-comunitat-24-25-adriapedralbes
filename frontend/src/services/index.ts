@@ -3,12 +3,14 @@ export * from './auth';
 export * from './community';
 
 // Exportar servicios como objeto
-import api from './api';
-import authService from './auth';
-import communityService from './community';
+import apiService from './api';
+import auth from './auth';
+import community from './community';
 
-export default {
-  api,
-  auth: authService,
-  community: communityService
+const services = {
+  api: apiService,
+  auth,
+  community
 };
+
+export default services;

@@ -44,10 +44,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const [likesCount, setLikesCount] = useState(post?.likes || 0);
     const [comments, setComments] = useState<EnhancedComment[]>([]);
 
-    // Array plano de todos los comentarios/respuestas para búsqueda fácil
-    const [_allComments, setAllComments] = useState<{ [key: string]: EnhancedComment }>({});
-
-    // Función para confirmar salida si hay comentario pendiente
+    // Función para confirmar salida si hay comentario pendiente (memoizada para evitar recreación)
     const confirmDiscardComment = useCallback((): boolean => {
         if (comment.trim() !== '') {
             return window.confirm("Aún no has terminado tu comentario. ¿Quieres irte sin terminar?");
@@ -118,7 +115,6 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         };
 
         processComments(commentsArray);
-        setAllComments(cache);
     };
 
     // Cargar comentarios

@@ -58,51 +58,51 @@ export function NewsletterTestimonials() {
         <div className="flex justify-center mb-4">
           <AnimatedButton>Opiniones</AnimatedButton>
         </div>
-        
+
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white">
           Esto dicen de <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">nosotros</span>...
         </h2>
-        
+
         {/* Testimonios destacados (versión móvil: 1 columna, tablet: 2 columnas, desktop: 3 columnas) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <Card 
-              key={index} 
+            <Card
+              key={index}
               className="relative overflow-hidden border-0 h-full bg-gradient-to-br from-gray-900/80 to-black backdrop-blur-sm p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {/* Cuota decorativa */}
               <div className="absolute -top-2 -right-2 text-[#C9A880]/10">
                 <Quote size={80} />
               </div>
-              
+
               {/* Estrellas de valoración */}
               <div className="flex text-[#C9A880] mb-4">
                 {Array.from({ length: testimonial.stars }).map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
               </div>
-              
+
               {/* Texto del testimonio */}
               <p className="text-white/90 text-base font-light mb-6 leading-relaxed italic relative z-10">
-                <span className="text-[#C9A880] text-xl font-serif">“</span>{testimonial.text}<span className="text-[#C9A880] text-xl font-serif">”</span>
+                <span className="text-[#C9A880] text-xl font-serif">&ldquo;</span>{testimonial.text}<span className="text-[#C9A880] text-xl font-serif">&rdquo;</span>
               </p>
-              
+
               {/* Información del usuario */}
               <div className="flex items-center mt-auto pt-4 border-t border-[#C9A880]/20">
                 {testimonial.image ? (
-                  <Image 
-                    src={testimonial.image} 
-                    alt={testimonial.name} 
-                    className="w-12 h-12 rounded-full mr-4 border-2 border-[#C9A880]/30"
+                  <Image
+                    src={testimonial.image}
+                    alt={testimonial.name}
                     width={48}
                     height={48}
+                    className="w-12 h-12 rounded-full mr-4 border-2 border-[#C9A880]/30 object-cover"
                   />
                 ) : (
                   <div className={`w-12 h-12 rounded-full ${testimonial.bgColor} flex items-center justify-center ${testimonial.textColor} font-bold mr-4 border-2 border-[#C9A880]/30`}>
                     {testimonial.initial}
                   </div>
                 )}
-                
+
                 <div>
                   <h4 className="font-bold text-white text-base">{testimonial.name}</h4>
                   <p className="text-xs text-[#C9A880]/80">Suscriptor/a de la Newsletter</p>
