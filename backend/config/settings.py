@@ -144,10 +144,20 @@ CORS_ALLOW_HEADERS = [
 CORS_EXPOSE_HEADERS = ['content-type', 'content-disposition']
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
 
+# Configuración de CSRF
+CSRF_TRUSTED_ORIGINS = ['https://api.futurprive.com', 'https://futurprive.com', 'http://api.futurprive.com', 'http://futurprive.com']
+CSRF_COOKIE_SECURE = True
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_HTTPONLY = False  # Debe ser False para que JavaScript pueda acceder a la cookie
+CSRF_COOKIE_DOMAIN = 'futurprive.com'  # Dominio principal
+
+
 # Configuración de sesiones
 SESSION_COOKIE_AGE = 86400  # 24 horas en segundos
-SESSION_COOKIE_SECURE = False  # Cambiar a True en producción con HTTPS
+SESSION_COOKIE_SECURE = True  # Para conexiones HTTPS
 SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_DOMAIN = 'futurprive.com'  # Dominio principal compartido entre subdominios
+SESSION_COOKIE_SAMESITE = 'Lax'  # Opciones: 'Strict', 'Lax', 'None'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
