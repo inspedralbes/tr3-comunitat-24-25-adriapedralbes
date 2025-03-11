@@ -138,6 +138,7 @@ def test_beehiiv(request):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def subscribe(request):
     """
     API endpoint para suscribirse a la newsletter.
@@ -267,6 +268,7 @@ def subscribe(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 @add_cors_headers
 def confirm_subscription(request, token):
     """
@@ -358,6 +360,7 @@ def confirm_subscription(request, token):
 
 
 @api_view(['GET', 'POST', 'OPTIONS'])
+@permission_classes([AllowAny])
 @add_cors_headers
 def unsubscribe(request, token):
     """
