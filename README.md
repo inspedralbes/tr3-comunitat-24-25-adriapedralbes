@@ -217,3 +217,54 @@ L'aplicació estarà disponible a:
 
 * `GET /api/users/me/`: Obté el perfil de l'usuari actual.
 * `PUT /api/users/me/`: Actualitza
+
+## Diagrama Entitat/Relació
+
+Aquest diagrama mostra les entitats principals del sistema i les seves relacions. Inclou usuaris, plans, subscripcions, cursos, mòduls, lliçons, sistema de comunitat i gamificació.
+
+![Diagrama Entitat/Relació - FuturPrive](doc/images/diagrama-entitat-relacio.svg)
+
+### Entitats principals:
+
+#### Usuaris i subscripcions
+- **Usuari**: Emmagatzema la informació dels usuaris (dades personals, credencials, nivell)
+- **Pla**: Els diferents plans de subscripció disponibles
+- **Subscripció**: Relació entre usuaris i plans
+
+#### Sistema de cursos
+- **Curs**: Informació general dels cursos disponibles
+- **Mòdul**: Agrupacions de contingut dins d'un curs
+- **Lliçó**: Unitats d'aprenentatge específiques amb contingut
+
+#### Seguiment d'aprenentatge
+- **ProgrésCurs**: Registra el progrés d'un usuari en un curs
+- **ProgrésLliçó**: Registra el progrés d'un usuari en lliçons específiques
+
+#### Comunitat
+- **Categoria**: Classificació dels posts de la comunitat
+- **Post**: Publicacions dels usuaris
+- **Comentari**: Comentaris en els posts
+- **Reacció**: Reaccions dels usuaris als posts (likes)
+
+#### Gamificació
+- **Logro**: Assoliments que els usuaris poden aconseguir
+- **UsuariLogro**: Registra els logros obtinguts pels usuaris
+
+## Diagrama de Seqüència - Procés de Compra
+
+Aquest diagrama mostra la seqüència d'interaccions entre els diferents components del sistema durant el procés de compra d'una subscripció.
+
+![Diagrama de Seqüència - Procés de Compra](doc/images/diagrama-sequencia-compra.svg)
+
+### Passos del procés de compra:
+
+1. **Usuari selecciona un pla de subscripció** - L'usuari navega pels plans disponibles i en selecciona un.
+2. **Consulta de detalls del pla** - El frontend sol·licita els detalls complets del pla al backend.
+3. **Consulta a la base de dades** - El backend obté la informació del pla de la base de dades.
+4. **Mostra del formulari de pagament** - El frontend presenta un formulari de pagament a l'usuari utilitzant Stripe Elements.
+5. **Enviament de dades de pagament** - L'usuari introdueix les seves dades de pagament i confirma la compra.
+6. **Processament del pagament** - El backend comunica amb Stripe per processar el pagament.
+7. **Creació de la subscripció** - Un cop el pagament s'ha processat correctament, es crea un registre de subscripció a la base de dades.
+8. **Confirmació a l'usuari** - Es mostra a l'usuari una confirmació de la compra realitzada amb èxit.
+
+Aquest flux garanteix una experiència de compra segura i fluida, delegant el processament de pagaments a Stripe mentre el sistema manté el control sobre les subscripcions i l'accés als continguts.
