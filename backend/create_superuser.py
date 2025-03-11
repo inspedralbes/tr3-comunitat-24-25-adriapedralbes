@@ -1,22 +1,23 @@
+
 import os
 import django
 
-# Configurar entorno Django
+# Configurar el entorno de Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from api.models import User
+# Importar el modelo de usuario después de configurar Django
+from django.contrib.auth import get_user_model
 
-# Verificar si ya existe un superusuario
-if not User.objects.filter(is_superuser=True).exists():
-    # Crear superusuario
-    User.objects.create_superuser(
-        username='admin',
-        email='admin@example.com',
-        password='admin123',
-        first_name='Admin',
-        last_name='User'
-    )
-    print('Superusuario creado exitosamente')
+User = get_user_model()
+
+# Crear superusuario si no existe
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', 'admin@futurprive.com', 'admin123')
+    print("Superusuario creado: admin / admin123")
 else:
-    print('Ya existe un superusuario')
+    print("El superusuario 'admin' ya existe. Restableciendo la contraseña...")
+    admin_user = User.objects.get(username='admin')
+    admin_user.set_password('admin123')
+    admin_user.save()
+    print("Contraseña restablecida para 'admin'")
