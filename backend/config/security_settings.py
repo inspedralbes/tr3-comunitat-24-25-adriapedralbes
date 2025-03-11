@@ -3,6 +3,12 @@ Configuraciones de seguridad para el proyecto Django
 Este archivo contiene las configuraciones específicas de seguridad
 """
 
+# Importar la variable DEBUG desde la configuración principal
+import os
+
+# Detectar el modo de depuración
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
 # Django Axes (Protección contra fuerza bruta)
 # -----------------------------------------------------
 AXES_FAILURE_LIMIT = 5  # Número de intentos fallidos antes de bloqueo

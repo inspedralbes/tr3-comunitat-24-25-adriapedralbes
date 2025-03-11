@@ -18,5 +18,8 @@ docker compose -f docker-compose.prod.yml up -d --build
 echo "✅ Servicios reiniciados. Comprueba los logs para verificar la creación del superusuario:"
 echo "   docker logs django-app"
 
+echo "🔐 Recordatorio importante: La URL del admin ahora es /backend-admin/"
+echo "   admin/ es una trampa para atacantes"
+
 echo "🔑 Si necesitas crear manualmente un superusuario, ejecuta:"
 echo "   docker exec -it django-app python create_superuser.py"
