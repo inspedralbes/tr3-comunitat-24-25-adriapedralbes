@@ -29,13 +29,14 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [error, setError] = useState('');
     const [user, setUser] = useState<{
-        avatar_url?: string;
+        avatar_url?: string | null;
         username?: string;
         level?: number;
     } | null>(null);
 
     const componentRef = useRef<HTMLDivElement>(null);
     const categoryDropdownRef = useRef<HTMLDivElement>(null);
+    const titleInputRef = useRef<HTMLInputElement>(null);
 
     // Detectar si estamos en vista móvil
     useEffect(() => {
