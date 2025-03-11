@@ -18,27 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from api.admin_views import CustomAdminSite
-from api.models import User, Category, Post, Comment, PostLike, CommentLike, Subscriber
-from api.admin import (
-    CustomUserAdmin, CategoryAdmin, PostAdmin, CommentAdmin, 
-    PostLikeAdmin, CommentLikeAdmin, SubscriberAdmin
-)
 
-# Configura el sitio de administración personalizado
-custom_admin_site = CustomAdminSite(name='customadmin')
-
-# Registra los modelos en el sitio personalizado
-custom_admin_site.register(User, CustomUserAdmin)
-custom_admin_site.register(Category, CategoryAdmin)
-custom_admin_site.register(Post, PostAdmin)
-custom_admin_site.register(Comment, CommentAdmin)
-custom_admin_site.register(PostLike, PostLikeAdmin)
-custom_admin_site.register(CommentLike, CommentLikeAdmin)
-custom_admin_site.register(Subscriber, SubscriberAdmin)
+# Personalizar títulos del administrador
+admin.site.site_header = 'FuturPrive Admin'
+admin.site.site_title = 'FuturPrive Admin'
+admin.site.index_title = 'Panel de Control'
 
 urlpatterns = [
-    path('admin/', custom_admin_site.urls),
+    path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
 ]
 

@@ -77,12 +77,12 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     // Crear categorías para el componente
     const categoryItems = [
         { id: 'all', label: 'Todos', slug: 'all', icon: null },
-        ...categories.map(cat => ({
+        ...(Array.isArray(categories) ? categories.map(cat => ({
             id: cat.slug,
             label: cat.name,
             slug: cat.slug,
             icon: getCategoryIcon(cat.slug)
-        }))
+        })) : [])
     ];
 
     const sortTypes = [

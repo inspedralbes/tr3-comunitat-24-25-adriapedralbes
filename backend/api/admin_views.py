@@ -5,8 +5,8 @@ from django.db.models import Count
 from django.template.response import TemplateResponse
 
 class CustomAdminSite(AdminSite):
-    site_header = 'DevAccelerator Admin'
-    site_title = 'DevAccelerator Admin'
+    site_header = 'FuturPrive Admin'
+    site_title = 'FuturPrive Admin'
     index_title = 'Panel de Control'
     site_url = '/'
     

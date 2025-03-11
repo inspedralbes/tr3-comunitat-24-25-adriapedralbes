@@ -13,17 +13,13 @@ find . -path "*/migrations/*.pyc" -delete
 python manage.py makemigrations api
 python manage.py migrate
 
-# Cargar datos iniciales (tema del admin)
-echo "Cargando datos iniciales..."
-python manage.py loaddata api/fixtures/admin_interface_theme_devaccelerator.json || echo "No se pudo cargar el tema personalizado, continuando..."
-
 # Crear superusuario si no existe
 echo "Creando superusuario..."
 python create_superuser.py
 
 # Recopilar archivos estáticos
 echo "Recopilando archivos estáticos..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput --clear --verbosity 0
 
 # Iniciar el servidor
 echo "Iniciando servidor..."

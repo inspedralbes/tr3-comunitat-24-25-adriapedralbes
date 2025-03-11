@@ -34,19 +34,23 @@ export default function CommunityPage() {
       try {
         // Obtener categorías
         const categoriesData = await communityService.getAllCategories();
-        setCategories(categoriesData);
+        // Asegurarnos de que categories sea un array
+        setCategories(Array.isArray(categoriesData) ? categoriesData : 
+                      (categoriesData.results ? categoriesData.results : []));
         
         // Obtener posts fijados
         const pinnedData = await communityService.getPinnedPosts();
-        setPinnedPosts(pinnedData);
+        setPinnedPosts(Array.isArray(pinnedData) ? pinnedData : 
+                      (pinnedData.results ? pinnedData.results : []));
         
         // Obtener posts regulares
         const postsData = await communityService.getAllPosts();
-        setRegularPosts(postsData.results || postsData);
+        setRegularPosts(postsData.results || (Array.isArray(postsData) ? postsData : []));
         
         // Obtener leaderboard
         const leaderboardData = await communityService.getLeaderboard();
-        setLeaderboardUsers(leaderboardData);
+        setLeaderboardUsers(Array.isArray(leaderboardData) ? leaderboardData : 
+                           (leaderboardData.results ? leaderboardData.results : []));
       } catch (err) {
         console.error('Error al cargar datos:', err);
         setError('Hubo un error al cargar los datos. Por favor, intenta nuevamente.');

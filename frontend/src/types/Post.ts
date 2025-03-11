@@ -1,16 +1,26 @@
 export interface Post {
     id: string;
     author: {
+        id?: string;
         username: string;
         level?: number;
-        avatarUrl?: string;
+        avatar_url?: string; // Desde la API
+        avatarUrl?: string; // Normalizado
     };
-    timestamp: string;
-    category?: string;
+    // Propiedades de la API
+    category?: any; // Puede ser string u objeto
+    created_at?: string;
+    updated_at?: string;
+    image?: string;
+    comments_count?: number;
+    is_pinned?: boolean;
+    
+    // Propiedades normalizadas para la interfaz
+    timestamp?: string;
     categoryId?: string;
     content: string;
     likes: number;
-    comments: number;
+    comments?: number;
     isPinned?: boolean;
     imageUrl?: string;
 }
