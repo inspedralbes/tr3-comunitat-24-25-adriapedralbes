@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     # Aplicaciones de seguridad
     'axes',  # Protección contra fuerza bruta
     'csp',   # Content Security Policy
-    'admin_honeypot',  # Trampa para ataques al admin
 ]
 
 MIDDLEWARE = [
