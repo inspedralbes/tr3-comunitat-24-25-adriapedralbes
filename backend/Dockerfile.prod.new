@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar dependencias de Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt gunicorn
+
+# Copiar .env si existe (opcional pero útil para python-dotenv)
+COPY .env* .
+
+# Copiar el proyecto
+COPY . .
+
+# Copiar script de inicio seguro
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Exponer puerto
+EXPOSE 8000
+
+# Ejecutar el script de inicio
+CMD ["/app/docker-entrypoint.sh"]
