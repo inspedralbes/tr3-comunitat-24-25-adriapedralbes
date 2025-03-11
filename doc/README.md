@@ -134,9 +134,9 @@ El flux d'informació segueix aquests patrons:
     * `.env` (arrel):
 
         ```
-        DATABASE_NAME=futurpriveprod
-        DATABASE_USER=adriarootprod
-        DATABASE_PASSWORD=tusuperpassword
+        DATABASE_NAME=database
+        DATABASE_USER=usuari
+        DATABASE_PASSWORD=password
         DATABASE_ENGINE=django.db.backends.postgresql
         DATABASE_PORT=5432
         DEBUG=False
@@ -149,7 +149,7 @@ El flux d'informació segueix aquests patrons:
         ```
         POSTGRES_DB=tu_db
         POSTGRES_USER=tu_user
-        POSTGRES_PASSWORD=tusuperpassword
+        POSTGRES_PASSWORD=password
         ```
 
     * `backend/.env`:
@@ -159,11 +159,11 @@ El flux d'informació segueix aquests patrons:
         EMAIL_PORT=587
         EMAIL_USE_TLS=True
         EMAIL_USE_SSL=False
-        EMAIL_HOST_USER=adria@futurprive.com
+        EMAIL_HOST_USER=correo
         EMAIL_HOST_PASSWORD=tu_contraseña_email
-        DEFAULT_FROM_EMAIL=adria@futurprive.com
+        DEFAULT_FROM_EMAIL=correo
         EMAIL_TIMEOUT=30
-        SERVER_EMAIL=adria@futurprive.com
+        SERVER_EMAIL=correo
         SITE_URL=[https://futurprive.com](https://futurprive.com)
         SECRET_KEY=tu_clave_secreta
         DEBUG=False
@@ -171,7 +171,7 @@ El flux d'informació segueix aquests patrons:
         DATABASE_ENGINE=django.db.backends.postgresql
         DATABASE_NAME=tu_dbname
         DATABASE_USER=tu_user
-        DATABASE_PASSWORD=tusuperpassword
+        DATABASE_PASSWORD=password
         DATABASE_PORT=5432
         ```
 
