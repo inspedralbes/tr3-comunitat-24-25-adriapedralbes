@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    domains: ['via.placeholder.com', 'github.com', 'localhost', '127.0.0.1', 'ui-avatars.com'], // Dominios permitidos para las imágenes
     remotePatterns: [
       {
         protocol: 'http',
@@ -22,6 +21,19 @@ const nextConfig: NextConfig = {
         hostname: 'ui-avatars.com',
         port: '',
         pathname: '/api/**',
+      },
+      // Add patterns for the remaining domains
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'github.com',
+        port: '',
+        pathname: '/**',
       },
     ],
     dangerouslyAllowSVG: true,
