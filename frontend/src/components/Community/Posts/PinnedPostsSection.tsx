@@ -70,7 +70,7 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ pinnedPo
                         const timestamp = post.timestamp || post.created_at || 'hace un momento';
                         
                         // Extraer URL de imagen si existe
-                        const imageUrl = post.imageUrl || post.image || null;
+                        const imageUrl = post.imageUrl || post.image || undefined;
                         
                         return (
                             <PostCard
