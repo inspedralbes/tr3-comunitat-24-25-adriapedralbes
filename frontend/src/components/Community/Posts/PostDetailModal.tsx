@@ -424,7 +424,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                         username={post.author.username}
                         level={post.author.level}
                         avatarUrl={post.author.avatarUrl}
-                        timestamp={post.timestamp}
+                        timestamp={post.timestamp || post.created_at || 'hace un momento'}
                         category={post.category}
                         categoryColor={
                             post.category === 'General' ? 'bg-[#444442] border border-white/5' :
