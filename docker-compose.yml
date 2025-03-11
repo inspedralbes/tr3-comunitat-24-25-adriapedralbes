@@ -36,8 +36,11 @@ services:
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_HOST=postgres
       - DATABASE_PORT=${DATABASE_PORT}
+      # Configuración del superusuario
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
     restart: on-failure
-    command: sh -c "chmod +x /app/entrypoint.sh && /app/entrypoint.sh"
     depends_on:
       - postgres
 

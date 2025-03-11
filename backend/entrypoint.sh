@@ -1,26 +1,27 @@
 #!/bin/bash
+set -e
 
-# Esperar a que la base de datos esté disponible
-echo "Esperando por la base de datos..."
-sleep 5
+echo "🔵 Esperando a que la base de datos PostgreSQL esté disponible..."
+while ! nc -z postgres 5432; do
+  sleep 1
+done
+echo "✅ Base de datos PostgreSQL disponible"
 
-echo "Realizando migraciones..."
-# Eliminar cualquier migración existente (solo en desarrollo)
-find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
-find . -path "*/migrations/*.pyc" -delete
-
-# Hacer migraciones y migrar
-python manage.py makemigrations api
+# Realizar migraciones
+echo "🔵 Aplicando migraciones..."
+python manage.py makemigrations
 python manage.py migrate
 
-# Crear superusuario usando variables de entorno
-echo "Configurando superusuario desde variables de entorno..."
-python create_admin.py
+# Crear superusuario
+echo "🔵 Configurando superusuario..."
+python create_superuser.py
 
 # Recopilar archivos estáticos
-echo "Recopilando archivos estáticos..."
-python manage.py collectstatic --noinput --clear --verbosity 0
+echo "🔵 Recopilando archivos estáticos..."
+python manage.py collectstatic --noinput
+
+echo "✅ Inicialización completada"
 
 # Iniciar el servidor
-echo "Iniciando servidor..."
-python manage.py runserver 0.0.0.0:8000
+echo "🚀 Iniciando el servidor Django..."
+gunicorn config.wsgi:application --bind 0.0.0.0:8000
