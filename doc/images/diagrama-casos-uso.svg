@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 800">
+  <!-- Estilos y definiciones -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+    </marker>
+  </defs>
+  
+  <!-- Fondo del sistema -->
+  <rect x="250" y="50" width="500" height="700" rx="20" ry="20" fill="#f5f5f5" stroke="#333" stroke-width="2" />
+  <text x="500" y="80" font-family="Arial" font-size="20" text-anchor="middle" font-weight="bold">Sistema de Plataforma de Suscripción</text>
+  
+  <!-- Actores -->
+  <!-- Usuario Regular -->
+  <circle cx="100" cy="180" r="20" fill="#f9f9f9" stroke="#333" stroke-width="2" />
+  <line x1="100" y1="200" x2="100" y2="250" stroke="#333" stroke-width="2" />
+  <line x1="70" y1="225" x2="130" y2="225" stroke="#333" stroke-width="2" />
+  <line x1="100" y1="250" x2="70" y2="300" stroke="#333" stroke-width="2" />
+  <line x1="100" y1="250" x2="130" y2="300" stroke="#333" stroke-width="2" />
+  <text x="100" y="330" font-family="Arial" font-size="14" text-anchor="middle">Usuario</text>
+  
+  <!-- Suscriptor Premium -->
+  <circle cx="100" cy="430" r="20" fill="#f9f9f9" stroke="#333" stroke-width="2" />
+  <line x1="100" y1="450" x2="100" y2="500" stroke="#333" stroke-width="2" />
+  <line x1="70" y1="475" x2="130" y2="475" stroke="#333" stroke-width="2" />
+  <line x1="100" y1="500" x2="70" y2="550" stroke="#333" stroke-width="2" />
+  <line x1="100" y1="500" x2="130" y2="550" stroke="#333" stroke-width="2" />
+  <text x="100" y="580" font-family="Arial" font-size="14" text-anchor="middle">Suscriptor</text>
+  <text x="100" y="600" font-family="Arial" font-size="14" text-anchor="middle">Premium</text>
+  
+  <!-- Administrador -->
+  <circle cx="100" cy="680" r="20" fill="#f9f9f9" stroke="#333" stroke-width="2" />
+  <line x1="100" y1="700" x2="100" y2="750" stroke="#333" stroke-width="2" />
+  <line x1="70" y1="725" x2="130" y2="725" stroke="#333" stroke-width="2" />
+  <line x1="100" y1="750" x2="70" y2="800" stroke="#333" stroke-width="2" />
+  <line x1="100" y1="750" x2="130" y2="800" stroke="#333" stroke-width="2" />
+  <text x="100" y="830" font-family="Arial" font-size="14" text-anchor="middle">Administrador</text>
+  
+  <!-- Sistema de Pago -->
+  <rect x="850" y="380" width="120" height="60" fill="#f9f9f9" stroke="#333" stroke-width="2" />
+  <text x="910" y="415" font-family="Arial" font-size="14" text-anchor="middle">Sistema de Pago</text>
+  <text x="910" y="435" font-family="Arial" font-size="14" text-anchor="middle">(Stripe)</text>
+  
+  <!-- Casos de Uso - Gestión de Usuarios -->
+  <ellipse cx="400" cy="140" rx="120" ry="30" fill="#d1e7dd" stroke="#333" stroke-width="2" />
+  <text x="400" y="145" font-family="Arial" font-size="14" text-anchor="middle">Registro / Login</text>
+  
+  <ellipse cx="400" cy="200" rx="120" ry="30" fill="#d1e7dd" stroke="#333" stroke-width="2" />
+  <text x="400" y="205" font-family="Arial" font-size="14" text-anchor="middle">Ver/Editar Perfil</text>
+  
+  <!-- Casos de Uso - Suscripción -->
+  <ellipse cx="400" cy="290" rx="120" ry="30" fill="#cfe2ff" stroke="#333" stroke-width="2" />
+  <text x="400" y="295" font-family="Arial" font-size="14" text-anchor="middle">Ver Planes Disponibles</text>
+  
+  <ellipse cx="400" cy="350" rx="120" ry="30" fill="#cfe2ff" stroke="#333" stroke-width="2" />
+  <text x="400" y="355" font-family="Arial" font-size="14" text-anchor="middle">Suscribirse a Plan</text>
+  
+  <ellipse cx="400" cy="410" rx="120" ry="30" fill="#cfe2ff" stroke="#333" stroke-width="2" />
+  <text x="400" y="415" font-family="Arial" font-size="14" text-anchor="middle">Gestionar Suscripción</text>
+  
+  <!-- Casos de Uso - Plataforma de Cursos -->
+  <ellipse cx="600" cy="200" rx="120" ry="30" fill="#fff3cd" stroke="#333" stroke-width="2" />
+  <text x="600" y="205" font-family="Arial" font-size="14" text-anchor="middle">Acceder a Cursos</text>
+  
+  <ellipse cx="600" cy="260" rx="120" ry="30" fill="#fff3cd" stroke="#333" stroke-width="2" />
+  <text x="600" y="265" font-family="Arial" font-size="14" text-anchor="middle">Seguir Progreso</text>
+  
+  <!-- Casos de Uso - Comunidad -->
+  <ellipse cx="600" cy="350" rx="120" ry="30" fill="#f8d7da" stroke="#333" stroke-width="2" />
+  <text x="600" y="355" font-family="Arial" font-size="14" text-anchor="middle">Crear Posts</text>
+  
+  <ellipse cx="600" cy="410" rx="120" ry="30" fill="#f8d7da" stroke="#333" stroke-width="2" />
+  <text x="600" y="415" font-family="Arial" font-size="14" text-anchor="middle">Comentar/Reaccionar</text>
+  
+  <ellipse cx="600" cy="470" rx="120" ry="30" fill="#f8d7da" stroke="#333" stroke-width="2" />
+  <text x="600" y="475" font-family="Arial" font-size="14" text-anchor="middle">Filtrar por Categoría</text>
+  
+  <!-- Casos de Uso - Gamificación -->
+  <ellipse cx="400" cy="530" rx="120" ry="30" fill="#e2e3e5" stroke="#333" stroke-width="2" />
+  <text x="400" y="535" font-family="Arial" font-size="14" text-anchor="middle">Ganar Puntos/Nivel</text>
+  
+  <ellipse cx="400" cy="590" rx="120" ry="30" fill="#e2e3e5" stroke="#333" stroke-width="2" />
+  <text x="400" y="595" font-family="Arial" font-size="14" text-anchor="middle">Ver Logros</text>
+  
+  <ellipse cx="400" cy="650" rx="120" ry="30" fill="#e2e3e5" stroke="#333" stroke-width="2" />
+  <text x="400" y="655" font-family="Arial" font-size="14" text-anchor="middle">Ver Leaderboards</text>
+  
+  <!-- Casos de Uso - Administración -->
+  <ellipse cx="600" cy="590" rx="120" ry="30" fill="#ffeeba" stroke="#333" stroke-width="2" />
+  <text x="600" y="595" font-family="Arial" font-size="14" text-anchor="middle">Moderar Contenido</text>
+  
+  <ellipse cx="600" cy="650" rx="120" ry="30" fill="#ffeeba" stroke="#333" stroke-width="2" />
+  <text x="600" y="655" font-family="Arial" font-size="14" text-anchor="middle">Fijar Posts</text>
+  
+  <ellipse cx="600" cy="710" rx="120" ry="30" fill="#ffeeba" stroke="#333" stroke-width="2" />
+  <text x="600" y="715" font-family="Arial" font-size="14" text-anchor="middle">Gestionar Usuarios</text>
+  
+  <!-- Conexiones -->
+  <!-- Usuario a Casos de Uso -->
+  <line x1="130" y1="200" x2="270" y2="140" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="220" x2="270" y2="200" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="240" x2="270" y2="290" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  
+  <!-- Suscriptor a Casos de Uso -->
+  <line x1="130" y1="440" x2="270" y2="350" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="450" x2="270" y2="410" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="460" x2="470" y2="200" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="470" x2="470" y2="260" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="480" x2="470" y2="350" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="490" x2="470" y2="410" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="500" x2="470" y2="470" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="510" x2="270" y2="530" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="520" x2="270" y2="590" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="530" x2="270" y2="650" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  
+  <!-- Administrador a Casos de Uso -->
+  <line x1="130" y1="680" x2="470" y2="590" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="700" x2="470" y2="650" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="130" y1="720" x2="470" y2="710" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  
+  <!-- Sistema de Pago a Casos de Uso -->
+  <line x1="850" y1="400" x2="530" y2="350" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  <line x1="850" y1="420" x2="530" y2="410" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3" />
+  
+  <!-- Relaciones Include/Extend -->
+  <line x1="400" y1="380" x2="400" y2="440" stroke="#333" stroke-width="1" marker-end="url(#arrow)" stroke-dasharray="2,2" />
+  <text x="385" y="410" font-family="Arial" font-size="12" text-anchor="middle" fill="#666">«include»</text>
+  
+  <line x1="450" y1="560" x2="500" y2="620" stroke="#333" stroke-width="1" marker-end="url(#arrow)" stroke-dasharray="2,2" />
+  <text x="490" y="580" font-family="Arial" font-size="12" text-anchor="middle" fill="#666">«include»</text>
+  
+  <!-- Leyenda -->
+  <rect x="750" y="100" width="20" height="20" fill="#d1e7dd" stroke="#333" stroke-width="1" />
+  <text x="780" y="115" font-family="Arial" font-size="12" text-anchor="left">Gestión de Usuarios</text>
+  
+  <rect x="750" y="130" width="20" height="20" fill="#cfe2ff" stroke="#333" stroke-width="1" />
+  <text x="780" y="145" font-family="Arial" font-size="12" text-anchor="left">Suscripciones</text>
+  
+  <rect x="750" y="160" width="20" height="20" fill="#fff3cd" stroke="#333" stroke-width="1" />
+  <text x="780" y="175" font-family="Arial" font-size="12" text-anchor="left">Cursos</text>
+  
+  <rect x="750" y="190" width="20" height="20" fill="#f8d7da" stroke="#333" stroke-width="1" />
+  <text x="780" y="205" font-family="Arial" font-size="12" text-anchor="left">Comunidad</text>
+  
+  <rect x="750" y="220" width="20" height="20" fill="#e2e3e5" stroke="#333" stroke-width="1" />
+  <text x="780" y="235" font-family="Arial" font-size="12" text-anchor="left">Gamificación</text>
+  
+  <rect x="750" y="250" width="20" height="20" fill="#ffeeba" stroke="#333" stroke-width="1" />
+  <text x="780" y="265" font-family="Arial" font-size="12" text-anchor="left">Administración</text>
+</svg>
