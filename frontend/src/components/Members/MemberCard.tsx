@@ -1,6 +1,7 @@
 "use client";
 
 import { MessageSquare, Clock, Calendar, MapPin } from "lucide-react";
+
 import { UserAvatar } from "@/components/Members/UserAvatar";
 
 interface MemberCardProps {

@@ -1,5 +1,6 @@
-import React from 'react';
 import { LockIcon } from 'lucide-react';
+import Image from 'next/image';
+import React from 'react';
 
 interface ProfileLevelComponentProps {
     username: string;
@@ -20,7 +21,13 @@ export const ProfileLevelComponent: React.FC<ProfileLevelComponentProps> = ({
                 {/* Avatar con nivel */}
                 <div className="relative">
                     <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-600">
-                        <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
+                        <Image 
+                            src={avatarUrl} 
+                            alt={username} 
+                            width={128} 
+                            height={128} 
+                            className="w-full h-full object-cover" 
+                        />
                     </div>
                     <div className="absolute -bottom-2 right-0 w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-xl font-bold text-white border-4 border-[#1F1F1E]">
                         {level}

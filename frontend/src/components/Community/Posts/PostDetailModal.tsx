@@ -1,12 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
 import { ThumbsUp, MessageCircle, Bell, Smile, CornerUpRight } from 'lucide-react';
 import Image from 'next/image';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
-import { Post } from '@/types/Post';
-import { Comment } from '@/types/Comment';
 import { UserBadge } from '@/components/Community/UserBadge';
 import { Button } from '@/components/ui/button';
 import { commentsByPostId } from '@/mockData/mockComments';
+import { Comment } from '@/types/Comment';
+import { Post } from '@/types/Post';
 
 interface PostDetailModalProps {
     post: Post | null;
@@ -44,16 +44,13 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const [likesCount, setLikesCount] = useState(post?.likes || 0);
     const [comments, setComments] = useState<EnhancedComment[]>([]);
 
-    // Array plano de todos los comentarios/respuestas para búsqueda fácil
-    const [allComments, setAllComments] = useState<{ [key: string]: EnhancedComment }>({});
-
-    // Función para confirmar salida si hay comentario pendiente
-    const confirmDiscardComment = (): boolean => {
+    // Función para confirmar salida si hay comentario pendiente (memoizada para evitar recreación)
+    const confirmDiscardComment = useCallback((): boolean => {
         if (comment.trim() !== '') {
             return window.confirm("Aún no has terminado tu comentario. ¿Quieres irte sin terminar?");
         }
         return true;
-    };
+    }, [comment]);
 
     // Close on click outside
     useEffect(() => {
@@ -74,7 +71,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isOpen, onClose, comment]);
+    }, [isOpen, onClose, comment, confirmDiscardComment]);
 
     // Close on escape key
     useEffect(() => {
@@ -94,7 +91,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         return () => {
             document.removeEventListener('keydown', handleEscapeKey);
         };
-    }, [isOpen, onClose, comment]);
+    }, [isOpen, onClose, comment, confirmDiscardComment]);
 
     // Handle like action
     const handleLike = () => {
@@ -118,7 +115,6 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         };
 
         processComments(commentsArray);
-        setAllComments(cache);
     };
 
     // Cargar comentarios

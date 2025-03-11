@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function ConfirmPage({ params }: { params: { token: string } }) {
@@ -65,19 +66,19 @@ export default function ConfirmPage({ params }: { params: { token: string } }) {
             </div>
             <h1 className="text-2xl font-bold mb-4">¡Suscripción confirmada!</h1>
             <p className="mb-6">
-              Ahora vas a recibir un correo titulado "Las Sorpresas de Adrià Estévez" donde tendrás acceso a lo prometido.
+              Ahora vas a recibir un correo titulado &ldquo;Las Sorpresas de Adrià Estévez&rdquo; donde tendrás acceso a lo prometido.
             </p>
             <p className="text-gray-400 mb-8">
               Pasa un gran día,<br />
               Adrià Estévez
             </p>
             
-            <a
+            <Link
               href="/"
               className="inline-block px-6 py-3 bg-[#C9A880] text-white rounded-lg font-medium hover:bg-[#B89770] transition-colors"
             >
               Volver al inicio
-            </a>
+            </Link>
           </div>
         )}
 

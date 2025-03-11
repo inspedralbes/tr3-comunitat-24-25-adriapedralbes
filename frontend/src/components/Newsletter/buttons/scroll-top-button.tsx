@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+
 import { AnimatedButton } from "@/components/animatedButton";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 
@@ -26,10 +27,28 @@ export function ScrollTopButton({
     }
     // Si es el botón de suscripción, no hacemos nada especial
   };
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (!isSubscribeButton) {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      }
+    }
+  };
 
   if (type === "rainbow") {
     return (
-      <div onClick={handleClick}>
+      <div 
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
+        aria-label={isSubscribeButton ? "Suscribirse" : "Volver arriba"}
+      >
         <RainbowButtonDemo>
           {children}
         </RainbowButtonDemo>
@@ -38,7 +57,13 @@ export function ScrollTopButton({
   }
 
   return (
-    <div onClick={handleClick}>
+    <div 
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-label={isSubscribeButton ? "Suscribirse" : "Volver arriba"}
+    >
       <AnimatedButton>
         {children}
       </AnimatedButton>

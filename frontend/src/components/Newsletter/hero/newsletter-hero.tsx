@@ -1,11 +1,12 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { RainbowButtonDemo } from "@/components/rainbowButton";
+import { useState } from "react";
+
 import { NewsletterAvatarCircles } from "@/components/Newsletter/newsletter-avatar-circles";
+import { RainbowButtonDemo } from "@/components/rainbowButton";
+import { Input } from "@/components/ui/input";
 
 export function NewsletterHero() {
   const [name, setName] = useState("");
@@ -73,7 +74,13 @@ export function NewsletterHero() {
       {/* Contenido */}
       <div className="relative z-20 text-center px-4 max-w-3xl mx-auto">
         <div className="flex justify-center mb-4">
-          <img src="/logo_futurprive_sinfondo.png" alt="FuturPrive Logo" className="h-24 w-auto" />
+          <Image 
+            src="/logo_futurprive_sinfondo.png" 
+            alt="FuturPrive Logo" 
+            width={96}
+            height={96}
+            className="h-24 w-auto" 
+          />
         </div>
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
           Newsletter <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">FuturPrive</span>

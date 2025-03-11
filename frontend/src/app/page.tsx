@@ -1,16 +1,15 @@
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { AnimatedButton } from "@/components/animatedButton";
 import { AvatarCirclesDemo } from "@/components/avatarCircles";
-import { DialogNewsletter } from "@/components/dialogButton";
 import { Footer } from "@/components/footer-component";
 import { MagicCardDemo } from "@/components/magicCard";
 import { BentoDemo } from "@/components/our-services";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
-import { Button } from "@/components/ui/button";
-import { VideoPresentation } from "@/components/video-presentation";
 import { MarqueeDemo } from "@/components/testimonials";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -19,7 +18,13 @@ export default function Home() {
       <nav className="flex items-center justify-between px-6 py-4 lg:px-8">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 text-xl font-semibold">
-            <img src="/logo_futurprive_sinfondo.png" alt="FuturPrive Logo" className="h-8 w-auto" />
+            <Image 
+              src="/logo_futurprive_sinfondo.png" 
+              alt="FuturPrive Logo" 
+              width={32} 
+              height={32} 
+              className="h-8 w-auto" 
+            />
             FuturPrive
           </Link>
         </div>

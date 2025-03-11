@@ -18,7 +18,6 @@ const handleResponse = async (response: Response) => {
   
   try {
     const data = await response.json();
-    console.log(`API Response for ${response.url}:`, data);
     return data;
   } catch (e) {
     console.error('Error parsing JSON response:', e);
@@ -57,7 +56,7 @@ export const api = {
     return handleResponse(response);
   },
 
-  post: async (endpoint: string, data: any) => {
+  post: async <T>(endpoint: string, data: T) => {
     const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'POST',
       headers: getHeaders(),
@@ -66,7 +65,7 @@ export const api = {
     return handleResponse(response);
   },
 
-  put: async (endpoint: string, data: any) => {
+  put: async <T>(endpoint: string, data: T) => {
     const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'PUT',
       headers: getHeaders(),
@@ -75,7 +74,7 @@ export const api = {
     return handleResponse(response);
   },
 
-  patch: async (endpoint: string, data: any) => {
+  patch: async <T>(endpoint: string, data: T) => {
     const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'PATCH',
       headers: getHeaders(),

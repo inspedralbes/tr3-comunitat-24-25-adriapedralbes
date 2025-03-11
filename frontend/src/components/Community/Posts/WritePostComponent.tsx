@@ -1,6 +1,7 @@
 import { User, Paperclip, Link2, Video, BarChart2, Smile } from 'lucide-react';
-import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import React, { useState, useRef, useEffect } from 'react';
+
 import { authService } from '@/services/auth';
 
 interface Category {
@@ -27,7 +28,11 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [error, setError] = useState('');
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<{
+        avatar_url?: string;
+        username?: string;
+        level?: number;
+    } | null>(null);
     
     const componentRef = useRef<HTMLDivElement>(null);
     const categoryDropdownRef = useRef<HTMLDivElement>(null);
@@ -119,6 +124,24 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         }
     };
 
+    // Manejador de teclado para el overlay
+    const handleOverlayKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            // Si hay contenido, confirmar antes de cerrar
+            if (postTitle.trim() || postContent.trim()) {
+                if (window.confirm("¿Estás seguro de que quieres descartar tu publicación?")) {
+                    setIsExpanded(false);
+                    setPostTitle('');
+                    setPostContent('');
+                    setSelectedCategory(undefined);
+                    setError('');
+                }
+            } else {
+                setIsExpanded(false);
+            }
+        }
+    };
+
     // Maneja el cambio de categoría
     const handleCategoryChange = (categoryId: number) => {
         setSelectedCategory(categoryId);
@@ -165,13 +188,24 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     // Clases personalizadas para la sombra (solo lados y abajo, no arriba)
     const shadowClasses = "shadow-[0_9px_10px_0_rgba(0,0,0,0.3),_-5px_0_15px_-5px_rgba(0,0,0,0.2),_5px_0_15px_-5px_rgba(0,0,0,0.2)]";
 
+    // Manejador de eventos de teclado para el elemento clicable
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleExpand();
+        }
+    };
+
     return (
         <>
             {/* Overlay que cubre todo menos el navbar */}
             {isExpanded && (
-                <div
-                    className={`fixed inset-0 bg-black/60 z-30 ${isMobile ? 'pt-16' : 'pt-20'}`}
+                <button
+                    aria-label="Cerrar editor de publicación"
+                    className={`fixed inset-0 bg-black/60 z-30 ${isMobile ? 'pt-16' : 'pt-20'} w-full h-full cursor-default`}
                     onClick={handleOverlayClick}
+                    onKeyDown={handleOverlayKeyDown}
+                    tabIndex={0}
                 />
             )}
 
@@ -190,7 +224,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                 {user?.avatar_url ? (
                                     <Image 
                                         src={user.avatar_url} 
-                                        alt={user.username} 
+                                        alt={user.username || 'User'} 
                                         width={32} 
                                         height={32} 
                                         className="w-full h-full object-cover"
@@ -206,12 +240,16 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                             )}
                         </div>
                         <div className="flex-1">
-                            <button
+                            <div
                                 onClick={handleExpand}
-                                className="w-full text-left text-zinc-300 px-4 py-2 bg-[#444442] rounded-lg hover:bg-[#505050] transition-colors border border-white/5"
+                                onKeyDown={handleKeyDown}
+                                tabIndex={0}
+                                role="button"
+                                aria-label="Escribir nuevo post"
+                                className="w-full text-left text-zinc-300 px-4 py-2 bg-[#444442] rounded-lg hover:bg-[#505050] transition-colors border border-white/5 cursor-pointer"
                             >
                                 Escribe algo...
-                            </button>
+                            </div>
                         </div>
                     </div>
                 ) : (
@@ -223,7 +261,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                     {user?.avatar_url ? (
                                         <Image 
                                             src={user.avatar_url} 
-                                            alt={user.username} 
+                                            alt={user.username || 'User'} 
                                             width={32} 
                                             height={32} 
                                             className="w-full h-full object-cover"
@@ -258,7 +296,6 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                 value={postTitle}
                                 onChange={(e) => setPostTitle(e.target.value)}
                                 className="w-full bg-transparent text-xl font-medium text-white border-none outline-none placeholder-zinc-500"
-                                autoFocus
                             />
                         </div>
 

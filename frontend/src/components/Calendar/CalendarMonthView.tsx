@@ -1,7 +1,8 @@
 import React from 'react';
+
 import { MonthData, CalendarEvent } from '@/types/Calendar';
+
 import { CalendarDay } from './CalendarDay';
-import { getDayName } from '@/utils/calendarUtils';
 
 interface CalendarMonthViewProps {
     monthData: MonthData;
@@ -18,7 +19,7 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
         <div className="bg-[#1F1F1E] rounded-lg overflow-hidden border border-[#333]">
             {/* Cabecera con los nombres de los días */}
             <div className="grid grid-cols-7 bg-[#2C2C2A]">
-                {dayNames.map((day, index) => (
+                {dayNames.map((day) => (
                     <div key={day} className="p-2 text-center text-white font-medium border-r border-[#333] last:border-r-0">
                         {day}
                     </div>

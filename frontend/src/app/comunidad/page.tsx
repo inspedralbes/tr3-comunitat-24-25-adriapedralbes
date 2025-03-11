@@ -1,18 +1,18 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import MainLayout from '@/components/layouts/MainLayout';
-import { WritePostComponent } from "@/components/Community/Posts/WritePostComponent";
+
 import { CategoryFilter } from "@/components/Community/CategoryFilter";
-import { PinnedPostsSection } from "@/components/Community/Posts/PinnedPostsSection";
-import { PostFeed } from "@/components/Community/Posts/PostFeed";
 import { LeaderboardWidget } from "@/components/Community/LeaderboardWidget";
+import { PinnedPostsSection } from "@/components/Community/Posts/PinnedPostsSection";
 import { PostDetailModal } from "@/components/Community/Posts/PostDetailModal";
+import { PostFeed } from "@/components/Community/Posts/PostFeed";
+import { WritePostComponent } from "@/components/Community/Posts/WritePostComponent";
+import MainLayout from '@/components/layouts/MainLayout';
 // import { pinnedPosts, regularPosts } from "@/mockData/mockData"; // Comentado para usar datos reales de la API
 // import { topUsers } from "@/leaderboardData"; // Comentado para usar datos reales de la API
-import { Post } from "@/types/Post";
 import { communityService } from '@/services/community';
-import { authService } from '@/services/auth';
+import { Post } from "@/types/Post";
 
 export default function CommunityPage() {
   const [activeCategory, setActiveCategory] = useState('all');

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 
 export function NewsletterForm() {
@@ -67,7 +68,7 @@ export function NewsletterForm() {
 
         <div className="mb-4 border-l-4 border-purple-500 pl-4 py-1">
           <p className="text-gray-300">
-            "La diferencia entre quienes despegan y quienes se estancan está en saber qué tendencias de IA realmente importan para tu negocio."
+            &ldquo;La diferencia entre quienes despegan y quienes se estancan está en saber qué tendencias de IA realmente importan para tu negocio.&rdquo;
           </p>
         </div>
 
@@ -80,7 +81,7 @@ export function NewsletterForm() {
         </ul>
 
         <p className="text-gray-300">
-          ¿Preparado para dejar de preguntarte "¿qué me estoy perdiendo?" y empezar a ser quien está al frente de la revolución?
+          ¿Preparado para dejar de preguntarte &ldquo;¿qué me estoy perdiendo?&rdquo; y empezar a ser quien está al frente de la revolución?
         </p>
       </div>
 

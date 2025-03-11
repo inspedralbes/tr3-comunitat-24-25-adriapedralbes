@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+
 import MainLayout from "@/components/layouts/MainLayout";
-import { MembersTabs } from "@/components/Members/MembersTabs";
 import { MembersList } from "@/components/Members/MembersList";
+import { MembersTabs } from "@/components/Members/MembersTabs";
 
 // Definición de tipo para un miembro
 interface Member {

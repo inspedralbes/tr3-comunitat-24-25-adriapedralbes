@@ -1,10 +1,11 @@
 "use client";
 
-import { MagicCard } from "@/components/magicui/magic-card";
-import { AnimatedButton } from "@/components/animatedButton";
-import { useTheme } from "next-themes";
 import { AlertCircle, Zap, Coffee } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
+
+import { AnimatedButton } from "@/components/animatedButton";
+import { MagicCard } from "@/components/magicui/magic-card";
 
 export function NewsletterBenefits() {
   const { theme } = useTheme();

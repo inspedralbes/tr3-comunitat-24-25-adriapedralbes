@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import { Check, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Check, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+
 import { CourseWithLessons, Lesson } from '@/types/Lesson';
 
 interface CourseDetailProps {
@@ -48,19 +49,27 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
         setActiveLessonId(lessonId);
     };
 
-    // Navegar a la lección siguiente
-    const goToNextLesson = () => {
+    // Navegar a la lección siguiente (se mantiene para posible uso futuro)
+    const _goToNextLesson = () => {
         const currentIndex = lessons.findIndex(lesson => lesson.id === activeLessonId);
         if (currentIndex < lessons.length - 1) {
             setActiveLessonId(lessons[currentIndex + 1].id);
         }
     };
 
-    // Navegar a la lección anterior
-    const goToPrevLesson = () => {
+    // Navegar a la lección anterior (se mantiene para posible uso futuro)
+    const _goToPrevLesson = () => {
         const currentIndex = lessons.findIndex(lesson => lesson.id === activeLessonId);
         if (currentIndex > 0) {
             setActiveLessonId(lessons[currentIndex - 1].id);
+        }
+    };
+
+    // Manejador del teclado para las lecciones
+    const handleLessonKeyDown = (e: React.KeyboardEvent, lessonId: string) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            changeLesson(lessonId);
         }
     };
 
@@ -101,6 +110,10 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                                 : 'hover:bg-[#323230] text-white/80'
                                 } transition-colors`}
                             onClick={() => changeLesson(lesson.id)}
+                            onKeyDown={(e) => handleLessonKeyDown(e, lesson.id)}
+                            tabIndex={0}
+                            role="button"
+                            aria-label={`Lección: ${lesson.title} ${lesson.isCompleted ? '(completada)' : ''}`}
                         >
                             <span>{lesson.title}</span>
                             {lesson.isCompleted && (

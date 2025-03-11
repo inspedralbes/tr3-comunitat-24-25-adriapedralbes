@@ -8,7 +8,7 @@ export interface Post {
         avatarUrl?: string; // Normalizado
     };
     // Propiedades de la API
-    category?: any; // Puede ser string u objeto
+    category?: string | { id: string; name: string; color?: string; }; // Puede ser string u objeto
     created_at?: string;
     updated_at?: string;
     image?: string;

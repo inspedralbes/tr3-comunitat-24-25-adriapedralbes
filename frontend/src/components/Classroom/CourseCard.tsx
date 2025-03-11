@@ -1,6 +1,6 @@
-import React from 'react';
-import Image from 'next/image';
 import { Lock } from "lucide-react";
+import Image from 'next/image';
+import React from 'react';
 
 interface CourseCardProps {
     title: string;
@@ -19,10 +19,23 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     isPrivate,
     onClick
 }) => {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (onClick) {
+                onClick();
+            }
+        }
+    };
+
     return (
         <div
             className="bg-[#323230] rounded-lg overflow-hidden hover:opacity-95 hover:shadow-lg hover:shadow-white/5 transition-all cursor-pointer border border-white/10"
             onClick={onClick}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+            role="button"
+            aria-label={`Course: ${title}`}
         >
             <div className="relative h-40">
                 <Image

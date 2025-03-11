@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { LucideIcon, User, Settings, LogOut } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState, useRef } from "react";
 
@@ -20,10 +21,6 @@ interface NavBarProps {
 }
 
 export function NavBar({ items, className }: NavBarProps) {
-  // Encuentra el ítem activo por la propiedad 'active' en lugar de mantener estado local
-  const activeItem = items.find(item => item.active) || items[0];
-  const [isMobile, setIsMobile] = useState(false);
-
   // Estado para nuestro menú desplegable personalizado
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -48,7 +45,7 @@ export function NavBar({ items, className }: NavBarProps) {
     document.documentElement.style.overflowY = 'scroll';
 
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      // No necesitamos guardar el estado isMobile ya que no lo usamos
     };
 
     handleResize();
@@ -136,9 +133,11 @@ export function NavBar({ items, className }: NavBarProps) {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center justify-center overflow-hidden rounded-full w-10 h-10 hover:ring-2 hover:ring-white/30 transition-all bg-[#323230] border border-white/10"
           >
-            <img
+            <Image
               src="https://github.com/shadcn.png"
               alt="Foto de perfil"
+              width={40}
+              height={40}
               className="w-full h-full object-cover"
             />
           </button>

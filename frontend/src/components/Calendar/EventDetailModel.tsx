@@ -1,5 +1,6 @@
-import React from 'react';
 import { X } from 'lucide-react';
+import React from 'react';
+
 import { CalendarEvent } from '@/types/Calendar';
 import { formatTime, getEventColor } from '@/utils/calendarUtils';
 

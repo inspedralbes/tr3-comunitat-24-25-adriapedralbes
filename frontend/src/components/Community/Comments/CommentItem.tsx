@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import Image from 'next/image';
 import { ThumbsUp, CornerUpRight } from 'lucide-react';
+import Image from 'next/image';
+import React, { useState } from 'react';
 
 import { Comment } from '@/types/Comment';
 

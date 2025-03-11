@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { CalendarHeader } from './CalendarHeader';
-import { CalendarMonthView } from './CalendarMonthView';
+
 import { CalendarEvent, MonthData, ViewMode } from '@/types/Calendar';
 import { getMonthData } from '@/utils/calendarUtils';
+
+import { CalendarHeader } from './CalendarHeader';
+import { CalendarMonthView } from './CalendarMonthView';
 
 interface CalendarProps {
     events: CalendarEvent[];

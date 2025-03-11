@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 function Footerdemo() {
   return (
     <footer className="relative border-t bg-background text-foreground transition-colors duration-300">

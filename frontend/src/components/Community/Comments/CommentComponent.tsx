@@ -1,6 +1,6 @@
-import React from 'react';
 import { ThumbsUp, Reply } from 'lucide-react';
 import Image from 'next/image';
+import React from 'react';
 
 interface CommentComponentProps {
     username: string;
@@ -8,7 +8,7 @@ interface CommentComponentProps {
     content: string;
     level?: number;
     avatarUrl?: string;
-    likes: number;
+    likesCount: number;
     onReply: () => void;
     onLike: () => void;
 }
@@ -19,7 +19,7 @@ export const CommentComponent: React.FC<CommentComponentProps> = ({
     content,
     level,
     avatarUrl,
-    likes,
+    likesCount,
     onReply,
     onLike
 }) => {
@@ -62,12 +62,17 @@ export const CommentComponent: React.FC<CommentComponentProps> = ({
 
                     {/* Acciones (like, reply) */}
                     <div className="flex items-center gap-4">
-                        <button
-                            className="flex items-center text-zinc-400 hover:text-zinc-300"
-                            onClick={onLike}
-                        >
-                            <ThumbsUp size={16} className="mr-1" />
-                        </button>
+                        <div className="flex items-center">
+                            <button
+                                className="flex items-center text-zinc-400 hover:text-zinc-300"
+                                onClick={onLike}
+                            >
+                                <ThumbsUp size={16} className="mr-1" />
+                            </button>
+                            {likesCount > 0 && (
+                                <span className="text-xs text-zinc-400 ml-1">{likesCount}</span>
+                            )}
+                        </div>
                         <button
                             className="flex items-center text-zinc-400 hover:text-zinc-300"
                             onClick={onReply}
