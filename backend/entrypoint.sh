@@ -13,9 +13,9 @@ find . -path "*/migrations/*.pyc" -delete
 python manage.py makemigrations api
 python manage.py migrate
 
-# Crear superusuario si no existe
-echo "Creando superusuario..."
-python create_superuser.py
+# Crear superusuario usando variables de entorno
+echo "Configurando superusuario desde variables de entorno..."
+python create_admin.py
 
 # Recopilar archivos estáticos
 echo "Recopilando archivos estáticos..."
