@@ -10,6 +10,8 @@ export interface CalendarEvent {
 
 export type ViewMode = 'month' | 'week' | 'day' | 'list';
 
+export type HeaderViewMode = 'month' | 'list';
+
 export interface CalendarDay {
     date: Date;
     isCurrentMonth: boolean;
