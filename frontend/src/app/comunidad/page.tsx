@@ -18,7 +18,8 @@ export default function CommunityPage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [categories, setCategories] = useState([]);
   const [pinnedPosts, setPinnedPosts] = useState<Post[]>([]);
   const [regularPosts, setRegularPosts] = useState<Post[]>([]);
@@ -28,7 +29,7 @@ export default function CommunityPage() {
   // Cargar datos iniciales
   useEffect(() => {
     const fetchInitialData = async () => {
-      setIsLoading(true);
+      setIsLoadingInitial(true);
       setError('');
       
       try {
@@ -55,7 +56,7 @@ export default function CommunityPage() {
         console.error('Error al cargar datos:', err);
         setError('Hubo un error al cargar los datos. Por favor, intenta nuevamente.');
       } finally {
-        setIsLoading(false);
+        setIsLoadingInitial(false);
       }
     };
     
@@ -65,21 +66,31 @@ export default function CommunityPage() {
   // Cargar posts filtrados por categoría
   useEffect(() => {
     const fetchFilteredPosts = async () => {
-      if (!activeCategory || activeCategory === 'all') return;
+      if (!activeCategory || activeCategory === 'all') {
+        // No cargar datos nuevamente si es la categoría 'all' - usar los datos iniciales
+        if (isLoadingInitial) return; // No hacer nada si todavía estamos cargando datos iniciales
+        
+        const postsData = await communityService.getAllPosts();
+        setRegularPosts(postsData.results || (Array.isArray(postsData) ? postsData : []));
+        return;
+      }
       
-      setIsLoading(true);
+      setIsLoadingPosts(true);
       try {
         const postsData = await communityService.getAllPosts(activeCategory);
-        setRegularPosts(postsData.results || postsData);
+        // Usar un timeout para suavizar la transición
+        setTimeout(() => {
+          setRegularPosts(postsData.results || postsData);
+          setIsLoadingPosts(false);
+        }, 300);
       } catch (err) {
         console.error('Error al filtrar posts:', err);
-      } finally {
-        setIsLoading(false);
+        setIsLoadingPosts(false);
       }
     };
     
     fetchFilteredPosts();
-  }, [activeCategory]);
+  }, [activeCategory, isLoadingInitial]);
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
@@ -149,7 +160,7 @@ export default function CommunityPage() {
             <PinnedPostsSection 
               pinnedPosts={pinnedPosts} 
               onPostClick={handlePostClick} 
-              isLoading={isLoading}
+              isLoading={isLoadingInitial}
             />
 
             {/* Feed de publicaciones */}
@@ -157,7 +168,7 @@ export default function CommunityPage() {
               posts={regularPosts} 
               filter={activeCategory} 
               onPostClick={handlePostClick} 
-              isLoading={isLoading}
+              isLoading={isLoadingInitial || isLoadingPosts}
             />
           </div>
 

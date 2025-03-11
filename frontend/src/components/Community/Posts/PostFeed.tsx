@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Post } from '@/types/Post';
-
 import { PostCard } from './PostCard';
+import { PostSkeleton } from '@/components/ui/PostSkeleton';
 
 interface PostFeedProps {
     posts: Post[];
@@ -12,8 +12,36 @@ interface PostFeedProps {
 }
 
 export const PostFeed: React.FC<PostFeedProps> = ({ posts, filter = 'all', onPostClick, isLoading = false }) => {
+    // Estado para manejar la visibilidad y transición
+    const [visiblePosts, setVisiblePosts] = useState<Post[]>([]);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    
+    // Efecto para actualizar los posts con transición suave
+    useEffect(() => {
+        if (isLoading) {
+            // No hacer nada mientras carga, el esqueleto se mostrará
+            return;
+        }
+        
+        if (posts.length === 0) {
+            setVisiblePosts([]);
+            return;
+        }
+        
+        // Iniciar transición
+        setIsTransitioning(true);
+        
+        // Pequeño retraso para la animación
+        const timer = setTimeout(() => {
+            setVisiblePosts(posts);
+            setIsTransitioning(false);
+        }, 300);
+        
+        return () => clearTimeout(timer);
+    }, [posts, isLoading]);
+    
     // Filtrar posts según la categoría seleccionada
-    let filteredPosts = posts || [];
+    let filteredPosts = visiblePosts || [];
     
     if (filter !== 'all') {
         filteredPosts = filteredPosts.filter(post => {
@@ -36,20 +64,15 @@ export const PostFeed: React.FC<PostFeedProps> = ({ posts, filter = 'all', onPos
     if (isLoading) {
         return (
             <div className="space-y-4 mx-4 sm:mx-2 md:mx-0">
-                {[...Array(3)].map((_, index) => (
-                    <div key={index} className="bg-[#323230] rounded-lg p-4 border border-white/10">
-                        <div className="animate-pulse flex space-y-4 flex-col">
-                            <div className="flex items-center gap-2">
-                                <div className="rounded-full bg-zinc-700 h-10 w-10"></div>
-                                <div className="flex-1 space-y-2">
-                                    <div className="h-4 bg-zinc-700 rounded w-1/4"></div>
-                                </div>
-                            </div>
-                            <div className="h-4 bg-zinc-700 rounded w-3/4"></div>
-                            <div className="h-4 bg-zinc-700 rounded w-1/2"></div>
-                        </div>
-                    </div>
-                ))}
+                <PostSkeleton count={3} withImage={true} />
+            </div>
+        );
+    }
+    
+    if (isTransitioning) {
+        return (
+            <div className="space-y-4 mx-4 sm:mx-2 md:mx-0 opacity-50 transition-opacity duration-300">
+                <PostSkeleton count={Math.min(3, posts.length)} withImage={true} />
             </div>
         );
     }
@@ -63,7 +86,7 @@ export const PostFeed: React.FC<PostFeedProps> = ({ posts, filter = 'all', onPos
     }
 
     return (
-        <div className="space-y-4 mx-4 sm:mx-2 md:mx-0">
+        <div className="space-y-4 mx-4 sm:mx-2 md:mx-0 fade-in">
             {filteredPosts.map((post) => {
                 // Extracción segura del nombre de la categoría de la respuesta de la API
                 let categoryName = '';

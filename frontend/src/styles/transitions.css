@@ -1,0 +1,55 @@
+/* Transiciones suaves para carga de contenido */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.content-transition {
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.content-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.content-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.skeleton-pulse {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-pulse::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Prevenir layout shift */
+.min-h-post {
+  min-height: 120px;
+}
+
+.min-h-card {
+  min-height: 100px;
+}
