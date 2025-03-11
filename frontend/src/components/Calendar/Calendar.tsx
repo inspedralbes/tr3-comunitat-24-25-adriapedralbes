@@ -17,7 +17,7 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onEventClick }) => {
     // Estado para la fecha actual del calendario
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthData, setMonthData] = useState<MonthData | null>(null);
-    const [viewMode, setViewMode] = useState<HeaderViewMode>('month');
+    const [viewMode, setViewMode] = useState<ViewMode>('month');
 
     useEffect(() => {
         // Generar los datos del mes actual
