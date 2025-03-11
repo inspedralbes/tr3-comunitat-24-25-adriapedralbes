@@ -6,6 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
+from functools import wraps
 
 from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
 from .serializers import (
@@ -23,6 +24,49 @@ import uuid
 import json
 import logging
 import traceback
+
+# Decorador para añadir headers CORS a las respuestas
+def add_cors_headers(view_func):
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        response = view_func(*args, **kwargs)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Allow-Methods"] = "*"
+        return response
+    return wrapped_view
+
+# Función para probar la conexión de correo
+def test_email_connection():
+    """Prueba la conexión con el servidor de correo"""
+    try:
+        from django.core.mail import get_connection
+        connection = get_connection()
+        connection.open()
+        is_connected = connection.connection is not None
+        connection.close()
+        return {
+            'success': is_connected,
+            'message': 'Conexión establecida correctamente' if is_connected else 'No se pudo conectar',
+            'email_settings': {
+                'EMAIL_HOST': settings.EMAIL_HOST,
+                'EMAIL_PORT': settings.EMAIL_PORT,
+                'EMAIL_USE_TLS': settings.EMAIL_USE_TLS,
+                'EMAIL_USE_SSL': settings.EMAIL_USE_SSL,
+            }
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'message': f'Error: {str(e)}',
+            'error_type': type(e).__name__,
+            'email_settings': {
+                'EMAIL_HOST': settings.EMAIL_HOST,
+                'EMAIL_PORT': settings.EMAIL_PORT,
+                'EMAIL_USE_TLS': settings.EMAIL_USE_TLS,
+                'EMAIL_USE_SSL': settings.EMAIL_USE_SSL,
+            }
+        }
 
 # Vista para la ruta raíz
 @api_view(['GET'])
