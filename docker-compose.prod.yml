@@ -71,10 +71,7 @@ services:
       - ./backend/.env
     environment:
       - DATABASE_HOST=postgres
-      # Configuración para garantizar la creación del superusuario
-      - DJANGO_SUPERUSER_USERNAME=admin
-      - DJANGO_SUPERUSER_EMAIL=admin@example.com
-      - DJANGO_SUPERUSER_PASSWORD=admin123
+      # Forzar la creación del superusuario sin sobrescribir credenciales
       - FORCE_SUPERUSER_CREATE=true
     networks:
       - web

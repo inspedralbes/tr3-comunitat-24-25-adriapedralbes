@@ -14,6 +14,12 @@ password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin123')
 # Verificar si se debe forzar la creación del superusuario
 force_create = os.environ.get('FORCE_SUPERUSER_CREATE', '').lower() == 'true'
 
+# Mostrar información de diagnóstico
+print(f"\n🔵 Configurando superusuario con:")
+print(f"   - Username: {username}")
+print(f"   - Email: {email}")
+print(f"   - Force create: {force_create}\n")
+
 # Verificar si ya existe un superusuario o si se debe forzar la creación
 if not User.objects.filter(is_superuser=True).exists() or force_create:
     # Crear superusuario
