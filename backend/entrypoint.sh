@@ -3,7 +3,7 @@ set -e
 
 echo "🔵 Esperando a que la base de datos PostgreSQL esté disponible..."
 while ! nc -z postgres 5432; do
-  sleep 1
+  sleep 6
 done
 echo "✅ Base de datos PostgreSQL disponible"
 
