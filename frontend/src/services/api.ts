@@ -1,5 +1,11 @@
 // Base URL para API
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+
+// Función para asegurar que usamos IPv4 en desarrollo
+const getApiUrl = () => {
+  // Sustituir localhost por 127.0.0.1 para evitar problemas con IPv6
+  return API_URL.replace('localhost', '127.0.0.1');
+};
 
 // Función para manejar errores
 const handleResponse = async (response: Response) => {
@@ -9,7 +15,15 @@ const handleResponse = async (response: Response) => {
     }));
     throw new Error(error.message || 'Ocurrió un error en el servidor');
   }
-  return response.json();
+  
+  try {
+    const data = await response.json();
+    console.log(`API Response for ${response.url}:`, data);
+    return data;
+  } catch (e) {
+    console.error('Error parsing JSON response:', e);
+    return {};
+  }
 };
 
 // Función para agregar token de autenticación si existe
@@ -36,7 +50,7 @@ const getHeaders = (includeContentType = true) => {
 // API general con funciones para peticiones HTTP
 export const api = {
   get: async (endpoint: string) => {
-    const response = await fetch(`${API_URL}/${endpoint}`, {
+    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'GET',
       headers: getHeaders(),
     });
@@ -44,7 +58,7 @@ export const api = {
   },
 
   post: async (endpoint: string, data: any) => {
-    const response = await fetch(`${API_URL}/${endpoint}`, {
+    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -53,7 +67,7 @@ export const api = {
   },
 
   put: async (endpoint: string, data: any) => {
-    const response = await fetch(`${API_URL}/${endpoint}`, {
+    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -62,7 +76,7 @@ export const api = {
   },
 
   patch: async (endpoint: string, data: any) => {
-    const response = await fetch(`${API_URL}/${endpoint}`, {
+    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'PATCH',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -71,7 +85,7 @@ export const api = {
   },
 
   delete: async (endpoint: string) => {
-    const response = await fetch(`${API_URL}/${endpoint}`, {
+    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -79,7 +93,7 @@ export const api = {
   },
 
   upload: async (endpoint: string, formData: FormData) => {
-    const response = await fetch(`${API_URL}/${endpoint}`, {
+    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'POST',
       headers: getHeaders(false), // No incluir Content-Type para que el navegador maneje el boundary
       body: formData,

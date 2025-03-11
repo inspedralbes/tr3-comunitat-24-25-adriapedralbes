@@ -15,6 +15,7 @@ interface PostCardProps {
     };
     timestamp: string;
     category?: string;
+    categoryColor?: string;
     content: string;
     likes: number;
     comments: number;
@@ -33,6 +34,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     author,
     timestamp,
     category,
+    categoryColor,
     content,
     likes,
     comments,
@@ -107,12 +109,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 avatarUrl={author.avatarUrl}
                 timestamp={timestamp}
                 category={category}
-                categoryColor={
-                    category === 'General' ? 'bg-[#444442] border border-white/5' :
-                        category === 'Anuncios' ? 'bg-[#444442] border border-white/5' :
-                            category === 'Preguntas' ? 'bg-[#444442] border border-white/5' :
-                                'bg-[#444442] border border-white/5'
-                }
+                categoryColor={categoryColor}
             />
 
             {/* Título del post */}
@@ -134,11 +131,13 @@ export const PostCard: React.FC<PostCardProps> = ({
             {imageUrl && (
                 <div className="mt-2 mb-3">
                     <Image
-                        src={imageUrl}
+                        src={imageUrl.startsWith('http') ? imageUrl : `http://127.0.0.1:8000${imageUrl}`}
                         alt={`Contenido de ${title}`}
                         width={500}
                         height={300}
                         className="rounded-lg max-h-28 object-cover border border-white/10"
+                        priority={true}
+                        unoptimized={process.env.NODE_ENV === 'development'}
                     />
                 </div>
             )}
