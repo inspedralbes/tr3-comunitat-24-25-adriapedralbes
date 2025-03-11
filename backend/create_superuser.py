@@ -34,8 +34,21 @@ if default_admins.exists():
     default_admins.delete()
     print(f"\n❗ Se han eliminado {count} superusuarios con credenciales predeterminadas")
 
-# Verificar si ya existe un superusuario o si se debe forzar la creación
-if not User.objects.filter(is_superuser=True).exists() or force_create:
+# Verificar si ya existe un usuario con el mismo nombre de usuario
+existing_user = User.objects.filter(username=username).first()
+
+if existing_user:
+    # Si el usuario existe pero no es superusuario, actualizar sus permisos
+    if not existing_user.is_superuser or not existing_user.is_staff:
+        print(f"\n🔵 El usuario {username} ya existe. Actualizando permisos a superusuario.")
+        existing_user.is_superuser = True
+        existing_user.is_staff = True
+        existing_user.save()
+        print(f"\n✅ Usuario {username} actualizado con permisos de superusuario.")
+    else:
+        print(f"\n🔵 El usuario {username} ya existe y ya tiene permisos de superusuario.")
+# Si el usuario no existe o se debe forzar la creación con otro nombre
+elif not User.objects.filter(is_superuser=True).exists() or force_create:
     # Crear superusuario
     User.objects.create_superuser(
         username=username,
