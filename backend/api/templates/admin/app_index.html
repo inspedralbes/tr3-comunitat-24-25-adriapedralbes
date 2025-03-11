@@ -1,0 +1,12 @@
+{% extends "admin/app_index.html" %}
+{% load i18n %}
+
+{% block content %}
+<div style="margin-bottom: 20px; background-color: #1a1a1a; padding: 20px; border-radius: 8px; border: 1px solid #333;">
+    <h2 style="color: #e09e41; margin-bottom: 10px;">{% trans 'Panel de Administración - FuturPrive' %}</h2>
+    <p style="color: #e6e6e6;">
+        Bienvenido al panel de administración.
+    </p>
+</div>
+{{ block.super }}
+{% endblock %}

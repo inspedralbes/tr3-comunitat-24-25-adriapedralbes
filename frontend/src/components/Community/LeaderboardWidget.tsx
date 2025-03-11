@@ -47,7 +47,7 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
                         </div>
                         <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
                             <Image
-                                src={user.avatarUrl}
+                                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
                                 alt={user.username}
                                 width={32}
                                 height={32}
