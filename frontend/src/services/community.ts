@@ -18,8 +18,30 @@ export interface CreateCommentData {
 // Servicio para interactuar con la API de comunidad
 export const communityService = {
   // Posts
-  getAllPosts: async (category?: string, page = 1) => {
-    const endpoint = `posts/?page=${page}${category && category !== 'all' ? `&category=${category}` : ''}`;
+  getAllPosts: async (category?: string, page = 1, sortType = 'default') => {
+    let endpoint = `posts/?page=${page}`;
+    
+    // Añadir filtro por categoría si está especificado
+    if (category && category !== 'all') {
+      endpoint += `&category=${category}`;
+    }
+    
+    // Añadir parámetro de ordenamiento
+    switch (sortType) {
+      case 'new':
+        endpoint += '&ordering=-created_at'; // Ordenar por fecha de creación, más recientes primero
+        break;
+      case 'top':
+        endpoint += '&ordering=-likes'; // Ordenar por más likes
+        break;
+      case 'pinned':
+        endpoint += '&is_pinned=true'; // Solo mostrar posts fijados
+        break;
+      default: // 'default'
+        // No añadir ordenamiento especial, usar el predeterminado del backend
+        break;
+    }
+    
     return api.get(endpoint);
   },
 

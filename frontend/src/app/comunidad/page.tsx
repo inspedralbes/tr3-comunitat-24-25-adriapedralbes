@@ -18,6 +18,7 @@ import { Post } from "@/types/Post";
 
 export default function CommunityPage() {
   const [activeCategory, setActiveCategory] = useState('all');
+  const [activeSortType, setActiveSortType] = useState('default');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
@@ -54,14 +55,20 @@ export default function CommunityPage() {
                                 (pinnedData.results ? pinnedData.results : []);
         setPinnedPosts(pinnedPostsArray);
         
-        // Obtener posts regulares
-        const postsData = await communityService.getAllPosts();
+        // Obtener posts regulares con el tipo de ordenamiento activo
+        const postsData = await communityService.getAllPosts(undefined, 1, activeSortType);
         const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
         
         // Filtrar los posts regulares para eliminar los que ya están fijados
-        const pinnedIds = pinnedPostsArray.map(post => post.id);
-        const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
-        setRegularPosts(filteredRegularPosts);
+        // Solo si no estamos en el tipo de ordenamiento 'pinned'
+        if (activeSortType !== 'pinned') {
+          const pinnedIds = pinnedPostsArray.map(post => post.id);
+          const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+          setRegularPosts(filteredRegularPosts);
+        } else {
+          // Si el tipo es 'pinned', mostrar solo los posts fijados
+          setRegularPosts(allPostsArray);
+        }
         
         // Obtener leaderboard
         const leaderboardData = await communityService.getLeaderboard();
@@ -76,7 +83,7 @@ export default function CommunityPage() {
     };
     
     fetchInitialData();
-  }, []);
+  }, [activeSortType]);
 
   // Cargar posts filtrados por categoría
   useEffect(() => {
@@ -85,28 +92,36 @@ export default function CommunityPage() {
         // No cargar datos nuevamente si es la categoría 'all' - usar los datos iniciales
         if (isLoadingInitial) return; // No hacer nada si todavía estamos cargando datos iniciales
         
-        const postsData = await communityService.getAllPosts();
+        const postsData = await communityService.getAllPosts(undefined, 1, activeSortType);
         const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
         
-        // Filtrar los posts fijados
-        const pinnedIds = pinnedPosts.map(post => post.id);
-        const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
-        setRegularPosts(filteredRegularPosts);
+        // Filtrar los posts fijados si no estamos en vista de 'pinned'
+        if (activeSortType !== 'pinned') {
+          const pinnedIds = pinnedPosts.map(post => post.id);
+          const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+          setRegularPosts(filteredRegularPosts);
+        } else {
+          // Si el tipo es 'pinned', mostrar solo posts fijados
+          setRegularPosts(allPostsArray);
+        }
         return;
       }
       
       setIsLoadingPosts(true);
       try {
-        const postsData = await communityService.getAllPosts(activeCategory);
+        const postsData = await communityService.getAllPosts(activeCategory, 1, activeSortType);
         const categoryPostsArray = postsData.results || postsData;
         
-        // Filtrar los posts fijados también para las categorías
-        const pinnedIds = pinnedPosts.map(post => post.id);
-        const filteredCategoryPosts = categoryPostsArray.filter(post => !pinnedIds.includes(post.id));
+        // Filtrar los posts fijados si no estamos en vista de 'pinned'
+        let filteredPosts = categoryPostsArray;
+        if (activeSortType !== 'pinned') {
+          const pinnedIds = pinnedPosts.map(post => post.id);
+          filteredPosts = categoryPostsArray.filter(post => !pinnedIds.includes(post.id));
+        }
         
         // Usar un timeout para suavizar la transición
         setTimeout(() => {
-          setRegularPosts(filteredCategoryPosts);
+          setRegularPosts(filteredPosts);
           setIsLoadingPosts(false);
         }, 300);
       } catch (err) {
@@ -116,10 +131,14 @@ export default function CommunityPage() {
     };
     
     fetchFilteredPosts();
-  }, [activeCategory, isLoadingInitial, pinnedPosts]);
+  }, [activeCategory, isLoadingInitial, pinnedPosts, activeSortType]);
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
+  };
+
+  const handleSortTypeChange = (sortType: string) => {
+    setActiveSortType(sortType);
   };
 
   const handlePostClick = async (postId: string) => {
@@ -194,13 +213,17 @@ export default function CommunityPage() {
         setPinnedPosts(pinnedPostsArray);
         
         // Obtener posts regulares actualizados
-        const postsData = await communityService.getAllPosts(activeCategory !== 'all' ? activeCategory : undefined);
+        const postsData = await communityService.getAllPosts(activeCategory !== 'all' ? activeCategory : undefined, 1, activeSortType);
         const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
         
-        // Filtrar los posts regulares para eliminar los que ya están fijados
-        const pinnedIds = pinnedPostsArray.map(post => post.id);
-        const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
-        setRegularPosts(filteredRegularPosts);
+        // Filtrar los posts regulares para eliminar los que ya están fijados (excepto en vista 'pinned')
+        if (activeSortType !== 'pinned') {
+          const pinnedIds = pinnedPostsArray.map(post => post.id);
+          const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+          setRegularPosts(filteredRegularPosts);
+        } else {
+          setRegularPosts(allPostsArray);
+        }
       } catch (err) {
         console.error('Error al actualizar posts después de cerrar modal:', err);
       }
@@ -225,13 +248,21 @@ export default function CommunityPage() {
       });
       
       // Recargar posts después de crear uno nuevo
-      const postsData = await communityService.getAllPosts(activeCategory !== 'all' ? activeCategory : undefined);
+      const postsData = await communityService.getAllPosts(
+        activeCategory !== 'all' ? activeCategory : undefined, 
+        1, 
+        activeSortType
+      );
       const newPostsArray = postsData.results || postsData;
       
-      // Filtrar los posts fijados para evitar duplicados
-      const pinnedIds = pinnedPosts.map(post => post.id);
-      const filteredNewPosts = newPostsArray.filter(post => !pinnedIds.includes(post.id));
-      setRegularPosts(filteredNewPosts);
+      // Filtrar los posts fijados para evitar duplicados (excepto en vista 'pinned')
+      if (activeSortType !== 'pinned') {
+        const pinnedIds = pinnedPosts.map(post => post.id);
+        const filteredNewPosts = newPostsArray.filter(post => !pinnedIds.includes(post.id));
+        setRegularPosts(filteredNewPosts);
+      } else {
+        setRegularPosts(newPostsArray);
+      }
       
       return true;
     } catch (err) {
@@ -265,7 +296,9 @@ export default function CommunityPage() {
             {/* Filtros de categoría */}
             <CategoryFilter
               activeCategory={activeCategory}
+              activeSortType={activeSortType}
               onCategoryChange={handleCategoryChange}
+              onSortTypeChange={handleSortTypeChange}
               categories={categories}
             />
 
