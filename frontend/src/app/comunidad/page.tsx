@@ -108,10 +108,35 @@ export default function CommunityPage() {
   const handlePostClick = async (postId: string) => {
     try {
       // Obtener los detalles del post directamente de la API
-      const post = await communityService.getPostById(postId);
+      const postData = await communityService.getPostById(postId);
       
-      if (post) {
-        setSelectedPost(post);
+      if (postData) {
+        // Normalizar el post para asegurar que tiene la estructura esperada
+        const normalizedPost = {
+          id: postData.id,
+          author: {
+            id: postData.author?.id,
+            username: postData.author?.username || 'Usuario',
+            level: postData.author?.level,
+            avatarUrl: postData.author?.avatar_url || postData.author?.avatarUrl,
+            avatar_url: postData.author?.avatar_url
+          },
+          title: postData.title,
+          content: typeof postData.content === 'string' ? postData.content : JSON.stringify(postData.content),
+          category: postData.category,
+          created_at: postData.created_at,
+          updated_at: postData.updated_at,
+          image: postData.image,
+          comments_count: postData.comments_count || 0,
+          is_pinned: postData.is_pinned,
+          timestamp: postData.timestamp || postData.created_at,
+          likes: postData.likes || 0,
+          comments: postData.comments_count || 0,
+          isPinned: postData.is_pinned,
+          imageUrl: postData.image || postData.imageUrl
+        };
+        
+        setSelectedPost(normalizedPost);
         setIsModalOpen(true);
       }
     } catch (err) {

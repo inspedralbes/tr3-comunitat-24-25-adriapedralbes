@@ -4,7 +4,8 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 
 import { UserBadge } from '@/components/Community/UserBadge';
 import { Button } from '@/components/ui/button';
-import { commentsByPostId } from '@/mockData/mockComments';
+import { communityService } from '@/services/community';
+import { authService } from '@/services/auth';
 import { Comment } from '@/types/Comment';
 import { Post } from '@/types/Post';
 
@@ -43,6 +44,23 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const [liked, setLiked] = useState(false);
     const [likesCount, setLikesCount] = useState(post?.likes || 0);
     const [comments, setComments] = useState<EnhancedComment[]>([]);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    // Cargar perfil del usuario actual
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            if (authService.isAuthenticated()) {
+                try {
+                    const profile = await authService.getProfile();
+                    setCurrentUser(profile);
+                } catch (error) {
+                    console.error('Error al cargar el perfil de usuario:', error);
+                }
+            }
+        };
+
+        fetchCurrentUser();
+    }, [isOpen]);
 
     // Función para confirmar salida si hay comentario pendiente (memoizada para evitar recreación)
     const confirmDiscardComment = useCallback((): boolean => {
@@ -120,22 +138,79 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     // Cargar comentarios
     useEffect(() => {
         if (post && isOpen) {
-            // Cargar comentarios del post seleccionado
-            const postComments = commentsByPostId[post.id] || [];
-            // Preparar los comentarios con el nivel 0 por defecto (comentarios principales)
-            const enhancedComments = postComments.map(comment => ({
-                ...comment,
-                replyLevel: 0,
-                replies: comment.replies?.map(reply => ({
-                    ...reply,
-                    replyLevel: 1,  // Nivel 1 para las respuestas directas
-                    parentId: comment.id, // Guardar referencia al padre
-                    parentCommentId: comment.id // Principal es igual al padre para nivel 1
-                }))
-            }));
+            const fetchComments = async () => {
+                try {
+                    // Cargar comentarios del post seleccionado desde la API
+                    const commentsData = await communityService.getPostComments(post.id);
+                    
+                    console.log('Comentarios recibidos:', commentsData);
+                    // Normalizar los datos recibidos de la API
+                    let commentsArray = Array.isArray(commentsData) 
+                        ? commentsData 
+                        : (commentsData.results || []);
+                    
+                    console.log('Array de comentarios normalizado:', commentsArray);
+                    
+                    // Inspeccionar las URLs de los avatares
+                    commentsArray.forEach((comment, index) => {
+                        console.log(`Comentario ${index} - autor:`, comment.author.username);
+                        console.log(`Comentario ${index} - avatar_url:`, comment.author.avatar_url);
+                        console.log(`Comentario ${index} - avatarUrl:`, comment.author.avatarUrl);
+                    });
 
-            setComments(enhancedComments);
-            updateAllCommentsCache(enhancedComments);
+                    // Normalizar las propiedades para hacerlas compatibles con nuestra interfaz
+                    const enhancedComments = commentsArray.map(comment => {
+                        // Asegurarnos de que content sea un string
+                        const content = typeof comment.content === 'string' 
+                            ? comment.content 
+                            : JSON.stringify(comment.content);
+                        console.log('Tipo de content:', typeof comment.content);
+
+                        // Asegurar que la URL del avatar está completa
+                        const authorAvatarUrl = comment.author.avatar_url || comment.author.avatarUrl;
+                            
+                        return {
+                            ...comment,
+                            content: content,
+                            replyLevel: 0,
+                            author: {
+                                ...comment.author,
+                                // Normalizar avatar_url a avatarUrl
+                                avatarUrl: authorAvatarUrl
+                            },
+                            replies: comment.replies?.map(reply => {
+                                // Asegurarnos de que el contenido de la respuesta sea string
+                                const replyContent = typeof reply.content === 'string'
+                                    ? reply.content
+                                    : JSON.stringify(reply.content);
+
+                                // Asegurar que la URL del avatar está completa
+                                const replyAuthorAvatarUrl = reply.author.avatar_url || reply.author.avatarUrl;
+                                    
+                                return {
+                                    ...reply,
+                                    content: replyContent,
+                                    replyLevel: 1,  // Nivel 1 para las respuestas directas
+                                    parentId: comment.id, // Guardar referencia al padre
+                                    parentCommentId: comment.id, // Principal es igual al padre para nivel 1
+                                    author: {
+                                        ...reply.author,
+                                        // Normalizar avatar_url a avatarUrl para las respuestas
+                                        avatarUrl: replyAuthorAvatarUrl
+                                    }
+                                };
+                            })
+                        };
+                    });
+
+                    setComments(enhancedComments);
+                    updateAllCommentsCache(enhancedComments);
+                } catch (error) {
+                    console.error('Error al cargar comentarios:', error);
+                }
+            };
+            
+            fetchComments();
         }
     }, [post, isOpen]);
 
@@ -198,81 +273,102 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     };
 
     // Añadir un nuevo comentario
-    const addComment = () => {
+    const addComment = async () => {
         if (comment.trim() === '') return;
 
-        const newComment: EnhancedComment = {
-            id: `comment${Date.now()}`,
-            author: {
-                username: 'Tu Usuario', // Esto sería el usuario actual
-                level: 1,
-                avatarUrl: 'https://github.com/shadcn.png'
-            },
-            content: comment,
-            timestamp: 'ahora',
-            likes: 0,
-            mentionedUser: replyToComment?.username,
-            replyLevel: replyToComment ? replyToComment.replyLevel : 0
-        };
+        try {
+            // Datos para el nuevo comentario
+            const commentData = {
+                post_id: post?.id || '',
+                content: comment,
+                parent_id: replyToComment?.id,
+                mentioned_user_id: replyToComment ? undefined : undefined // Aquí podríamos añadir menciones
+            };
 
-        if (replyToComment) {
-            // Agregar información de relación para mantener la jerarquía
-            newComment.parentId = replyToComment.id;
-            newComment.parentCommentId = replyToComment.parentCommentId;
+            // Enviar el comentario a la API
+            const response = await communityService.createComment(commentData);
 
-            // Guardar la referencia del comentario que estamos respondiendo
-            setLastRespondedComment({ ...replyToComment });
+            // Obtener la información del usuario actual
+            const userProfile = await authService.getProfile();
 
-            // Cuando respondemos a un comentario raíz
-            if (replyToComment.replyLevel === 1) {
-                setComments(prevComments => {
-                    return prevComments.map(c => {
-                        if (c.id === replyToComment.parentCommentId) {
-                            return {
-                                ...c,
-                                replies: [...(c.replies || []), newComment]
-                            };
-                        }
-                        return c;
+            // Crear el objeto de comentario con la respuesta y datos del usuario
+            const newComment: EnhancedComment = {
+                ...response,
+                id: response.id,
+                author: {
+                    username: userProfile.username,
+                    level: userProfile.level,
+                    avatarUrl: userProfile.avatar_url
+                },
+                content: comment,
+                timestamp: 'ahora', // La API deberió devolver esto, pero por si acaso
+                likes: 0,
+                mentionedUser: replyToComment?.username,
+                replyLevel: replyToComment ? replyToComment.replyLevel : 0
+            };
+
+            if (replyToComment) {
+                // Agregar información de relación para mantener la jerarquía
+                newComment.parentId = replyToComment.id;
+                newComment.parentCommentId = replyToComment.parentCommentId;
+
+                // Guardar la referencia del comentario que estamos respondiendo
+                setLastRespondedComment({ ...replyToComment });
+
+                // Cuando respondemos a un comentario raíz
+                if (replyToComment.replyLevel === 1) {
+                    setComments(prevComments => {
+                        return prevComments.map(c => {
+                            if (c.id === replyToComment.parentCommentId) {
+                                return {
+                                    ...c,
+                                    replies: [...(c.replies || []), newComment]
+                                };
+                            }
+                            return c;
+                        });
                     });
-                });
-            }
-            // Cuando respondemos a una respuesta (cualquier nivel)
-            else {
-                setComments(prevComments => {
-                    const updatedComments = prevComments.map(c => {
-                        // Buscar el comentario principal
-                        if (c.id === replyToComment.parentCommentId) {
-                            return {
-                                ...c,
-                                replies: addReplyToComment(
-                                    c.replies as EnhancedComment[],
-                                    replyToComment.id,
-                                    newComment
-                                )
-                            };
-                        }
-                        return c;
-                    });
+                }
+                // Cuando respondemos a una respuesta (cualquier nivel)
+                else {
+                    setComments(prevComments => {
+                        const updatedComments = prevComments.map(c => {
+                            // Buscar el comentario principal
+                            if (c.id === replyToComment.parentCommentId) {
+                                return {
+                                    ...c,
+                                    replies: addReplyToComment(
+                                        c.replies as EnhancedComment[],
+                                        replyToComment.id,
+                                        newComment
+                                    )
+                                };
+                            }
+                            return c;
+                        });
 
+                        updateAllCommentsCache(updatedComments);
+                        return updatedComments;
+                    });
+                }
+
+                setReplyToComment(null);
+            } else {
+                // Añadir como comentario principal
+                newComment.replyLevel = 0;
+                setComments(prevComments => {
+                    const updatedComments = [...prevComments, newComment];
                     updateAllCommentsCache(updatedComments);
                     return updatedComments;
                 });
+                setLastRespondedComment(null);
             }
 
-            setReplyToComment(null);
-        } else {
-            // Añadir como comentario principal
-            newComment.replyLevel = 0;
-            setComments(prevComments => {
-                const updatedComments = [...prevComments, newComment];
-                updateAllCommentsCache(updatedComments);
-                return updatedComments;
-            });
-            setLastRespondedComment(null);
+            setComment('');
+            
+        } catch (error) {
+            console.error('Error al añadir comentario:', error);
         }
-
-        setComment('');
     };
 
     // Componente recursivo para renderizar comentarios
@@ -298,7 +394,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     width={32}
                                     height={32}
                                     className="w-full h-full object-cover"
-                                    unoptimized={comment.author.avatarUrl.includes('127.0.0.1') || comment.author.avatarUrl.includes('localhost')}
+                                    unoptimized={true}
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-zinc-400">
@@ -325,7 +421,10 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             {comment.mentionedUser && (
                                 <span className="text-blue-400">@{comment.mentionedUser} </span>
                             )}
-                            {comment.content}
+                            {/* Siempre renderizar como string */}
+                            {typeof comment.content === 'string' 
+                              ? comment.content 
+                              : (comment.content ? JSON.stringify(comment.content) : '')}
                         </div>
 
                         {/* Acciones del comentario */}
@@ -378,17 +477,22 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     // Format content with title and body
     const formatContent = () => {
         if (!post) return { title: '', body: '' };
+        
+        // Asegurarse de que post.content sea un string
+        const content = typeof post.content === 'string' 
+            ? post.content 
+            : (post.content ? JSON.stringify(post.content) : '');
 
         // Si el post tiene título explícito, usarlo
         if (post.title) {
             return { 
                 title: post.title, 
-                body: post.content 
+                body: content 
             };
         }
 
         // Si no tiene título, extraerlo de la primera línea del contenido (compatibilidad con posts antiguos)
-        const contentLines = post.content.split('\n');
+        const contentLines = content.split('\n');
         const title = contentLines[0];
         const body = contentLines.slice(1).join('\n');
 
@@ -424,12 +528,12 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
                 {/* Post Content */}
                 <div className="px-5 py-3">
-                    <UserBadge
-                        username={post.author.username}
-                        level={post.author.level}
-                        avatarUrl={post.author.avatarUrl}
-                        timestamp={post.timestamp}
-                        category={post.category}
+                <UserBadge
+                username={post.author.username}
+                level={post.author.level}
+                avatarUrl={post.author.avatarUrl || post.author.avatar_url}
+                timestamp={post.timestamp}
+                category={post.category}
                         categoryColor={
                             post.category === 'General' ? 'bg-[#444442] border border-white/5' :
                                 post.category === 'Anuncios' ? 'bg-[#444442] border border-white/5' :
@@ -507,18 +611,26 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                         <div className="flex gap-2 mt-4 border-t border-white/10 pt-4">
                             <div className="relative flex-shrink-0 self-start">
                                 <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
-                                    <Image
-                                        src="https://github.com/shadcn.png"
-                                        alt="Tu avatar"
-                                        width={32}
-                                        height={32}
-                                        className="w-full h-full object-cover"
-                                        unoptimized={true}
-                                    />
+                                    {currentUser?.avatar_url ? (
+                                        <Image
+                                            src={currentUser.avatar_url}
+                                            alt={currentUser.username || 'Tu avatar'}
+                                            width={32}
+                                            height={32}
+                                            className="w-full h-full object-cover"
+                                            unoptimized={true}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-zinc-400">
+                                            {currentUser?.username ? currentUser.username.charAt(0).toUpperCase() : 'T'}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
-                                    1
-                                </div>
+                                {currentUser?.level && (
+                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
+                                        {currentUser.level}
+                                    </div>
+                                )}
                             </div>
                             <div className="flex-1">
                                 {/* Indicador de respuesta - Mejorado para mostrar nivel */}

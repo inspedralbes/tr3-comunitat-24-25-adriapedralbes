@@ -17,9 +17,9 @@ interface WritePostComponentProps {
     categories?: Category[];
 }
 
-export const WritePostComponent: React.FC<WritePostComponentProps> = ({ 
+export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     onSubmit,
-    categories = [] 
+    categories = []
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -35,7 +35,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         username?: string;
         level?: number;
     } | null>(null);
-    
+
     const componentRef = useRef<HTMLDivElement>(null);
     const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -96,10 +96,10 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
             setIsAuthModalOpen(true);
             return;
         }
-        
+
         setIsExpanded(true);
     };
-    
+
     const handleAuthSuccess = () => {
         setIsAuthModalOpen(false);
         // Refrescar info de usuario y expandir el editor
@@ -171,7 +171,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                 // Si hay título, enviarlo; de lo contrario, usar el contenido como título también
                 const title = postTitle.trim() || postContent.split('\n')[0]; // Usar la primera línea como título si no hay título
                 const success = await onSubmit(postContent, title, selectedCategory);
-                
+
                 if (success) {
                     // Limpiar el formulario y cerrar
                     setPostTitle('');
@@ -209,13 +209,13 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     return (
         <>
             {/* Modal de autenticación */}
-            <AuthModal 
+            <AuthModal
                 isOpen={isAuthModalOpen}
                 type={AuthModalType.LOGIN}
                 onClose={() => setIsAuthModalOpen(false)}
                 onSuccess={handleAuthSuccess}
             />
-            
+
             {/* Overlay que cubre todo menos el navbar */}
             {isExpanded && (
                 <button
@@ -240,11 +240,11 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                         <div className="relative flex-shrink-0 self-start">
                             <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
                                 {user?.avatar_url ? (
-                                    <Image 
-                                        src={user.avatar_url} 
-                                        alt={user.username || 'User'} 
-                                        width={32} 
-                                        height={32} 
+                                    <Image
+                                        src={user.avatar_url}
+                                        alt={user.username || 'User'}
+                                        width={32}
+                                        height={32}
                                         className="w-full h-full object-cover"
                                         unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
                                     />
@@ -278,14 +278,14 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                             <div className="relative flex-shrink-0 self-start">
                                 <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
                                     {user?.avatar_url ? (
-                                    <Image 
-                                    src={user.avatar_url} 
-                                    alt={user.username || 'User'} 
-                                    width={32} 
-                                    height={32} 
-                                    className="w-full h-full object-cover"
-                                        unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
-                                    />
+                                        <Image
+                                            src={user.avatar_url}
+                                            alt={user.username || 'User'}
+                                            width={32}
+                                            height={32}
+                                            className="w-full h-full object-cover"
+                                            unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
+                                        />
                                     ) : (
                                         <User className="text-zinc-300" size={18} />
                                     )}
@@ -297,7 +297,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                 )}
                             </div>
                             <div className="text-sm text-zinc-300">
-                                {user?.username || 'Usuario'} publicando en <span className="text-white">DevAccelerator</span>
+                                {user?.username || 'Usuario'} publicando en <span className="text-white">FuturPrive</span>
                             </div>
                         </div>
 
@@ -354,7 +354,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
                             <div className="ml-auto flex flex-wrap items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                                 <div className="relative" ref={categoryDropdownRef}>
-                                    <button 
+                                    <button
                                         className="px-3 py-1.5 text-zinc-300 bg-[#444442] rounded-lg flex items-center gap-2 text-sm border border-white/5"
                                         onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                                     >

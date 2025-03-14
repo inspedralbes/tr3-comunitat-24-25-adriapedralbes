@@ -521,6 +521,25 @@ class PostViewSet(viewsets.ModelViewSet):
         if category and category != 'all':
             queryset = queryset.filter(category__slug=category)
         return queryset
+        
+    @action(detail=True, methods=['get'])
+    def comments(self, request, pk=None):
+        """
+        Obtener los comentarios de un post específico.
+        """
+        post = self.get_object()
+        
+        # Obtener comentarios raíz (sin padres) para este post
+        root_comments = Comment.objects.filter(post=post, parent=None).order_by('created_at')
+        
+        # Usar directamente el serializador, que ya maneja la anidación
+        # Pasar el contexto con request para construir URLs absolutas
+        serializer = CommentSerializer(root_comments, many=True, context={
+            'request': request,
+            'depth': 0
+        })
+        
+        return Response(serializer.data)
 
 
 class PinnedPostsView(generics.ListAPIView):

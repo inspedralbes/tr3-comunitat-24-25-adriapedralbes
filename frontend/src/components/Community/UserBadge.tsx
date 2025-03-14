@@ -30,7 +30,7 @@ export const UserBadge: React.FC<UserBadgeProps> = ({
               width={40}
               height={40}
               className="w-full h-full object-cover"
-              unoptimized={avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost')}
+              unoptimized={true}
             />
           ) : (
             <User className="text-zinc-400" size={20} />

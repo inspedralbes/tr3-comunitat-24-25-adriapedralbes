@@ -81,16 +81,31 @@ class CategorySerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     author = UserShortSerializer(read_only=True)
     mentioned_user = UserShortSerializer(read_only=True)
+    post = serializers.SerializerMethodField()
     replies = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'content', 'likes', 'created_at', 'updated_at', 'mentioned_user', 'replies']
+        fields = ['id', 'author', 'content', 'likes', 'created_at', 'updated_at', 'mentioned_user', 'post', 'replies']
         read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'likes']
+    
+    def get_post(self, obj):
+        return str(obj.post.id) if obj.post else None
 
     def get_replies(self, obj):
+        # Limitar la profundidad de la serialización para evitar recursión infinita
+        depth = getattr(self.context, 'depth', 0)
+        
+        # Si ya estamos en una profundidad excesiva, no serializar más niveles
+        if depth > 5:  # Limitar a 5 niveles de anidamiento
+            return []
+            
         replies = Comment.objects.filter(parent=obj)
-        return CommentSerializer(replies, many=True).data
+        
+        # Pasar el contexto con la profundidad incrementada y el request original
+        new_context = self.context.copy() if self.context else {}
+        new_context['depth'] = depth + 1
+        return CommentSerializer(replies, many=True, context=new_context).data
 
 
 class PostSerializer(serializers.ModelSerializer):

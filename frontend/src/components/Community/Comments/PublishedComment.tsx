@@ -38,6 +38,7 @@ export const PublishedComment: React.FC<PublishedCommentProps> = ({
                                 width={32}
                                 height={32}
                                 className="w-full h-full object-cover"
+                                unoptimized={avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost')}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-zinc-400">

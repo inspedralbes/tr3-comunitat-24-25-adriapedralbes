@@ -72,11 +72,17 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ pinnedPo
                         // Extraer URL de imagen si existe
                         const imageUrl = post.imageUrl || post.image || null;
                         
+                        // Normalizar la URL del avatar - asegurarse de que author.avatarUrl siempre exista
+                        const author = {
+                            ...post.author,
+                            avatarUrl: post.author.avatarUrl || post.author.avatar_url || undefined
+                        };
+                        
                         return (
                             <PostCard
                                 key={post.id}
                                 id={post.id}
-                                author={post.author}
+                                author={author}
                                 timestamp={timestamp}
                                 category={categoryName}
                                 categoryColor={categoryColor}
