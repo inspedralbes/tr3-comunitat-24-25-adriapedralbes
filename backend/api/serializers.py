@@ -9,11 +9,21 @@ class SubscriberSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    avatar_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'avatar_url', 'bio', 'level', 'points', 
                 'website', 'position', 'is_premium', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at', 'position']
+    
+    def get_avatar_url(self, obj):
+        if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.avatar_url.url)
+            return obj.avatar_url.url
+        return None
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -46,9 +56,19 @@ class UserShortSerializer(serializers.ModelSerializer):
     """
     Serializador simplificado de usuario para incluir en otros serializadores (posts, comentarios, etc.)
     """
+    avatar_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = User
         fields = ['id', 'username', 'level', 'avatar_url']
+    
+    def get_avatar_url(self, obj):
+        if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.avatar_url.url)
+            return obj.avatar_url.url
+        return None
 
 
 class CategorySerializer(serializers.ModelSerializer):

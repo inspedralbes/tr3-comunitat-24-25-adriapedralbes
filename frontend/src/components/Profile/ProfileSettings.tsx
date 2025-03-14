@@ -57,7 +57,13 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile: i
     setSuccess('');
 
     try {
-      await authService.updateAvatar(file);
+      console.log('Uploading avatar file:', file.name, file.type, file.size);
+      const updatedProfile = await authService.updateAvatar(file);
+      console.log('Profile updated with new avatar:', updatedProfile);
+      
+      // Actualizar el estado con la nueva URL del avatar
+      setUserProfile(updatedProfile);
+      setAvatarPreview(updatedProfile.avatar_url);
       setSuccess('Foto de perfil actualizada correctamente.');
     } catch (err) {
       console.error('Error updating avatar:', err);
@@ -144,6 +150,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile: i
                     width={80}
                     height={80}
                     className="w-full h-full object-cover"
+                    unoptimized={avatarPreview.includes('127.0.0.1') || avatarPreview.includes('localhost')}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-zinc-300">

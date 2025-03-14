@@ -163,7 +163,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                         height={300}
                         className="rounded-lg max-h-28 object-cover border border-white/10"
                         priority={true}
-                        unoptimized={process.env.NODE_ENV === 'development'}
+                        unoptimized={true}
                     />
                 </div>
             )}

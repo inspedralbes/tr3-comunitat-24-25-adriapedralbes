@@ -1,5 +1,3 @@
-"use client";
-
 import React from 'react';
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -26,10 +24,17 @@ export function UserAvatar({ username, avatarUrl, level, size = "md" }: UserAvat
         lg: "w-5 h-5 text-xs"
     };
 
+    // Determinar si es una URL interna (del backend) para desactivar la optimización
+    const isLocalBackendUrl = avatarUrl && (avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost'));
+
     return (
         <div className="relative inline-block">
             <Avatar className={sizeClasses[size]}>
-                <AvatarImage src={avatarUrl} alt={username} />
+                <AvatarImage 
+                    src={avatarUrl} 
+                    alt={username} 
+                    unoptimized={isLocalBackendUrl}
+                />
                 <AvatarFallback className="bg-[#444442] text-white">
                     {username.charAt(0).toUpperCase()}
                 </AvatarFallback>

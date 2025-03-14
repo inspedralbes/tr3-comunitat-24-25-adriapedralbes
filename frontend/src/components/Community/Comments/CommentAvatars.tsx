@@ -40,6 +40,7 @@ export const CommentAvatars: React.FC<CommentAvatarsProps> = ({
                                 width={24}
                                 height={24}
                                 className="w-full h-full object-cover"
+                                unoptimized={commenter.avatarUrl.includes('127.0.0.1') || commenter.avatarUrl.includes('localhost')}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-zinc-400">

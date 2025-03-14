@@ -92,11 +92,29 @@ export const api = {
   },
 
   upload: async (endpoint: string, formData: FormData) => {
+    // Obtenemos solo los headers de autenticación y aceptación sin Content-Type
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    
+    // Añadir token de autenticación
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    
+    // Hacer la solicitud
     const response = await fetch(`${getApiUrl()}/${endpoint}`, {
       method: 'POST',
-      headers: getHeaders(false), // No incluir Content-Type para que el navegador maneje el boundary
+      headers, // No incluir Content-Type para que el navegador maneje el boundary
       body: formData,
     });
+    
+    // Para depurar
+    console.log('Upload response status:', response.status);
+    
     return handleResponse(response);
   },
 };

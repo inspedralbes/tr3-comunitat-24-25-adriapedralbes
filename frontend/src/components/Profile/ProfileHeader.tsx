@@ -24,6 +24,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
                 width={96}
                 height={96}
                 className="w-full h-full object-cover"
+                unoptimized={userProfile.avatar_url.includes('127.0.0.1') || userProfile.avatar_url.includes('localhost')}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-zinc-300">

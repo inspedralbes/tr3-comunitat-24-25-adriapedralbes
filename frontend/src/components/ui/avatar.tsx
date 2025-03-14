@@ -22,14 +22,24 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-))
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { unoptimized?: boolean }
+>(({ className, unoptimized, ...props }, ref) => {
+  // Check if the source includes localhost or 127.0.0.1 to disable optimization
+  const src = props.src as string;
+  const isLocalBackendUrl = src && (src.includes('127.0.0.1') || src.includes('localhost'));
+  
+  // Use unoptimized if explicitly passed, or if it's a local backend URL
+  const shouldUnoptimize = unoptimized || isLocalBackendUrl;
+  
+  return (
+    <AvatarPrimitive.Image
+      ref={ref}
+      className={cn("aspect-square h-full w-full", className)}
+      {...props}
+      unoptimized={shouldUnoptimize}
+    />
+  )
+})
 AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
 const AvatarFallback = React.forwardRef<

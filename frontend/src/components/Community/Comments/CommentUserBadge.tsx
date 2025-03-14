@@ -26,6 +26,7 @@ export const CommentUserBadge: React.FC<CommentUserBadgeProps> = ({
                             width={32}
                             height={32}
                             className="w-full h-full object-cover"
+                            unoptimized={avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost')}
                         />
                     ) : (
                         <User className="text-zinc-400" size={16} />

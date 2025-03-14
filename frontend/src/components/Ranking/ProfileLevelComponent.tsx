@@ -26,7 +26,8 @@ export const ProfileLevelComponent: React.FC<ProfileLevelComponentProps> = ({
                             alt={username} 
                             width={128} 
                             height={128} 
-                            className="w-full h-full object-cover" 
+                            className="w-full h-full object-cover"
+                            unoptimized={avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost')}
                         />
                     </div>
                     <div className="absolute -bottom-2 right-0 w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-xl font-bold text-white border-4 border-[#1F1F1E]">

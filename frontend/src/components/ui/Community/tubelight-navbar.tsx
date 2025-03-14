@@ -207,6 +207,7 @@ export function NavBar({ items, className }: NavBarProps) {
                   width={40}
                   height={40}
                   className="w-full h-full object-cover"
+                  unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
                 />
               ) : (
                 <User className="text-white" size={20} />

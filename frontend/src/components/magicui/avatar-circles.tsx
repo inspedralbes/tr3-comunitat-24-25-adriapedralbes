@@ -37,6 +37,7 @@ export const AvatarCircles = ({
             width={40}
             height={40}
             className="h-10 w-10 rounded-full border-2 border-white dark:border-gray-800 object-cover"
+            unoptimized={url.imageUrl.includes('127.0.0.1') || url.imageUrl.includes('localhost')}
           />
         </a>
       ))}

@@ -246,6 +246,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                         width={32} 
                                         height={32} 
                                         className="w-full h-full object-cover"
+                                        unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
                                     />
                                 ) : (
                                     <User className="text-zinc-300" size={18} />
@@ -277,13 +278,14 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                             <div className="relative flex-shrink-0 self-start">
                                 <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
                                     {user?.avatar_url ? (
-                                        <Image 
-                                            src={user.avatar_url} 
-                                            alt={user.username || 'User'} 
-                                            width={32} 
-                                            height={32} 
-                                            className="w-full h-full object-cover"
-                                        />
+                                    <Image 
+                                    src={user.avatar_url} 
+                                    alt={user.username || 'User'} 
+                                    width={32} 
+                                    height={32} 
+                                    className="w-full h-full object-cover"
+                                        unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
+                                    />
                                     ) : (
                                         <User className="text-zinc-300" size={18} />
                                     )}

@@ -338,11 +338,11 @@ class UserMeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
     def patch(self, request):
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        serializer = UserSerializer(request.user, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -355,7 +355,7 @@ class UserMeView(APIView):
             return Response({"error": "No se ha proporcionado una imagen"}, status=status.HTTP_400_BAD_REQUEST)
         
         # Eliminar avatar anterior si existe
-        if request.user.avatar_url and hasattr(request.user.avatar_url, 'path') and os.path.exists(request.user.avatar_url.path):
+        if request.user.avatar_url and hasattr(request.user.avatar_url, 'path') and os.path.isfile(request.user.avatar_url.path):
             try:
                 os.remove(request.user.avatar_url.path)
             except Exception as e:
@@ -365,11 +365,9 @@ class UserMeView(APIView):
         request.user.avatar_url = request.FILES['avatar_url']
         request.user.save()
         
-        # Generar la URL completa para el avatar
-        if request.user.avatar_url:
-            request.user.avatar_url.url = request.build_absolute_uri(request.user.avatar_url.url)
+        # No intentamos modificar la URL directamente, Django la maneja automáticamente
         
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
 

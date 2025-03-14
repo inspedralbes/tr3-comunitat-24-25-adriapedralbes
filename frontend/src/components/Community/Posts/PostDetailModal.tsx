@@ -298,6 +298,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     width={32}
                                     height={32}
                                     className="w-full h-full object-cover"
+                                    unoptimized={comment.author.avatarUrl.includes('127.0.0.1') || comment.author.avatarUrl.includes('localhost')}
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-zinc-400">
@@ -461,6 +462,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                 width={600}
                                 height={400}
                                 className="rounded-lg max-h-72 object-cover border border-white/10"
+                                unoptimized={post.imageUrl.includes('127.0.0.1') || post.imageUrl.includes('localhost')}
                             />
                         </div>
                     )}
@@ -511,6 +513,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                         width={32}
                                         height={32}
                                         className="w-full h-full object-cover"
+                                        unoptimized={true}
                                     />
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">

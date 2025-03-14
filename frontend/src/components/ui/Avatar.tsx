@@ -31,7 +31,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         width={size}
         height={size}
         className="w-full h-full object-cover"
-        unoptimized={process.env.NODE_ENV === 'development' && isExternalUrl}
+        unoptimized={isExternalUrl || avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost')}
       />
     </div>
   );
