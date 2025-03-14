@@ -13,7 +13,7 @@ interface Category {
 }
 
 interface WritePostComponentProps {
-    onSubmit?: (content: string, categoryId?: number) => Promise<boolean>;
+    onSubmit?: (content: string, title?: string, categoryId?: number) => Promise<boolean>;
     categories?: Category[];
 }
 
@@ -168,7 +168,9 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
         try {
             if (onSubmit) {
-                const success = await onSubmit(postContent, selectedCategory);
+                // Si hay título, enviarlo; de lo contrario, usar el contenido como título también
+                const title = postTitle.trim() || postContent.split('\n')[0]; // Usar la primera línea como título si no hay título
+                const success = await onSubmit(postContent, title, selectedCategory);
                 
                 if (success) {
                     // Limpiar el formulario y cerrar

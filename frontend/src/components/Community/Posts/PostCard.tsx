@@ -16,6 +16,7 @@ interface PostCardProps {
     timestamp: string;
     category?: string;
     categoryColor?: string;
+    title?: string;
     content: string;
     likes: number;
     comments: number;
@@ -45,6 +46,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     timestamp,
     category,
     categoryColor,
+    title,
     content,
     likes,
     comments,
@@ -54,9 +56,10 @@ export const PostCard: React.FC<PostCardProps> = ({
 }) => {
     // Verificar si el contenido comienza con "Re:" para formato especial
     const isReply = content.startsWith('Re:');
+    // Si no se proporciona un título explícito, extraerlo de la primera línea del contenido
     const contentLines = content.split('\n');
-    const title = contentLines[0];
-    const body = contentLines.slice(1).join('\n');
+    const displayTitle = title || contentLines[0];
+    const body = title ? content : contentLines.slice(1).join('\n');
 
     // Obtener datos de comentarios para este post
     const postComments = commentsByPostId[id] || [];
@@ -134,13 +137,15 @@ export const PostCard: React.FC<PostCardProps> = ({
             />
 
             {/* Título del post */}
-            {isReply ? (
-                <div className="mt-2 mb-1 font-medium flex items-center">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                    <h3 className="text-white">{title}</h3>
-                </div>
-            ) : (
-                <h3 className="mt-3 mb-2 font-medium text-white">{title}</h3>
+            {displayTitle && (
+                isReply ? (
+                    <div className="mt-2 mb-1 font-medium flex items-center">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                        <h3 className="text-white">{displayTitle}</h3>
+                    </div>
+                ) : (
+                    <h3 className="mt-3 mb-2 font-medium text-white">{displayTitle}</h3>
+                )
             )}
 
             {/* Contenido del post */}

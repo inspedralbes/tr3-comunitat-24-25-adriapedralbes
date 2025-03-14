@@ -121,6 +121,7 @@ export const PostFeed: React.FC<PostFeedProps> = ({ posts, filter = 'all', onPos
                         timestamp={timestamp}
                         category={categoryName}
                         categoryColor={categoryColor}
+                        title={post.title}
                         content={post.content}
                         likes={post.likes || 0}
                         comments={post.comments_count || 0}

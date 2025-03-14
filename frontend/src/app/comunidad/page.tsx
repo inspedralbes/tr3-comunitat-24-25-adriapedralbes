@@ -124,7 +124,7 @@ export default function CommunityPage() {
   };
 
   // Función para crear un nuevo post
-  const handleCreatePost = async (content: string, categoryId?: number) => {
+  const handleCreatePost = async (content: string, title?: string, categoryId?: number) => {
     // Verificar autenticación antes de crear un post
     if (!authService.isAuthenticated()) {
       setIsAuthModalOpen(true);
@@ -133,6 +133,7 @@ export default function CommunityPage() {
     
     try {
       await communityService.createPost({
+        title,
         content,
         category_id: categoryId
       });

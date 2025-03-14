@@ -77,6 +77,7 @@ class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='posts')
+    title = models.CharField(max_length=255, blank=True, null=True)
     content = models.TextField()
     image = models.ImageField(upload_to='post_images/', blank=True, null=True)
     likes = models.PositiveIntegerField(default=0)

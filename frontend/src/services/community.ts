@@ -2,6 +2,7 @@ import { api } from './api';
 
 // Tipos para el servicio
 export interface CreatePostData {
+  title?: string;
   content: string;
   category_id?: number;
   image?: File;
@@ -34,6 +35,9 @@ export const communityService = {
     // Si hay imagen, usamos FormData
     if (data.image) {
       const formData = new FormData();
+      if (data.title) {
+        formData.append('title', data.title);
+      }
       formData.append('content', data.content);
       if (data.category_id) {
         formData.append('category_id', data.category_id.toString());
@@ -44,6 +48,7 @@ export const communityService = {
     
     // Si no hay imagen, usamos JSON normal
     return api.post('posts/', {
+      title: data.title,
       content: data.content,
       category_id: data.category_id
     });

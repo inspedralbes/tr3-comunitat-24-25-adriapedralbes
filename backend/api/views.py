@@ -408,6 +408,7 @@ class PostViewSet(viewsets.ModelViewSet):
         return PostSerializer
 
     def perform_create(self, serializer):
+        # Guardar el autor como el usuario autenticado
         serializer.save(author=self.request.user)
 
     def get_queryset(self):
