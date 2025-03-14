@@ -378,6 +378,15 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const formatContent = () => {
         if (!post) return { title: '', body: '' };
 
+        // Si el post tiene título explícito, usarlo
+        if (post.title) {
+            return { 
+                title: post.title, 
+                body: post.content 
+            };
+        }
+
+        // Si no tiene título, extraerlo de la primera línea del contenido (compatibilidad con posts antiguos)
         const contentLines = post.content.split('\n');
         const title = contentLines[0];
         const body = contentLines.slice(1).join('\n');
