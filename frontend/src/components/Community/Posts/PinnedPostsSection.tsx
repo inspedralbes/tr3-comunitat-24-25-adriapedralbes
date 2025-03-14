@@ -2,6 +2,7 @@ import { Trophy } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { Post } from '@/types/Post';
+import { Comment } from '@/types/Comment';
 
 import { PostCard } from './PostCard';
 
@@ -9,9 +10,17 @@ interface PinnedPostsSectionProps {
     pinnedPosts: Post[];
     onPostClick: (postId: string) => void;
     isLoading?: boolean;
+    postComments?: Record<string, Comment[]>;
+    viewedPosts?: Set<string>;
 }
 
-export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ pinnedPosts, onPostClick, isLoading = false }) => {
+export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ 
+    pinnedPosts, 
+    onPostClick, 
+    isLoading = false, 
+    postComments = {},
+    viewedPosts = new Set()
+}) => {
     const [isVisible, setIsVisible] = useState(true);
 
     if (!isVisible || (pinnedPosts.length === 0 && !isLoading)) {
@@ -86,12 +95,15 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ pinnedPo
                                 timestamp={timestamp}
                                 category={categoryName}
                                 categoryColor={categoryColor}
+                                title={post.title}
                                 content={post.content}
                                 likes={post.likes || 0}
                                 comments={post.comments_count || 0}
                                 isPinned={true}
                                 imageUrl={imageUrl}
                                 onPostClick={onPostClick}
+                                postComments={postComments[post.id] || []}
+                                isViewed={viewedPosts.has(post.id)}
                             />
                         );
                     })

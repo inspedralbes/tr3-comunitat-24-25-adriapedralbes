@@ -5,7 +5,7 @@ import { communityService } from '@/services/community';
 
 import { CommentAvatars } from '@/components/Community/Comments/CommentAvatars';
 import { UserBadge } from '@/components/Community/UserBadge';
-import { commentsByPostId } from '@/mockData/mockComments';
+import { Comment } from '@/types/Comment';
 
 interface PostCardProps {
     id: string;
@@ -25,6 +25,8 @@ interface PostCardProps {
     imageUrl?: string;
     isLiked?: boolean;
     onPostClick: (id: string) => void;
+    postComments?: Comment[];
+    isViewed?: boolean;
 }
 
 interface Commenter {
@@ -55,41 +57,40 @@ export const PostCard: React.FC<PostCardProps> = ({
     isPinned = false,
     imageUrl,
     isLiked = false,
-    onPostClick
+    onPostClick,
+    postComments = [],
+    isViewed = false
 }) => {
     // Estado local para controlar el like
     const [isPostLiked, setIsPostLiked] = useState(isLiked);
     const [likesCount, setLikesCount] = useState(likes);
 
-    // Verificar si el contenido comienza con "Re:" para formato especial
-    const isReply = content.startsWith('Re:');
     // Si no se proporciona un título explícito, extraerlo de la primera línea del contenido
     const contentLines = content.split('\n');
     const displayTitle = title || contentLines[0];
     const body = title ? content : contentLines.slice(1).join('\n');
 
-    // Obtener datos de comentarios para este post
-    const postComments = commentsByPostId[id] || [];
-
-    // Extraer los comentadores únicos
+    // Extraer los comentadores únicos de los comentarios reales
     const uniqueCommenters: Commenter[] = [];
     const commenterSet = new Set<string>();
 
     // Función recursiva para extraer comentadores de comentarios y respuestas
-    const extractCommenters = (comments: CommentWithReplies[]) => {
+    const extractCommenters = (comments: Comment[]) => {
         comments.forEach(comment => {
-            const username = comment.author.username;
-            if (!commenterSet.has(username)) {
-                commenterSet.add(username);
-                uniqueCommenters.push({
-                    username: username,
-                    avatarUrl: comment.author.avatarUrl
-                });
-            }
+            if (comment.author) {
+                const username = comment.author.username;
+                if (!commenterSet.has(username)) {
+                    commenterSet.add(username);
+                    uniqueCommenters.push({
+                        username: username,
+                        avatarUrl: comment.author.avatarUrl || comment.author.avatar_url
+                    });
+                }
 
-            // Procesar respuestas si existen
-            if (comment.replies && comment.replies.length > 0) {
-                extractCommenters(comment.replies);
+                // Procesar respuestas si existen
+                if (comment.replies && comment.replies.length > 0) {
+                    extractCommenters(comment.replies as Comment[]);
+                }
             }
         });
     };
@@ -98,18 +99,18 @@ export const PostCard: React.FC<PostCardProps> = ({
     extractCommenters(postComments);
 
     // Obtener la timestamp del comentario más reciente
-    let lastCommentTime = null;
+    let lastCommentTime = '';
     if (postComments.length > 0) {
         // Buscar el comentario más reciente (asumiendo que están ordenados por tiempo)
-        lastCommentTime = postComments[postComments.length - 1].timestamp;
+        lastCommentTime = postComments[postComments.length - 1]?.timestamp || ''; 
 
         // También revisar en las respuestas
         postComments.forEach(comment => {
             if (comment.replies && comment.replies.length > 0) {
                 const lastReply = comment.replies[comment.replies.length - 1];
-                // Aquí se podría implementar una lógica para comparar fechas
-                // Por ahora, simplemente usamos el último
-                lastCommentTime = lastReply.timestamp;
+                if (lastReply?.timestamp) {
+                    lastCommentTime = lastReply.timestamp;
+                }
             }
         });
     }
@@ -145,14 +146,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
             {/* Título del post */}
             {displayTitle && (
-                isReply ? (
-                    <div className="mt-2 mb-1 font-medium flex items-center">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                        <h3 className="text-white">{displayTitle}</h3>
-                    </div>
-                ) : (
-                    <h3 className="mt-3 mb-2 font-medium text-white">{displayTitle}</h3>
-                )
+                <h3 className="mt-3 mb-2 font-medium text-white">{displayTitle}</h3>
             )}
 
             {/* Contenido del post */}
@@ -214,10 +208,16 @@ export const PostCard: React.FC<PostCardProps> = ({
 
                 {/* Avatares de comentadores */}
                 {uniqueCommenters.length > 0 && (
-                    <CommentAvatars
-                        commenters={uniqueCommenters}
-                        lastCommentTime={lastCommentTime}
-                    />
+                    <div className="flex items-center">
+                        <CommentAvatars
+                            commenters={uniqueCommenters}
+                        />
+                        {isViewed && lastCommentTime && lastCommentTime.trim() !== '' && (
+                            <span className="text-xs text-zinc-400 ml-2">
+                                Last comment {lastCommentTime}
+                            </span>
+                        )}
+                    </div>
                 )}
             </div>
         </div>

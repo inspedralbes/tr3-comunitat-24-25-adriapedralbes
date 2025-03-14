@@ -15,6 +15,7 @@ import MainLayout from '@/components/layouts/MainLayout';
 import { authService } from '@/services/auth';
 import { communityService } from '@/services/community';
 import { Post } from "@/types/Post";
+import { Comment } from "@/types/Comment";
 
 export default function CommunityPage() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -26,6 +27,8 @@ export default function CommunityPage() {
   const [categories, setCategories] = useState([]);
   const [pinnedPosts, setPinnedPosts] = useState<Post[]>([]);
   const [regularPosts, setRegularPosts] = useState<Post[]>([]);
+  const [postComments, setPostComments] = useState<Record<string, Comment[]>>({});
+  const [viewedPosts, setViewedPosts] = useState<Set<string>>(new Set());
   const [leaderboardUsers, setLeaderboardUsers] = useState([]);
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -35,6 +38,64 @@ export default function CommunityPage() {
   useEffect(() => {
     setIsAuthenticated(authService.isAuthenticated());
   }, [isAuthModalOpen]);
+
+  // Cargar posts vistos desde localStorage
+  useEffect(() => {
+    const loadViewedPosts = () => {
+      try {
+        // Solo ejecutar en el cliente
+        if (typeof window !== 'undefined') {
+          const storedViewedPosts = localStorage.getItem('viewedPosts');
+          if (storedViewedPosts) {
+            const viewedPostsArray = JSON.parse(storedViewedPosts);
+            setViewedPosts(new Set(viewedPostsArray));
+          }
+        }
+      } catch (error) {
+        console.error('Error al cargar posts vistos:', error);
+      }
+    };
+    
+    loadViewedPosts();
+  }, []);
+
+  // Función para cargar los comentarios de un post
+  const fetchPostComments = async (postId: string) => {
+    try {
+      const commentsData = await communityService.getPostComments(postId);
+      const commentsArray = Array.isArray(commentsData)
+        ? commentsData
+        : (commentsData.results || []);
+
+      // Actualizar el estado de comentarios para este post
+      setPostComments(prev => ({
+        ...prev,
+        [postId]: commentsArray
+      }));
+      
+      return commentsArray;
+    } catch (error) {
+      console.error(`Error al cargar comentarios para el post ${postId}:`, error);
+      return [];
+    }
+  };
+
+  // Función para cargar los comentarios de varios posts
+  const fetchCommentsForPosts = async (posts: Post[]) => {
+    // Limitar a 10 posts para evitar demasiadas peticiones simultáneas
+    const postsToFetch = posts.slice(0, 10);
+    
+    try {
+      // Crear un array de promesas para las peticiones
+      const commentPromises = postsToFetch.map(post => fetchPostComments(post.id));
+      
+      // Esperar a que todas las promesas se resuelvan
+      await Promise.all(commentPromises);
+    } catch (error) {
+      console.error('Error al cargar comentarios de los posts:', error);
+    }
+  };
+
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -61,14 +122,20 @@ export default function CommunityPage() {
         
         // Filtrar los posts regulares para eliminar los que ya están fijados
         // Solo si no estamos en el tipo de ordenamiento 'pinned'
+        let filteredRegularPosts;
         if (activeSortType !== 'pinned') {
           const pinnedIds = pinnedPostsArray.map(post => post.id);
-          const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+          filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
           setRegularPosts(filteredRegularPosts);
         } else {
           // Si el tipo es 'pinned', mostrar solo los posts fijados
-          setRegularPosts(allPostsArray);
+          filteredRegularPosts = allPostsArray;
+          setRegularPosts(filteredRegularPosts);
         }
+        
+        // Cargar comentarios para los posts
+        const allPosts = [...pinnedPostsArray, ...filteredRegularPosts];
+        await fetchCommentsForPosts(allPosts);
         
         // Obtener leaderboard
         const leaderboardData = await communityService.getLeaderboard();
@@ -96,14 +163,19 @@ export default function CommunityPage() {
         const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
         
         // Filtrar los posts fijados si no estamos en vista de 'pinned'
+        let filteredRegularPosts;
         if (activeSortType !== 'pinned') {
           const pinnedIds = pinnedPosts.map(post => post.id);
-          const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
-          setRegularPosts(filteredRegularPosts);
+          filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
         } else {
           // Si el tipo es 'pinned', mostrar solo posts fijados
-          setRegularPosts(allPostsArray);
+          filteredRegularPosts = allPostsArray;
         }
+
+        // Cargar comentarios para los posts
+        await fetchCommentsForPosts(filteredRegularPosts);
+        
+        setRegularPosts(filteredRegularPosts);
         return;
       }
       
@@ -118,6 +190,9 @@ export default function CommunityPage() {
           const pinnedIds = pinnedPosts.map(post => post.id);
           filteredPosts = categoryPostsArray.filter(post => !pinnedIds.includes(post.id));
         }
+        
+        // Cargar comentarios para los posts filtrados
+        await fetchCommentsForPosts(filteredPosts);
         
         // Usar un timeout para suavizar la transición
         setTimeout(() => {
@@ -143,6 +218,16 @@ export default function CommunityPage() {
 
   const handlePostClick = async (postId: string) => {
     try {
+      // Agregar el post a la lista de posts vistos
+      const updatedViewedPosts = new Set(viewedPosts);
+      updatedViewedPosts.add(postId);
+      setViewedPosts(updatedViewedPosts);
+      
+      // Guardar en localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('viewedPosts', JSON.stringify([...updatedViewedPosts]));
+      }
+
       // Obtener los detalles del post directamente de la API
       const postData = await communityService.getPostById(postId);
       
@@ -307,6 +392,8 @@ export default function CommunityPage() {
               pinnedPosts={pinnedPosts} 
               onPostClick={handlePostClick} 
               isLoading={isLoadingInitial}
+              postComments={postComments}
+              viewedPosts={viewedPosts}
             />
 
             {/* Feed de publicaciones */}
@@ -315,6 +402,8 @@ export default function CommunityPage() {
               filter={activeCategory} 
               onPostClick={handlePostClick} 
               isLoading={isLoadingInitial || isLoadingPosts}
+              postComments={postComments}
+              viewedPosts={viewedPosts}
             />
           </div>
 

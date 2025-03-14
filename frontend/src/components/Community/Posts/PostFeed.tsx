@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { PostSkeleton } from '@/components/ui/PostSkeleton';
 import { Post } from '@/types/Post';
+import { Comment } from '@/types/Comment';
 
 import { PostCard } from './PostCard';
 
@@ -10,9 +11,18 @@ interface PostFeedProps {
     filter?: string;
     onPostClick: (postId: string) => void;
     isLoading?: boolean;
+    postComments?: Record<string, Comment[]>;
+    viewedPosts?: Set<string>;
 }
 
-export const PostFeed: React.FC<PostFeedProps> = ({ posts, filter = 'all', onPostClick, isLoading = false }) => {
+export const PostFeed: React.FC<PostFeedProps> = ({ 
+    posts, 
+    filter = 'all', 
+    onPostClick, 
+    isLoading = false, 
+    postComments = {},
+    viewedPosts = new Set()
+}) => {
     // Estado para manejar la visibilidad y transición
     const [visiblePosts, setVisiblePosts] = useState<Post[]>([]);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -134,6 +144,8 @@ export const PostFeed: React.FC<PostFeedProps> = ({ posts, filter = 'all', onPos
                         imageUrl={imageUrl}
                         isLiked={post.is_liked || false}
                         onPostClick={onPostClick}
+                        postComments={postComments[post.id] || []}
+                        isViewed={viewedPosts.has(post.id)}
                     />
                 );
             })}
