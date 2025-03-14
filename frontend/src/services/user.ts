@@ -39,9 +39,24 @@ export const userService = {
     return api.get(`users/${id}/`);
   },
   
-  // Obtener el leaderboard (usuarios principales)
-  getLeaderboard: async () => {
-    return api.get('leaderboard/');
+  // Obtener el leaderboard general (usuarios principales)
+  getLeaderboard: async (period: 'all' | 'month' | 'week' = 'all') => {
+    return api.get(`leaderboard/?period=${period}`);
+  },
+  
+  // Obtener el leaderboard de todos los tiempos
+  getAllTimeLeaderboard: async () => {
+    return api.get('leaderboard/?period=all');
+  },
+  
+  // Obtener el leaderboard del último mes
+  getMonthlyLeaderboard: async () => {
+    return api.get('leaderboard/?period=month');
+  },
+  
+  // Obtener el leaderboard de la última semana
+  getWeeklyLeaderboard: async () => {
+    return api.get('leaderboard/?period=week');
   },
   
   // Obtener los posts de un usuario

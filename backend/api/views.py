@@ -471,8 +471,23 @@ class LeaderboardView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        # Obtener los 10 usuarios con más puntos
-        return User.objects.all().order_by('-points')[:10]
+        # Obtener el período del leaderboard (all, month, week) desde la URL
+        period = self.request.query_params.get('period', 'all')
+        
+        # Obtener los 10 usuarios con más puntos según el período
+        queryset = User.objects.all()
+        
+        if period == 'week':
+            # Aquí se implementaría la lógica para filtrar por actividad de la última semana
+            # Por ahora, simplemente obtenemos todos ordenados por puntos
+            pass
+        elif period == 'month':
+            # Aquí se implementaría la lógica para filtrar por actividad del último mes
+            # Por ahora, simplemente obtenemos todos ordenados por puntos
+            pass
+        
+        # Ordenamos por puntos (descendente) y tomamos los primeros 10
+        return queryset.order_by('-points')[:10]
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -482,6 +497,10 @@ class LeaderboardView(generics.ListAPIView):
         leaderboard_data = serializer.data
         for i, user in enumerate(leaderboard_data, 1):
             user['position'] = i
+            
+            # Asegurar que 'points' existe en la respuesta
+            if 'points' not in user:
+                user['points'] = User.objects.get(id=user['id']).points
         
         return Response(leaderboard_data)
 

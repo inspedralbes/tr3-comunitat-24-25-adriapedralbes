@@ -65,7 +65,7 @@ class UserShortSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'level', 'avatar_url', 'date_joined', 'is_superuser', 'is_staff', 'is_admin']
+        fields = ['id', 'username', 'level', 'points', 'avatar_url', 'date_joined', 'is_superuser', 'is_staff', 'is_admin']
     
     def get_avatar_url(self, obj):
         if obj.avatar_url and hasattr(obj.avatar_url, 'url'):

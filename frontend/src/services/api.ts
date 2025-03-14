@@ -112,9 +112,6 @@ export const api = {
       body: formData,
     });
     
-    // Para depurar
-    console.log('Upload response status:', response.status);
-    
     return handleResponse(response);
   },
 };
