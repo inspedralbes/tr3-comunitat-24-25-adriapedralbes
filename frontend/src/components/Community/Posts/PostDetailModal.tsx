@@ -17,12 +17,13 @@ interface PostDetailModalProps {
 
 // Interfaz extendida para manejar respuestas anidadas con niveles
 interface ReplyToInfo {
-    id: string;
-    username: string;
+    id: string;               // ID del comentario al que respondemos
+    username: string;         // Nombre del usuario al que respondemos
     isNested?: boolean;
     parentId?: string;
     replyLevel: number;
     parentCommentId?: string; // ID del comentario principal (nivel 0)
+    userId?: string;          // ID del usuario al que respondemos (para menciones)
 }
 
 // Extendemos Comment para incluir el nivel de respuesta y la estructura anidada
@@ -30,6 +31,8 @@ interface EnhancedComment extends Comment {
     replyLevel?: number;
     parentId?: string; // ID del comentario al que responde directamente
     parentCommentId?: string; // ID del comentario raíz/principal
+    isLiked?: boolean; // Estado local para el like
+    likesCount?: number; // Estado local para el contador de likes
 }
 
 export const PostDetailModal: React.FC<PostDetailModalProps> = ({
@@ -41,7 +44,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const [replyToComment, setReplyToComment] = useState<ReplyToInfo | null>(null);
     const [lastRespondedComment, setLastRespondedComment] = useState<ReplyToInfo | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
-    const [liked, setLiked] = useState(false);
+    const [liked, setLiked] = useState(post?.is_liked || false);
     const [likesCount, setLikesCount] = useState(post?.likes || 0);
     const [comments, setComments] = useState<EnhancedComment[]>([]);
     const [currentUser, setCurrentUser] = useState<any>(null);
@@ -60,7 +63,13 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         };
 
         fetchCurrentUser();
-    }, [isOpen]);
+        
+        // Update liked state when post changes
+        if (post) {
+            setLiked(post.is_liked || false);
+            setLikesCount(post.likes || 0);
+        }
+    }, [isOpen, post]);
 
     // Función para confirmar salida si hay comentario pendiente (memoizada para evitar recreación)
     const confirmDiscardComment = useCallback((): boolean => {
@@ -113,8 +122,17 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
     // Handle like action
     const handleLike = () => {
-        setLiked(!liked);
-        setLikesCount(prevCount => liked ? prevCount - 1 : prevCount + 1);
+        // Llamar a la API para dar/quitar like
+        if (post && post.id) {
+            communityService.likePost(post.id)
+                .then(response => {
+                    setLiked(response.status === 'liked');
+                    setLikesCount(response.likes);
+                })
+                .catch(error => {
+                    console.error('Error al dar/quitar like:', error);
+                });
+        }
     };
 
     // Función para actualizar la caché plana de comentarios
@@ -168,16 +186,20 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
                         // Asegurar que la URL del avatar está completa
                         const authorAvatarUrl = comment.author.avatar_url || comment.author.avatarUrl;
-                            
+                        
                         return {
-                            ...comment,
-                            content: content,
-                            replyLevel: 0,
-                            author: {
-                                ...comment.author,
-                                // Normalizar avatar_url a avatarUrl
-                                avatarUrl: authorAvatarUrl
-                            },
+                        ...comment,
+                        content: content,
+                        replyLevel: 0,
+                        isLiked: comment.is_liked || false,
+                        likesCount: comment.likes || 0,
+                        author: {
+                        ...comment.author,
+                        // Asegurar que tenemos el ID del autor
+                        id: comment.author.id || comment.author_id,
+                            // Normalizar avatar_url a avatarUrl
+                                        avatarUrl: authorAvatarUrl
+                                    },
                             replies: comment.replies?.map(reply => {
                                 // Asegurarnos de que el contenido de la respuesta sea string
                                 const replyContent = typeof reply.content === 'string'
@@ -193,8 +215,12 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     replyLevel: 1,  // Nivel 1 para las respuestas directas
                                     parentId: comment.id, // Guardar referencia al padre
                                     parentCommentId: comment.id, // Principal es igual al padre para nivel 1
+                                    isLiked: reply.is_liked || false,
+                                    likesCount: reply.likes || 0,
                                     author: {
                                         ...reply.author,
+                                        // Asegurar que tenemos el ID del autor
+                                        id: reply.author.id || reply.author_id,
                                         // Normalizar avatar_url a avatarUrl para las respuestas
                                         avatarUrl: replyAuthorAvatarUrl
                                     }
@@ -221,7 +247,8 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         isNested: boolean = false,
         parentId?: string,
         replyLevel: number = 0,
-        parentCommentId?: string
+        parentCommentId?: string,
+        userId?: string
     ) => {
         // Si es una respuesta a una respuesta, necesitamos el ID del comentario principal
         const rootCommentId = parentCommentId || (isNested ? parentId : commentId);
@@ -232,7 +259,8 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
             isNested,
             parentId,
             replyLevel: replyLevel + 1,
-            parentCommentId: rootCommentId
+            parentCommentId: rootCommentId,
+            userId: userId // ID del usuario para la mención
         });
 
         // Enfocar el campo de comentario
@@ -282,8 +310,10 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 post_id: post?.id || '',
                 content: comment,
                 parent_id: replyToComment?.id,
-                mentioned_user_id: replyToComment ? undefined : undefined // Aquí podríamos añadir menciones
+                mentioned_user_id: replyToComment?.userId || undefined // ID del usuario mencionado cuando respondemos
             };
+            
+            console.log('Enviando comentario con datos:', commentData);
 
             // Enviar el comentario a la API
             const response = await communityService.createComment(commentData);
@@ -296,6 +326,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 ...response,
                 id: response.id,
                 author: {
+                    id: userProfile.id,      // ID del usuario para menciones futuras
                     username: userProfile.username,
                     level: userProfile.level,
                     avatarUrl: userProfile.avatar_url
@@ -303,6 +334,9 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 content: comment,
                 timestamp: 'ahora', // La API deberió devolver esto, pero por si acaso
                 likes: 0,
+                is_liked: false, // Inicialmente no está likeado por el usuario
+                isLiked: false,   // Estado local para el like
+                likesCount: 0,    // Estado local para contador de likes
                 mentionedUser: replyToComment?.username,
                 replyLevel: replyToComment ? replyToComment.replyLevel : 0
             };
@@ -381,6 +415,27 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         isNested?: boolean,
         nestingLevel?: number
     }) => {
+        // Estado local para el like del comentario
+        const [isCommentLiked, setIsCommentLiked] = useState(comment.is_liked || false);
+        const [commentLikesCount, setCommentLikesCount] = useState(comment.likes || 0);
+        
+        // Manejar like de comentario
+        const handleCommentLike = (e: React.MouseEvent) => {
+            e.stopPropagation(); // Evitar propagación del evento
+            
+            // Llamar a la API para dar/quitar like al comentario
+            communityService.likeComment(comment.id)
+                .then(response => {
+                    setIsCommentLiked(response.status === 'liked');
+                    setCommentLikesCount(response.likes);
+                    // Actualizar también el objeto del comentario para mantener sincronizados los estados
+                    comment.isLiked = response.status === 'liked';
+                    comment.likesCount = response.likes;
+                })
+                .catch(error => {
+                    console.error('Error al dar/quitar like al comentario:', error);
+                });
+        };
         return (
             <div className={`${nestingLevel > 0 ? `mb-3` : 'mb-4'}`}>
                 <div className="flex gap-2">
@@ -431,12 +486,14 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                         <div className="flex items-center gap-4 ml-1">
                             <div className="flex items-center gap-1">
                                 <button
-                                    className="p-1 rounded-full text-zinc-400 hover:text-zinc-300"
+                                    className={`p-1 rounded-full ${isCommentLiked ? 'text-blue-400' : 'text-zinc-400 hover:text-zinc-300'}`}
+                                    onClick={handleCommentLike}
+                                    aria-label={isCommentLiked ? 'Quitar like' : 'Dar like'}
                                 >
                                     <ThumbsUp size={14} />
                                 </button>
-                                {comment.likes > 0 && (
-                                    <span className="text-xs text-zinc-400">{comment.likes}</span>
+                                {commentLikesCount > 0 && (
+                                    <span className="text-xs text-zinc-400">{commentLikesCount}</span>
                                 )}
                             </div>
                             <button
@@ -447,7 +504,8 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     isNested,
                                     comment.parentId,
                                     nestingLevel,
-                                    comment.parentCommentId
+                                    comment.parentCommentId,
+                                    comment.author.id || '' // Pasamos el ID del autor para la mención
                                 )}
                             >
                                 <CornerUpRight size={14} />
@@ -660,7 +718,8 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                                 lastRespondedComment.isNested,
                                                 lastRespondedComment.parentId,
                                                 lastRespondedComment.replyLevel - 1,
-                                                lastRespondedComment.parentCommentId
+                                                lastRespondedComment.parentCommentId,
+                                                lastRespondedComment.userId // Pasamos el ID del usuario para la mención
                                             )}
                                             className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
                                         >

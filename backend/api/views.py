@@ -522,6 +522,12 @@ class PostViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(category__slug=category)
         return queryset
         
+    def get_serializer_context(self):
+        # Add the request to the serializer context
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+        
     @action(detail=True, methods=['get'])
     def comments(self, request, pk=None):
         """
@@ -533,7 +539,7 @@ class PostViewSet(viewsets.ModelViewSet):
         root_comments = Comment.objects.filter(post=post, parent=None).order_by('created_at')
         
         # Usar directamente el serializador, que ya maneja la anidación
-        # Pasar el contexto con request para construir URLs absolutas
+        # Pasar el contexto con request para construir URLs absolutas y verificar likes
         serializer = CommentSerializer(root_comments, many=True, context={
             'request': request,
             'depth': 0
@@ -560,6 +566,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_serializer_context(self):
+        # Add the request to the serializer context
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     def perform_create(self, serializer):
         post_id = self.request.data.get('post_id')

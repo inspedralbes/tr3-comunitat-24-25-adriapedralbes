@@ -1,6 +1,7 @@
 import { ThumbsUp, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
-import React from 'react';
+import React, { useState } from 'react';
+import { communityService } from '@/services/community';
 
 import { CommentAvatars } from '@/components/Community/Comments/CommentAvatars';
 import { UserBadge } from '@/components/Community/UserBadge';
@@ -22,6 +23,7 @@ interface PostCardProps {
     comments: number;
     isPinned?: boolean;
     imageUrl?: string;
+    isLiked?: boolean;
     onPostClick: (id: string) => void;
 }
 
@@ -52,8 +54,13 @@ export const PostCard: React.FC<PostCardProps> = ({
     comments,
     isPinned = false,
     imageUrl,
+    isLiked = false,
     onPostClick
 }) => {
+    // Estado local para controlar el like
+    const [isPostLiked, setIsPostLiked] = useState(isLiked);
+    const [likesCount, setLikesCount] = useState(likes);
+
     // Verificar si el contenido comienza con "Re:" para formato especial
     const isReply = content.startsWith('Re:');
     // Si no se proporciona un título explícito, extraerlo de la primera línea del contenido
@@ -173,15 +180,23 @@ export const PostCard: React.FC<PostCardProps> = ({
                 <div className="flex items-center gap-4 text-zinc-300">
                     <div className="flex items-center gap-1">
                         <button
-                            className="p-1 hover:bg-[#444442] rounded-full"
+                            className={`p-1 hover:bg-[#444442] rounded-full ${isPostLiked ? 'text-blue-400' : ''}`}
                             onClick={(e) => {
                                 e.stopPropagation(); // Evitar que se abra el modal al dar like
-                                // Aquí iría la lógica para dar like
+                                // Llamar a la API para dar/quitar like
+                                communityService.likePost(id)
+                                    .then(response => {
+                                        setIsPostLiked(response.status === 'liked');
+                                        setLikesCount(response.likes);
+                                    })
+                                    .catch(error => {
+                                        console.error('Error al dar/quitar like:', error);
+                                    });
                             }}
                         >
                             <ThumbsUp size={16} />
                         </button>
-                        <span className="text-sm">{likes}</span>
+                        <span className="text-sm">{likesCount}</span>
                     </div>
                     <div className="flex items-center gap-1">
                         <button

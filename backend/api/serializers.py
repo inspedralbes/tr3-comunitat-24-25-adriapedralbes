@@ -83,11 +83,12 @@ class CommentSerializer(serializers.ModelSerializer):
     mentioned_user = UserShortSerializer(read_only=True)
     post = serializers.SerializerMethodField()
     replies = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'content', 'likes', 'created_at', 'updated_at', 'mentioned_user', 'post', 'replies']
-        read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'likes']
+        fields = ['id', 'author', 'content', 'likes', 'created_at', 'updated_at', 'mentioned_user', 'post', 'replies', 'is_liked']
+        read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'likes', 'is_liked']
     
     def get_post(self, obj):
         return str(obj.post.id) if obj.post else None
@@ -106,12 +107,19 @@ class CommentSerializer(serializers.ModelSerializer):
         new_context = self.context.copy() if self.context else {}
         new_context['depth'] = depth + 1
         return CommentSerializer(replies, many=True, context=new_context).data
+        
+    def get_is_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return CommentLike.objects.filter(user=request.user, comment=obj).exists()
+        return False
 
 
 class PostSerializer(serializers.ModelSerializer):
     author = UserShortSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
     comments_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(),
         write_only=True,
@@ -122,11 +130,17 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id', 'author', 'category', 'title', 'content', 'image', 'likes', 'is_pinned', 
-                'created_at', 'updated_at', 'comments_count', 'category_id']
-        read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'likes', 'is_pinned']
+                'created_at', 'updated_at', 'comments_count', 'category_id', 'is_liked']
+        read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'likes', 'is_pinned', 'is_liked']
 
     def get_comments_count(self, obj):
         return obj.comments.count()
+        
+    def get_is_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return PostLike.objects.filter(user=request.user, post=obj).exists()
+        return False
 
 
 class PostDetailSerializer(PostSerializer):

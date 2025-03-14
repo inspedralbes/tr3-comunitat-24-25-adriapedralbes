@@ -132,6 +132,7 @@ export const PostFeed: React.FC<PostFeedProps> = ({ posts, filter = 'all', onPos
                         likes={post.likes || 0}
                         comments={post.comments_count || 0}
                         imageUrl={imageUrl}
+                        isLiked={post.is_liked || false}
                         onPostClick={onPostClick}
                     />
                 );

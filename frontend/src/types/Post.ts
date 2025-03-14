@@ -15,6 +15,7 @@ export interface Post {
     image?: string;
     comments_count?: number;
     is_pinned?: boolean;
+    is_liked?: boolean;
     
     // Propiedades normalizadas para la interfaz
     timestamp?: string;
