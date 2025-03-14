@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { PostSkeleton } from '@/components/ui/PostSkeleton';
 import { Post } from '@/types/Post';
 import { Comment } from '@/types/Comment';
+import { PostViewRecord } from '@/types/PostView';
 
 import { PostCard } from './PostCard';
 
@@ -13,6 +14,7 @@ interface PostFeedProps {
     isLoading?: boolean;
     postComments?: Record<string, Comment[]>;
     viewedPosts?: Set<string>;
+    postViewsRecord?: PostViewRecord;
 }
 
 export const PostFeed: React.FC<PostFeedProps> = ({ 
@@ -21,7 +23,8 @@ export const PostFeed: React.FC<PostFeedProps> = ({
     onPostClick, 
     isLoading = false, 
     postComments = {},
-    viewedPosts = new Set()
+    viewedPosts = new Set(),
+    postViewsRecord = {}
 }) => {
     // Estado para manejar la visibilidad y transición
     const [visiblePosts, setVisiblePosts] = useState<Post[]>([]);
@@ -146,6 +149,7 @@ export const PostFeed: React.FC<PostFeedProps> = ({
                         onPostClick={onPostClick}
                         postComments={postComments[post.id] || []}
                         isViewed={viewedPosts.has(post.id)}
+                        lastViewedAt={postViewsRecord[post.id] || null}
                     />
                 );
             })}

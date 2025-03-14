@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 
 import { Post } from '@/types/Post';
 import { Comment } from '@/types/Comment';
+import { PostViewRecord } from '@/types/PostView';
 
 import { PostCard } from './PostCard';
 
@@ -12,6 +13,7 @@ interface PinnedPostsSectionProps {
     isLoading?: boolean;
     postComments?: Record<string, Comment[]>;
     viewedPosts?: Set<string>;
+    postViewsRecord?: PostViewRecord;
 }
 
 export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ 
@@ -19,7 +21,8 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({
     onPostClick, 
     isLoading = false, 
     postComments = {},
-    viewedPosts = new Set()
+    viewedPosts = new Set(),
+    postViewsRecord = {}
 }) => {
     const [isVisible, setIsVisible] = useState(true);
 
@@ -104,6 +107,7 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({
                                 onPostClick={onPostClick}
                                 postComments={postComments[post.id] || []}
                                 isViewed={viewedPosts.has(post.id)}
+                                lastViewedAt={postViewsRecord[post.id] || null}
                             />
                         );
                     })

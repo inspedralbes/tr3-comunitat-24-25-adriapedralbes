@@ -16,6 +16,7 @@ import { authService } from '@/services/auth';
 import { communityService } from '@/services/community';
 import { Post } from "@/types/Post";
 import { Comment } from "@/types/Comment";
+import { getPostViewsRecord, recordPostView } from "@/utils/postViewStorage";
 
 export default function CommunityPage() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -29,6 +30,7 @@ export default function CommunityPage() {
   const [regularPosts, setRegularPosts] = useState<Post[]>([]);
   const [postComments, setPostComments] = useState<Record<string, Comment[]>>({});
   const [viewedPosts, setViewedPosts] = useState<Set<string>>(new Set());
+  const [postViewsRecord, setPostViewsRecord] = useState({});
   const [leaderboardUsers, setLeaderboardUsers] = useState([]);
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,11 +47,16 @@ export default function CommunityPage() {
       try {
         // Solo ejecutar en el cliente
         if (typeof window !== 'undefined') {
+          // Cargar posts vistos
           const storedViewedPosts = localStorage.getItem('viewedPosts');
           if (storedViewedPosts) {
             const viewedPostsArray = JSON.parse(storedViewedPosts);
             setViewedPosts(new Set(viewedPostsArray));
           }
+          
+          // Cargar registros de vistas con timestamps
+          const viewsRecord = getPostViewsRecord();
+          setPostViewsRecord(viewsRecord);
         }
       } catch (error) {
         console.error('Error al cargar posts vistos:', error);
@@ -223,7 +230,13 @@ export default function CommunityPage() {
       updatedViewedPosts.add(postId);
       setViewedPosts(updatedViewedPosts);
       
-      // Guardar en localStorage
+      // Registrar la visualización con timestamp
+      recordPostView(postId);
+      
+      // Actualizar el estado de postViewsRecord
+      setPostViewsRecord(getPostViewsRecord());
+      
+      // Guardar en localStorage (retrocompatibilidad)
       if (typeof window !== 'undefined') {
         localStorage.setItem('viewedPosts', JSON.stringify([...updatedViewedPosts]));
       }
@@ -394,6 +407,7 @@ export default function CommunityPage() {
               isLoading={isLoadingInitial}
               postComments={postComments}
               viewedPosts={viewedPosts}
+              postViewsRecord={postViewsRecord}
             />
 
             {/* Feed de publicaciones */}
@@ -404,6 +418,7 @@ export default function CommunityPage() {
               isLoading={isLoadingInitial || isLoadingPosts}
               postComments={postComments}
               viewedPosts={viewedPosts}
+              postViewsRecord={postViewsRecord}
             />
           </div>
 

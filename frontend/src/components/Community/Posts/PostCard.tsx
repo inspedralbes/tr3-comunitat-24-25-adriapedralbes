@@ -1,7 +1,8 @@
 import { ThumbsUp, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { communityService } from '@/services/community';
+import { formatRelativeTime, isNewComment, parseDjangoTimestamp } from '@/utils/dateUtils';
 
 import { CommentAvatars } from '@/components/Community/Comments/CommentAvatars';
 import { UserBadge } from '@/components/Community/UserBadge';
@@ -27,6 +28,7 @@ interface PostCardProps {
     onPostClick: (id: string) => void;
     postComments?: Comment[];
     isViewed?: boolean;
+    lastViewedAt?: string | null;
 }
 
 interface Commenter {
@@ -59,7 +61,8 @@ export const PostCard: React.FC<PostCardProps> = ({
     isLiked = false,
     onPostClick,
     postComments = [],
-    isViewed = false
+    isViewed = false,
+    lastViewedAt = null
 }) => {
     // Estado local para controlar el like
     const [isPostLiked, setIsPostLiked] = useState(isLiked);
@@ -100,19 +103,63 @@ export const PostCard: React.FC<PostCardProps> = ({
 
     // Obtener la timestamp del comentario más reciente
     let lastCommentTime = '';
+    let isNewestComment = false;
+    
     if (postComments.length > 0) {
         // Buscar el comentario más reciente (asumiendo que están ordenados por tiempo)
-        lastCommentTime = postComments[postComments.length - 1]?.timestamp || ''; 
-
+        const lastComment = postComments[postComments.length - 1];
+        
+        // Usar timestamp o created_at, dependiendo de cuál esté disponible
+        const commentTime = lastComment?.timestamp || lastComment?.created_at || '';
+        if (commentTime) {
+            lastCommentTime = commentTime;
+            
+            // Verificar que el formato de fecha es válido
+            try {
+                const date = parseDjangoTimestamp(commentTime);
+                if (isNaN(date.getTime())) {
+                    console.warn('Invalid date format in comment:', commentTime);
+                }
+            } catch (error) {
+                console.error('Error parsing comment date:', error);
+            }
+        }
+        
         // También revisar en las respuestas
         postComments.forEach(comment => {
             if (comment.replies && comment.replies.length > 0) {
                 const lastReply = comment.replies[comment.replies.length - 1];
-                if (lastReply?.timestamp) {
-                    lastCommentTime = lastReply.timestamp;
+                const replyTime = lastReply?.timestamp || lastReply?.created_at || '';
+                
+                if (replyTime) {
+                    try {
+                        const replyDate = parseDjangoTimestamp(replyTime);
+                        const currentLastDate = parseDjangoTimestamp(lastCommentTime);
+                        
+                        if (!isNaN(replyDate.getTime()) && !isNaN(currentLastDate.getTime()) && 
+                            replyDate > currentLastDate) {
+                            lastCommentTime = replyTime;
+                        }
+                    } catch (error) {
+                        console.error('Error comparing dates:', error);
+                    }
                 }
             }
         });
+        
+        // Depurar el timestamp y el formato resultante
+        if (lastCommentTime) {
+            console.log('Post:', id, 'Last comment time:', lastCommentTime);
+            console.log('Formatted as:', formatRelativeTime(lastCommentTime));
+            
+            if (lastViewedAt) {
+                console.log('Last viewed at:', lastViewedAt);
+                console.log('Is newest comment:', isNewComment(lastViewedAt, lastCommentTime));
+            }
+        }
+        
+        // Determinar si el comentario es nuevo (no visto por el usuario)
+        isNewestComment = isNewComment(lastViewedAt, lastCommentTime);
     }
 
     const handleClick = () => {
@@ -206,19 +253,18 @@ export const PostCard: React.FC<PostCardProps> = ({
                     </div>
                 </div>
 
-                {/* Avatares de comentadores */}
-                {uniqueCommenters.length > 0 && (
-                    <div className="flex items-center">
-                        <CommentAvatars
-                            commenters={uniqueCommenters}
-                        />
-                        {isViewed && lastCommentTime && lastCommentTime.trim() !== '' && (
-                            <span className="text-xs text-zinc-400 ml-2">
-                                Last comment {lastCommentTime}
-                            </span>
-                        )}
-                    </div>
-                )}
+                {/* Avatares de comentadores y tiempo del último comentario */}
+                <div className="flex items-center">
+                    {uniqueCommenters.length > 0 && (
+                        <CommentAvatars commenters={uniqueCommenters} />
+                    )}
+                    {/* Siempre mostrar el tiempo de comentario si hay comentarios */}
+                    {Number(comments) > 0 && (
+                        <span className="text-xs ml-2" style={{ color: isNewestComment ? '#3b82f6' : '#9ca3af' }}>
+                            {isNewestComment ? 'New' : 'Last'} comment {formatRelativeTime(lastCommentTime)}
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     );
