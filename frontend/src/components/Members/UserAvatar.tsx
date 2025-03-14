@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -24,20 +25,25 @@ export function UserAvatar({ username, avatarUrl, level, size = "md" }: UserAvat
         lg: "w-5 h-5 text-xs"
     };
 
-    // Determinar si es una URL interna (del backend) para desactivar la optimización
-    const isLocalBackendUrl = avatarUrl && (avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost'));
-
     return (
         <div className="relative inline-block">
             <Avatar className={sizeClasses[size]}>
-                <AvatarImage 
-                    src={avatarUrl} 
-                    alt={username} 
-                    unoptimized={isLocalBackendUrl}
-                />
-                <AvatarFallback className="bg-[#444442] text-white">
-                    {username.charAt(0).toUpperCase()}
-                </AvatarFallback>
+                {avatarUrl ? (
+                    <div className="relative w-full h-full">
+                        <Image 
+                            src={avatarUrl} 
+                            alt={username}
+                            fill
+                            priority
+                            className="object-cover"
+                            unoptimized={avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost')}
+                        />
+                    </div>
+                ) : (
+                    <AvatarFallback className="bg-[#444442] text-white">
+                        {username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                )}
             </Avatar>
 
             {/* Level badge superpuesto en la esquina inferior derecha */}

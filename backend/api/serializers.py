@@ -10,12 +10,13 @@ class SubscriberSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     avatar_url = serializers.SerializerMethodField()
+    is_admin = serializers.SerializerMethodField()
     
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'avatar_url', 'bio', 'level', 'points', 
-                'website', 'position', 'is_premium', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'position']
+                'website', 'position', 'is_premium', 'created_at', 'date_joined', 'is_superuser', 'is_staff', 'is_admin']
+        read_only_fields = ['id', 'created_at', 'date_joined', 'position', 'is_superuser', 'is_staff']
     
     def get_avatar_url(self, obj):
         if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
@@ -24,6 +25,9 @@ class UserSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.avatar_url.url)
             return obj.avatar_url.url
         return None
+        
+    def get_is_admin(self, obj):
+        return obj.is_superuser or obj.is_staff
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -57,10 +61,11 @@ class UserShortSerializer(serializers.ModelSerializer):
     Serializador simplificado de usuario para incluir en otros serializadores (posts, comentarios, etc.)
     """
     avatar_url = serializers.SerializerMethodField()
+    is_admin = serializers.SerializerMethodField()
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'level', 'avatar_url']
+        fields = ['id', 'username', 'level', 'avatar_url', 'date_joined', 'is_superuser', 'is_staff', 'is_admin']
     
     def get_avatar_url(self, obj):
         if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
@@ -69,6 +74,9 @@ class UserShortSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.avatar_url.url)
             return obj.avatar_url.url
         return None
+        
+    def get_is_admin(self, obj):
+        return obj.is_superuser or obj.is_staff
 
 
 class CategorySerializer(serializers.ModelSerializer):
