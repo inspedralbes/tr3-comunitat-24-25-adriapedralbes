@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
+import { AuthModal, AuthModalType } from "@/components/Auth";
 import { CategoryFilter } from "@/components/Community/CategoryFilter";
 import { LeaderboardWidget } from "@/components/Community/LeaderboardWidget";
 import { PinnedPostsSection } from "@/components/Community/Posts/PinnedPostsSection";
@@ -11,6 +12,7 @@ import { WritePostComponent } from "@/components/Community/Posts/WritePostCompon
 import MainLayout from '@/components/layouts/MainLayout';
 // import { pinnedPosts, regularPosts } from "@/mockData/mockData"; // Comentado para usar datos reales de la API
 // import { topUsers } from "@/leaderboardData"; // Comentado para usar datos reales de la API
+import { authService } from '@/services/auth';
 import { communityService } from '@/services/community';
 import { Post } from "@/types/Post";
 
@@ -25,6 +27,13 @@ export default function CommunityPage() {
   const [regularPosts, setRegularPosts] = useState<Post[]>([]);
   const [leaderboardUsers, setLeaderboardUsers] = useState([]);
   const [error, setError] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Comprobar si el usuario está autenticado
+  useEffect(() => {
+    setIsAuthenticated(authService.isAuthenticated());
+  }, [isAuthModalOpen]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -116,6 +125,12 @@ export default function CommunityPage() {
 
   // Función para crear un nuevo post
   const handleCreatePost = async (content: string, categoryId?: number) => {
+    // Verificar autenticación antes de crear un post
+    if (!authService.isAuthenticated()) {
+      setIsAuthModalOpen(true);
+      return false;
+    }
+    
     try {
       await communityService.createPost({
         content,
@@ -131,6 +146,12 @@ export default function CommunityPage() {
       console.error('Error al crear post:', err);
       return false;
     }
+  };
+  
+  // Manejar la autenticación exitosa
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false);
+    setIsAuthenticated(true);
   };
 
   return (
@@ -187,6 +208,14 @@ export default function CommunityPage() {
         post={selectedPost}
         isOpen={isModalOpen}
         onClose={closeModal}
+      />
+      
+      {/* Modal de autenticación */}
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        type={AuthModalType.LOGIN}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
       />
     </MainLayout>
   );

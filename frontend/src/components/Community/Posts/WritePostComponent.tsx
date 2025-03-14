@@ -2,6 +2,7 @@ import { User, Paperclip, Link2, Video, BarChart2, Smile } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
 
+import { AuthModal, AuthModalType } from '@/components/Auth';
 import { authService } from '@/services/auth';
 
 interface Category {
@@ -28,6 +29,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [error, setError] = useState('');
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [user, setUser] = useState<{
         avatar_url?: string;
         username?: string;
@@ -68,7 +70,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         };
 
         fetchUserProfile();
-    }, []);
+    }, [isAuthModalOpen]); // Refetch cuando el modal se cierra
 
     // Cerrar dropdown de categorías al hacer clic fuera
     useEffect(() => {
@@ -91,10 +93,16 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const handleExpand = () => {
         // Verificar si el usuario está autenticado
         if (!authService.isAuthenticated()) {
-            alert('Debes iniciar sesión para publicar en la comunidad');
+            setIsAuthModalOpen(true);
             return;
         }
         
+        setIsExpanded(true);
+    };
+    
+    const handleAuthSuccess = () => {
+        setIsAuthModalOpen(false);
+        // Refrescar info de usuario y expandir el editor
         setIsExpanded(true);
     };
 
@@ -198,6 +206,14 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
     return (
         <>
+            {/* Modal de autenticación */}
+            <AuthModal 
+                isOpen={isAuthModalOpen}
+                type={AuthModalType.LOGIN}
+                onClose={() => setIsAuthModalOpen(false)}
+                onSuccess={handleAuthSuccess}
+            />
+            
             {/* Overlay que cubre todo menos el navbar */}
             {isExpanded && (
                 <button
