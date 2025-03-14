@@ -105,6 +105,16 @@ export const communityService = {
   // Leaderboard
   getLeaderboard: async () => {
     return api.get('leaderboard/');
+  },
+  
+  // Posts de usuario
+  getUserPosts: async (userId: string) => {
+    return api.get(`users/${userId}/posts/`);
+  },
+  
+  // Actividad de usuario
+  getUserActivity: async (userId: string) => {
+    return api.get(`users/${userId}/activity/`);
   }
 };
 

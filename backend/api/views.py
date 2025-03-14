@@ -1,10 +1,10 @@
 from rest_framework import status, viewsets, permissions, generics, filters
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 
 from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
@@ -20,6 +20,7 @@ from django.urls import reverse
 from .welcome_email import send_welcome_email
 from .beehiiv import add_subscriber_to_beehiiv
 import uuid
+import os
 
 @api_view(['POST'])
 def test_beehiiv(request):
@@ -346,6 +347,30 @@ class UserMeView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Endpoint para actualizar el avatar
+    def post(self, request):
+        """Actualizar avatar del usuario"""
+        if 'avatar_url' not in request.FILES:
+            return Response({"error": "No se ha proporcionado una imagen"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Eliminar avatar anterior si existe
+        if request.user.avatar_url and hasattr(request.user.avatar_url, 'path') and os.path.exists(request.user.avatar_url.path):
+            try:
+                os.remove(request.user.avatar_url.path)
+            except Exception as e:
+                print(f"Error al eliminar avatar anterior: {e}")
+        
+        # Guardar nuevo avatar
+        request.user.avatar_url = request.FILES['avatar_url']
+        request.user.save()
+        
+        # Generar la URL completa para el avatar
+        if request.user.avatar_url:
+            request.user.avatar_url.url = request.build_absolute_uri(request.user.avatar_url.url)
+        
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -357,6 +382,87 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['username', 'first_name', 'last_name']
+    
+    @action(detail=True, methods=['get'])
+    def posts(self, request, pk=None):
+        """
+        Obtener los posts de un usuario específico.
+        """
+        user = self.get_object()
+        posts = Post.objects.filter(author=user).order_by('-created_at')
+        page = self.paginate_queryset(posts)
+        
+        if page is not None:
+            serializer = PostSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+        
+    @action(detail=True, methods=['get'])
+    def activity(self, request, pk=None):
+        """
+        Obtener la actividad reciente de un usuario (comentarios y likes).
+        """
+        user = self.get_object()
+        
+        # Obtener comentarios recientes
+        comments = Comment.objects.filter(author=user).order_by('-created_at')[:10]
+        comment_serializer = CommentSerializer(comments, many=True)
+        
+        # Obtener likes recientes
+        post_likes = PostLike.objects.filter(user=user).order_by('-created_at')[:10]
+        comment_likes = CommentLike.objects.filter(user=user).order_by('-created_at')[:10]
+        
+        post_likes_data = [
+            {
+                'type': 'post_like',
+                'id': str(like.id),
+                'created_at': like.created_at,
+                'post': {
+                    'id': str(like.post.id),
+                    'title': like.post.title,
+                    'content': like.post.content[:100] + ('...' if len(like.post.content) > 100 else '')
+                }
+            } for like in post_likes
+        ]
+        
+        comment_likes_data = [
+            {
+                'type': 'comment_like',
+                'id': str(like.id),
+                'created_at': like.created_at,
+                'comment': {
+                    'id': str(like.comment.id),
+                    'content': like.comment.content[:100] + ('...' if len(like.comment.content) > 100 else ''),
+                    'post': {
+                        'id': str(like.comment.post.id),
+                        'title': like.comment.post.title
+                    }
+                }
+            } for like in comment_likes
+        ]
+        
+        # Combinar y ordenar por fecha
+        activity = [
+            *[{
+                'type': 'comment',
+                'id': str(comment['id']),
+                'created_at': comment['created_at'],
+                'content': comment['content'],
+                'post': {
+                    'id': comment['post'],
+                    'title': Post.objects.get(id=comment['post']).title
+                }
+            } for comment in comment_serializer.data],
+            *post_likes_data,
+            *comment_likes_data
+        ]
+        
+        # Ordenar por fecha de creación (más reciente primero)
+        activity.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        return Response(activity[:20])  # Limitamos a 20 actividades recientes
 
 
 class LeaderboardView(generics.ListAPIView):

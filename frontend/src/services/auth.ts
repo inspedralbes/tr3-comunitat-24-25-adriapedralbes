@@ -71,7 +71,7 @@ export const authService = {
   updateAvatar: async (file: File): Promise<UserProfile> => {
     const formData = new FormData();
     formData.append('avatar_url', file);
-    return api.upload('auth/me/avatar/', formData);
+    return api.upload('auth/me/', formData);
   },
   
   // Logout

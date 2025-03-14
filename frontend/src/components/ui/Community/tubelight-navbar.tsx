@@ -230,6 +230,7 @@ export function NavBar({ items, className }: NavBarProps) {
                         className="flex items-center w-full px-4 py-2 text-zinc-200 hover:bg-[#323230] hover:text-white transition-colors"
                         onClick={() => {
                           // Acción para Perfil
+                          router.push('/perfil');
                           setIsDropdownOpen(false);
                         }}
                       >
@@ -241,6 +242,7 @@ export function NavBar({ items, className }: NavBarProps) {
                         className="flex items-center w-full px-4 py-2 text-zinc-200 hover:bg-[#323230] hover:text-white transition-colors"
                         onClick={() => {
                           // Acción para Configuración
+                          router.push('/perfil/configuracion');
                           setIsDropdownOpen(false);
                         }}
                       >
