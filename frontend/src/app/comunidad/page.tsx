@@ -50,12 +50,18 @@ export default function CommunityPage() {
         
         // Obtener posts fijados
         const pinnedData = await communityService.getPinnedPosts();
-        setPinnedPosts(Array.isArray(pinnedData) ? pinnedData : 
-                      (pinnedData.results ? pinnedData.results : []));
+        const pinnedPostsArray = Array.isArray(pinnedData) ? pinnedData : 
+                                (pinnedData.results ? pinnedData.results : []);
+        setPinnedPosts(pinnedPostsArray);
         
         // Obtener posts regulares
         const postsData = await communityService.getAllPosts();
-        setRegularPosts(postsData.results || (Array.isArray(postsData) ? postsData : []));
+        const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
+        
+        // Filtrar los posts regulares para eliminar los que ya están fijados
+        const pinnedIds = pinnedPostsArray.map(post => post.id);
+        const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+        setRegularPosts(filteredRegularPosts);
         
         // Obtener leaderboard
         const leaderboardData = await communityService.getLeaderboard();
@@ -80,16 +86,27 @@ export default function CommunityPage() {
         if (isLoadingInitial) return; // No hacer nada si todavía estamos cargando datos iniciales
         
         const postsData = await communityService.getAllPosts();
-        setRegularPosts(postsData.results || (Array.isArray(postsData) ? postsData : []));
+        const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
+        
+        // Filtrar los posts fijados
+        const pinnedIds = pinnedPosts.map(post => post.id);
+        const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+        setRegularPosts(filteredRegularPosts);
         return;
       }
       
       setIsLoadingPosts(true);
       try {
         const postsData = await communityService.getAllPosts(activeCategory);
+        const categoryPostsArray = postsData.results || postsData;
+        
+        // Filtrar los posts fijados también para las categorías
+        const pinnedIds = pinnedPosts.map(post => post.id);
+        const filteredCategoryPosts = categoryPostsArray.filter(post => !pinnedIds.includes(post.id));
+        
         // Usar un timeout para suavizar la transición
         setTimeout(() => {
-          setRegularPosts(postsData.results || postsData);
+          setRegularPosts(filteredCategoryPosts);
           setIsLoadingPosts(false);
         }, 300);
       } catch (err) {
@@ -99,7 +116,7 @@ export default function CommunityPage() {
     };
     
     fetchFilteredPosts();
-  }, [activeCategory, isLoadingInitial]);
+  }, [activeCategory, isLoadingInitial, pinnedPosts]);
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
@@ -123,7 +140,8 @@ export default function CommunityPage() {
           },
           title: postData.title,
           content: typeof postData.content === 'string' ? postData.content : JSON.stringify(postData.content),
-          category: postData.category,
+          category: typeof postData.category === 'object' && postData.category !== null ? postData.category.name : postData.category,
+          categoryColor: typeof postData.category === 'object' && postData.category !== null && postData.category.color ? postData.category.color : 'bg-[#444442] border border-white/5',
           created_at: postData.created_at,
           updated_at: postData.updated_at,
           image: postData.image,
@@ -136,6 +154,25 @@ export default function CommunityPage() {
           imageUrl: postData.image || postData.imageUrl
         };
         
+        // Actualizar las listas si el estado de fijado ha cambiado
+        if (postData.is_pinned) {
+          // Si el post está fijado, asegurarse de que está en la lista de posts fijados
+          const isAlreadyPinned = pinnedPosts.some(post => post.id === postData.id);
+          if (!isAlreadyPinned) {
+            // Añadir a posts fijados y quitar de posts regulares
+            setPinnedPosts([...pinnedPosts, normalizedPost]);
+            setRegularPosts(regularPosts.filter(post => post.id !== postData.id));
+          }
+        } else {
+          // Si el post no está fijado, asegurarse de que no está en la lista de posts fijados
+          const wasPreviouslyPinned = pinnedPosts.some(post => post.id === postData.id);
+          if (wasPreviouslyPinned) {
+            // Quitar de posts fijados y añadir a posts regulares
+            setPinnedPosts(pinnedPosts.filter(post => post.id !== postData.id));
+            setRegularPosts([normalizedPost, ...regularPosts]);
+          }
+        }
+        
         setSelectedPost(normalizedPost);
         setIsModalOpen(true);
       }
@@ -146,6 +183,30 @@ export default function CommunityPage() {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    
+    // Optionally refresh data when closing modal to ensure all changes are reflected
+    const refreshPosts = async () => {
+      try {
+        // Obtener posts fijados actualizados
+        const pinnedData = await communityService.getPinnedPosts();
+        const pinnedPostsArray = Array.isArray(pinnedData) ? pinnedData : 
+                               (pinnedData.results ? pinnedData.results : []);
+        setPinnedPosts(pinnedPostsArray);
+        
+        // Obtener posts regulares actualizados
+        const postsData = await communityService.getAllPosts(activeCategory !== 'all' ? activeCategory : undefined);
+        const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
+        
+        // Filtrar los posts regulares para eliminar los que ya están fijados
+        const pinnedIds = pinnedPostsArray.map(post => post.id);
+        const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+        setRegularPosts(filteredRegularPosts);
+      } catch (err) {
+        console.error('Error al actualizar posts después de cerrar modal:', err);
+      }
+    };
+    
+    refreshPosts();
   };
 
   // Función para crear un nuevo post
@@ -165,7 +226,12 @@ export default function CommunityPage() {
       
       // Recargar posts después de crear uno nuevo
       const postsData = await communityService.getAllPosts(activeCategory !== 'all' ? activeCategory : undefined);
-      setRegularPosts(postsData.results || postsData);
+      const newPostsArray = postsData.results || postsData;
+      
+      // Filtrar los posts fijados para evitar duplicados
+      const pinnedIds = pinnedPosts.map(post => post.id);
+      const filteredNewPosts = newPostsArray.filter(post => !pinnedIds.includes(post.id));
+      setRegularPosts(filteredNewPosts);
       
       return true;
     } catch (err) {

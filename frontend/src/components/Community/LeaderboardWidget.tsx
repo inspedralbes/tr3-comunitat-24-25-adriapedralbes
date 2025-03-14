@@ -1,12 +1,13 @@
-import { Trophy } from 'lucide-react';
+import { Trophy, User } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
 
 interface LeaderboardUser {
     position: number;
     username: string;
-    avatarUrl: string;
+    avatar_url?: string;  // Nombre del campo según backend
     points: number;
+    level?: number;
 }
 
 interface LeaderboardWidgetProps {
@@ -45,14 +46,28 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
                         <div className={`w-6 h-6 ${getPositionBadgeColor(user.position)} rounded-full flex items-center justify-center text-xs font-bold border border-white/10`}>
                             {user.position}
                         </div>
-                        <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
-                            <Image
-                                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
-                                alt={user.username}
-                                width={32}
-                                height={32}
-                                className="w-full h-full object-cover"
-                            />
+                        <div className="relative flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
+                                {user.avatar_url ? (
+                                    <Image
+                                        src={user.avatar_url}
+                                        alt={user.username}
+                                        width={32}
+                                        height={32}
+                                        className="w-full h-full object-cover"
+                                        unoptimized={true}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-zinc-700 text-zinc-400">
+                                        <User size={16} />
+                                    </div>
+                                )}
+                            </div>
+                            {user.level && (
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
+                                    {user.level}
+                                </div>
+                            )}
                         </div>
                         <span className="text-sm font-medium flex-1 text-white">{user.username}</span>
                         <span className="text-sm text-blue-300">+{user.points}</span>

@@ -586,18 +586,13 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
                 {/* Post Content */}
                 <div className="px-5 py-3">
-                <UserBadge
-                username={post.author.username}
-                level={post.author.level}
-                avatarUrl={post.author.avatarUrl || post.author.avatar_url}
-                timestamp={post.timestamp}
-                category={post.category}
-                        categoryColor={
-                            post.category === 'General' ? 'bg-[#444442] border border-white/5' :
-                                post.category === 'Anuncios' ? 'bg-[#444442] border border-white/5' :
-                                    post.category === 'Preguntas' ? 'bg-[#444442] border border-white/5' :
-                                        'bg-[#444442] border border-white/5'
-                        }
+                    <UserBadge
+                        username={post.author.username}
+                        level={post.author.level}
+                        avatarUrl={post.author.avatarUrl || post.author.avatar_url}
+                        timestamp={post.timestamp}
+                        category={typeof post.category === 'object' && post.category !== null ? post.category.name : post.category}
+                        categoryColor={post.categoryColor || 'bg-[#444442] border border-white/5'}
                     />
 
                     {/* Title */}

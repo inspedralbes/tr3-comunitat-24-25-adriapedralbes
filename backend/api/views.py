@@ -476,7 +476,7 @@ class LeaderboardView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
         
         # Añadir la posición a cada usuario
         leaderboard_data = serializer.data
