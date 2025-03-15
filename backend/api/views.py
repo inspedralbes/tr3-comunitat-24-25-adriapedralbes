@@ -358,16 +358,29 @@ class UserMeView(APIView):
         
         user_data['comments_count'] = Comment.objects.filter(author=user).count()
         
+        # Calcular la posición en el ranking (basado en puntos)
+        # Contar cuántos usuarios tienen más puntos que el usuario actual
+        higher_ranked_users = User.objects.filter(points__gt=user.points).count()
+        # La posición es el número de usuarios con más puntos + 1
+        user_data['position'] = higher_ranked_users + 1
+        
         return Response(user_data)
 
     def patch(self, request):
         serializer = UserSerializer(request.user, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            
+            # Obtener datos actualizados del usuario con la posición en el ranking
+            user_data = serializer.data
+            
+            # Calcular la posición en el ranking
+            higher_ranked_users = User.objects.filter(points__gt=request.user.points).count()
+            user_data['position'] = higher_ranked_users + 1
+            
+            return Response(user_data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    # Endpoint para actualizar el avatar
     def post(self, request):
         """Actualizar avatar del usuario"""
         if 'avatar_url' not in request.FILES:
@@ -384,10 +397,15 @@ class UserMeView(APIView):
         request.user.avatar_url = request.FILES['avatar_url']
         request.user.save()
         
-        # No intentamos modificar la URL directamente, Django la maneja automáticamente
-        
+        # Serializar la respuesta con datos completos
         serializer = UserSerializer(request.user, context={'request': request})
-        return Response(serializer.data)
+        user_data = serializer.data
+        
+        # Calcular la posición en el ranking
+        higher_ranked_users = User.objects.filter(points__gt=request.user.points).count()
+        user_data['position'] = higher_ranked_users + 1
+        
+        return Response(user_data)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
