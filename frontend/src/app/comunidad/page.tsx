@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { AuthModal, AuthModalType } from "@/components/Auth";
 import { CategoryFilter } from "@/components/Community/CategoryFilter";
@@ -19,6 +20,8 @@ import { Comment } from "@/types/Comment";
 import { getPostViewsRecord, recordPostView } from "@/utils/postViewStorage";
 
 export default function CommunityPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeSortType, setActiveSortType] = useState('default');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -103,6 +106,129 @@ export default function CommunityPage() {
     }
   };
 
+
+  // Función para cargar el contenido del post (definida antes de ser usada en el efecto)
+  const loadPostContent = useCallback(async (postId: string, updateUrl = true) => {
+    try {
+      // Agregar el post a la lista de posts vistos
+      const updatedViewedPosts = new Set(viewedPosts);
+      updatedViewedPosts.add(postId);
+      setViewedPosts(updatedViewedPosts);
+      
+      // Registrar la visualización con timestamp
+      recordPostView(postId);
+      
+      // Actualizar el estado de postViewsRecord
+      setPostViewsRecord(getPostViewsRecord());
+      
+      // Guardar en localStorage (retrocompatibilidad)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('viewedPosts', JSON.stringify([...updatedViewedPosts]));
+      }
+
+      // Obtener los detalles del post directamente de la API
+      const postData = await communityService.getPostById(postId);
+      
+      if (postData) {
+        // Normalizar el post para asegurar que tiene la estructura esperada
+        const normalizedPost = {
+          id: postData.id,
+          author: {
+            id: postData.author?.id,
+            username: postData.author?.username || 'Usuario',
+            level: postData.author?.level,
+            avatarUrl: postData.author?.avatar_url || postData.author?.avatarUrl,
+            avatar_url: postData.author?.avatar_url
+          },
+          title: postData.title,
+          content: typeof postData.content === 'string' ? postData.content : JSON.stringify(postData.content),
+          category: typeof postData.category === 'object' && postData.category !== null ? postData.category.name : postData.category,
+          categoryColor: typeof postData.category === 'object' && postData.category !== null && postData.category.color ? postData.category.color : 'bg-[#444442] border border-white/5',
+          created_at: postData.created_at,
+          updated_at: postData.updated_at,
+          image: postData.image,
+          comments_count: postData.comments_count || 0,
+          is_pinned: postData.is_pinned,
+          timestamp: postData.timestamp || postData.created_at,
+          likes: postData.likes || 0,
+          comments: postData.comments_count || 0,
+          isPinned: postData.is_pinned,
+          imageUrl: postData.image || postData.imageUrl
+        };
+        
+        // Actualizar las listas si el estado de fijado ha cambiado
+        if (postData.is_pinned) {
+          // Si el post está fijado, asegurarse de que está en la lista de posts fijados
+          const isAlreadyPinned = pinnedPosts.some(post => post.id === postData.id);
+          if (!isAlreadyPinned) {
+            // Añadir a posts fijados y quitar de posts regulares
+            setPinnedPosts([...pinnedPosts, normalizedPost]);
+            setRegularPosts(regularPosts.filter(post => post.id !== postData.id));
+          }
+        } else {
+          // Si el post no está fijado, asegurarse de que no está en la lista de posts fijados
+          const wasPreviouslyPinned = pinnedPosts.some(post => post.id === postData.id);
+          if (wasPreviouslyPinned) {
+            // Quitar de posts fijados y añadir a posts regulares
+            setPinnedPosts(pinnedPosts.filter(post => post.id !== postData.id));
+            setRegularPosts([normalizedPost, ...regularPosts]);
+          }
+        }
+        
+        setSelectedPost(normalizedPost);
+        setIsModalOpen(true);
+        return normalizedPost;
+      }
+    } catch (err) {
+      console.error('Error al obtener detalles del post:', err);
+    }
+    return null;
+  }, [viewedPosts, pinnedPosts, regularPosts]);
+
+  const initialLoadComplete = useRef(false);
+
+  // Este efecto gestiona la URL y carga el post cuando se accede directamente a él
+  useEffect(() => {
+    // Solo se ejecuta una vez (evita ciclos y parpadeos)
+    if (initialLoadComplete.current) return;
+  
+    const checkUrlForPostId = async () => {
+      // Solo en cliente y si no está ya abierto el modal
+      if (typeof window === 'undefined' || isModalOpen) return;
+      
+      initialLoadComplete.current = true;
+      
+      // Comprobar si estamos en una URL de post específico
+      const path = window.location.pathname;
+      const match = path.match(/\/comunidad\/([\w-]+)/);
+      
+      if (match) {
+      // Extraer solo el ID (los UUIDs tienen 36 caracteres)
+        const pathSegment = match[1];
+        const postId = pathSegment.length > 36 ? pathSegment.substring(0, 36) : pathSegment;
+        
+        try {
+          // Cargamos el post directamente
+        await loadPostContent(postId, false);
+          return;
+        } catch (err) {
+          console.error('Error al cargar post desde URL:', err);
+        }
+      }
+    
+    // Comprobar parámetros de consulta (compatibilidad hacia atrás)
+      const queryPostId = searchParams.get('post');
+    if (queryPostId) {
+        try {
+          await loadPostContent(queryPostId, false);
+        } catch (err) {
+          console.error('Error al cargar post desde parámetro:', err);
+        }
+      }
+    };
+    
+    checkUrlForPostId();
+  }, [isModalOpen, loadPostContent, searchParams]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -223,82 +349,41 @@ export default function CommunityPage() {
     setActiveSortType(sortType);
   };
 
-  const handlePostClick = async (postId: string) => {
-    try {
-      // Agregar el post a la lista de posts vistos
-      const updatedViewedPosts = new Set(viewedPosts);
-      updatedViewedPosts.add(postId);
-      setViewedPosts(updatedViewedPosts);
-      
-      // Registrar la visualización con timestamp
-      recordPostView(postId);
-      
-      // Actualizar el estado de postViewsRecord
-      setPostViewsRecord(getPostViewsRecord());
-      
-      // Guardar en localStorage (retrocompatibilidad)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('viewedPosts', JSON.stringify([...updatedViewedPosts]));
-      }
+  // Después definimos la función auxiliar que usa loadPostContent
+  const handlePostLoadWithoutUrlChange = useCallback(async (postId: string) => {
+    await loadPostContent(postId, false);
+  }, [loadPostContent]);
 
-      // Obtener los detalles del post directamente de la API
-      const postData = await communityService.getPostById(postId);
+  // Función para manejar el clic en un post
+  const handlePostClick = useCallback(async (postId: string) => {
+    try {
+      // Cargar el post directamente sin cambiar la URL mientras esté en la vista principal
+      await loadPostContent(postId, false);
       
-      if (postData) {
-        // Normalizar el post para asegurar que tiene la estructura esperada
-        const normalizedPost = {
-          id: postData.id,
-          author: {
-            id: postData.author?.id,
-            username: postData.author?.username || 'Usuario',
-            level: postData.author?.level,
-            avatarUrl: postData.author?.avatar_url || postData.author?.avatarUrl,
-            avatar_url: postData.author?.avatar_url
-          },
-          title: postData.title,
-          content: typeof postData.content === 'string' ? postData.content : JSON.stringify(postData.content),
-          category: typeof postData.category === 'object' && postData.category !== null ? postData.category.name : postData.category,
-          categoryColor: typeof postData.category === 'object' && postData.category !== null && postData.category.color ? postData.category.color : 'bg-[#444442] border border-white/5',
-          created_at: postData.created_at,
-          updated_at: postData.updated_at,
-          image: postData.image,
-          comments_count: postData.comments_count || 0,
-          is_pinned: postData.is_pinned,
-          timestamp: postData.timestamp || postData.created_at,
-          likes: postData.likes || 0,
-          comments: postData.comments_count || 0,
-          isPinned: postData.is_pinned,
-          imageUrl: postData.image || postData.imageUrl
-        };
-        
-        // Actualizar las listas si el estado de fijado ha cambiado
-        if (postData.is_pinned) {
-          // Si el post está fijado, asegurarse de que está en la lista de posts fijados
-          const isAlreadyPinned = pinnedPosts.some(post => post.id === postData.id);
-          if (!isAlreadyPinned) {
-            // Añadir a posts fijados y quitar de posts regulares
-            setPinnedPosts([...pinnedPosts, normalizedPost]);
-            setRegularPosts(regularPosts.filter(post => post.id !== postData.id));
-          }
-        } else {
-          // Si el post no está fijado, asegurarse de que no está en la lista de posts fijados
-          const wasPreviouslyPinned = pinnedPosts.some(post => post.id === postData.id);
-          if (wasPreviouslyPinned) {
-            // Quitar de posts fijados y añadir a posts regulares
-            setPinnedPosts(pinnedPosts.filter(post => post.id !== postData.id));
-            setRegularPosts([normalizedPost, ...regularPosts]);
-          }
+      // Solo actualizar la URL cuando se está viendo desde la página principal
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
+        // Solo modificar la URL si estamos en la página principal, no si ya estamos en un post específico
+        if (currentPath === '/comunidad') {
+          // Modificar el historial sin navegar (evita recargas)
+          window.history.replaceState(
+            { postId }, 
+            '', 
+            `/comunidad/${postId}${selectedPost?.title ? `-${selectedPost.title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/--+/g, '-').substring(0, 50)}` : ''}`
+          );
         }
-        
-        setSelectedPost(normalizedPost);
-        setIsModalOpen(true);
       }
     } catch (err) {
-      console.error('Error al obtener detalles del post:', err);
+      console.error('Error al manejar clic en post:', err);
     }
-  };
+  }, [loadPostContent, selectedPost]);
+
 
   const closeModal = () => {
+    // Restaurar la URL original al cerrar el modal sin usar router (evita parpadeo)
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({}, '', '/comunidad');
+    }
     setIsModalOpen(false);
     
     // Optionally refresh data when closing modal to ensure all changes are reflected

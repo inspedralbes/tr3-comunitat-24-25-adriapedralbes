@@ -1,6 +1,7 @@
 import { ThumbsUp, MessageCircle, Bell, Smile, CornerUpRight } from 'lucide-react';
 import Image from 'next/image';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { formatAvatarUrl, formatImageUrl } from '@/utils/formatUtils';
 
@@ -43,6 +44,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     isOpen,
     onClose
 }) => {
+    const router = useRouter();
     const [comment, setComment] = useState('');
     const [replyToComment, setReplyToComment] = useState<ReplyToInfo | null>(null);
     const [lastRespondedComment, setLastRespondedComment] = useState<ReplyToInfo | null>(null);
