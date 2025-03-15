@@ -4,6 +4,8 @@ import { Award, Flag, MessageCircle, ThumbsUp, User } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
 
+import { formatAvatarUrl } from '@/utils/formatUtils';
+
 import { UserProfile } from '@/services/auth';
 
 interface ProfileHeaderProps {
@@ -34,6 +36,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
   };
 
   const level = userProfile.level || 1;
+  
+  const avatarUrl = formatAvatarUrl(userProfile.avatar_url);
 
   return (
     <div className="bg-[#323230] rounded-lg p-6 border border-white/10 mb-6">
@@ -41,14 +45,14 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
         {/* Avatar y Nivel */}
         <div className="flex-shrink-0 relative">
           <div className="w-24 h-24 bg-[#444442] rounded-full overflow-hidden border-2 border-white/10">
-            {userProfile.avatar_url ? (
+            {avatarUrl ? (
               <Image
-                src={userProfile.avatar_url}
+                src={avatarUrl}
                 alt={userProfile.username}
                 width={96}
                 height={96}
                 className="w-full h-full object-cover"
-                unoptimized={userProfile.avatar_url.includes('127.0.0.1') || userProfile.avatar_url.includes('localhost')}
+                unoptimized={true}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-zinc-300">

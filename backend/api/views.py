@@ -418,6 +418,40 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['username', 'first_name', 'last_name']
     
+    @action(detail=False, methods=['get'])
+    def by_username(self, request):
+        """
+        Obtener un usuario por su nombre de usuario.
+        Ejemplo: /api/users/by_username/?username=nombreusuario
+        """
+        username = request.query_params.get('username', None)
+        if not username:
+            return Response({'error': 'Se requiere el parámetro username.'}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            user = User.objects.get(username=username)
+            serializer = self.get_serializer(user)
+            user_data = serializer.data
+            
+            # Añadir contador de posts, likes recibidos y comentarios
+            user_data['posts_count'] = Post.objects.filter(author=user).count()
+            
+            post_likes = PostLike.objects.filter(post__author=user).count()
+            comment_likes = CommentLike.objects.filter(comment__author=user).count()
+            user_data['likes_received'] = post_likes + comment_likes
+            
+            user_data['comments_count'] = Comment.objects.filter(author=user).count()
+            
+            # Calcular la posición en el ranking (basado en puntos)
+            higher_ranked_users = User.objects.filter(points__gt=user.points).count()
+            user_data['position'] = higher_ranked_users + 1
+            
+            return Response(user_data)
+        except User.DoesNotExist:
+            return Response({'error': 'El usuario no existe.'}, 
+                            status=status.HTTP_404_NOT_FOUND)
+    
     @action(detail=True, methods=['get'])
     def posts(self, request, pk=None):
         """

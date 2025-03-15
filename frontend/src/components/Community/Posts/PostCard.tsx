@@ -5,7 +5,7 @@ import { communityService } from '@/services/community';
 import { formatRelativeTime, isNewComment, parseDjangoTimestamp } from '@/utils/dateUtils';
 
 import { CommentAvatars } from '@/components/Community/Comments/CommentAvatars';
-import { UserBadge } from '@/components/Community/UserBadge';
+import { PostAuthor } from '@/components/Community/Posts/PostAuthor';
 import { Comment } from '@/types/Comment';
 
 interface PostCardProps {
@@ -182,7 +182,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             role="button"
             aria-label={`Post: ${title}`}
         >
-            <UserBadge
+            <PostAuthor
                 username={author.username}
                 level={author.level}
                 avatarUrl={author.avatarUrl}

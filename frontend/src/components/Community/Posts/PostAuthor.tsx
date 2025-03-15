@@ -1,13 +1,14 @@
+"use client";
+
 import { User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
-import { formatAvatarUrl } from '@/utils/formatUtils';
 import { formatPostDate } from '@/utils/dateUtils';
 
-interface UserBadgeProps {
+interface PostAuthorProps {
   username: string;
   level?: number;
   avatarUrl?: string;
@@ -16,7 +17,7 @@ interface UserBadgeProps {
   categoryColor?: string;
 }
 
-export const UserBadge: React.FC<UserBadgeProps> = ({
+export const PostAuthor: React.FC<PostAuthorProps> = ({
   username,
   level,
   avatarUrl,
@@ -24,9 +25,8 @@ export const UserBadge: React.FC<UserBadgeProps> = ({
   category,
   categoryColor = 'bg-zinc-700'
 }) => {
-  // Formatear la URL del avatar directamente sin usar la función
-  // Si ya está formateada (empieza con http), usar directamente
-  const formattedAvatarUrl = avatarUrl ? (
+  // Ensure the avatar URL is properly formatted
+  const finalAvatarUrl = avatarUrl ? (
     avatarUrl.startsWith('http') ? avatarUrl : `http://127.0.0.1:8000${avatarUrl}`
   ) : null;
 
@@ -38,9 +38,9 @@ export const UserBadge: React.FC<UserBadgeProps> = ({
         className="relative flex-shrink-0 self-start group"
       >
         <div className="w-10 h-10 bg-zinc-700 rounded-full flex items-center justify-center overflow-hidden border-2 border-zinc-800 transition-all duration-200 group-hover:border-blue-500 group-hover:shadow-[0_0_10px_rgba(59,130,246,0.4)]">
-          {formattedAvatarUrl ? (
+          {finalAvatarUrl ? (
             <Image
-              src={formattedAvatarUrl}
+              src={finalAvatarUrl}
               alt={username}
               width={40}
               height={40}
@@ -54,7 +54,7 @@ export const UserBadge: React.FC<UserBadgeProps> = ({
           )}
         </div>
         
-        {/* Badge de nivel con efecto de brillo en hover */}
+        {/* Level badge with hover effect */}
         <div className="absolute -bottom-1 -right-1 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12">
           <UserLevelBadge level={level} size="sm" showTooltip={true} />
         </div>

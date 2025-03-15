@@ -2,6 +2,8 @@ import { ThumbsUp, MessageCircle, Bell, Smile, CornerUpRight } from 'lucide-reac
 import Image from 'next/image';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 
+import { formatAvatarUrl, formatImageUrl } from '@/utils/formatUtils';
+
 import { UserBadge } from '@/components/Community/UserBadge';
 import { Button } from '@/components/ui/button';
 import { communityService } from '@/services/community';
@@ -451,7 +453,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                         <div className="w-8 h-8 bg-[#444442] rounded-full overflow-hidden border border-white/10">
                             {comment.author.avatarUrl ? (
                                 <Image
-                                    src={comment.author.avatarUrl}
+                                    src={formatAvatarUrl(comment.author.avatarUrl) || ''}
                                     alt={comment.author.username}
                                     width={32}
                                     height={32}
@@ -628,12 +630,12 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                 }}
                             >
                                 <Image
-                                    src={post.imageUrl}
+                                    src={formatImageUrl(post.imageUrl) || ''}
                                     alt={`Contenido de ${title}`}
                                     width={600}
                                     height={400}
                                     className="rounded-lg max-h-72 object-cover border border-white/10"
-                                    unoptimized={post.imageUrl.includes('127.0.0.1') || post.imageUrl.includes('localhost')}
+                                    unoptimized={true}
                                 />
                             </div>
                         </div>
@@ -681,7 +683,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                 <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
                                     {currentUser?.avatar_url ? (
                                         <Image
-                                            src={currentUser.avatar_url}
+                                            src={formatAvatarUrl(currentUser.avatar_url) || ''}
                                             alt={currentUser.username || 'Tu avatar'}
                                             width={32}
                                             height={32}

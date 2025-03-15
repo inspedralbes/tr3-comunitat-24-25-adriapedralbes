@@ -1,4 +1,52 @@
 /**
+ * Formatea una fecha de publicación para mostrar solo el día
+ * @param dateString - String de fecha ISO, timestamp Unix, o formato Django
+ * @returns String formateado como "Mar 15"
+ */
+export function formatPostDate(dateString: string): string {
+  // Si la fecha está vacía, retornar una cadena vacía
+  if (!dateString) return '';
+  
+  try {
+    // Parsear la fecha utilizando la función existente
+    const date = parseDjangoTimestamp(dateString);
+    
+    // Si la fecha es inválida, mostrar el string original
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date format for post date:', dateString);
+      return dateString;
+    }
+    
+    // Verificar si la fecha es de hoy
+    const today = new Date();
+    if (date.getDate() === today.getDate() && 
+        date.getMonth() === today.getMonth() && 
+        date.getFullYear() === today.getFullYear()) {
+      return 'Hoy';
+    }
+    
+    // Verificar si la fecha es de ayer
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.getDate() === yesterday.getDate() && 
+        date.getMonth() === yesterday.getMonth() && 
+        date.getFullYear() === yesterday.getFullYear()) {
+      return 'Ayer';
+    }
+    
+    // Formatear solo el día y mes
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    
+    return `${month} ${day}`;
+  } catch (error) {
+    console.error('Error formatting post date:', error);
+    return dateString;
+  }
+}
+
+/**
  * Formatea una fecha en formato relativo (hace X minutos, horas, días, etc.)
  * @param dateString - String de fecha ISO, timestamp Unix, o formato Django
  * @returns String formateado como "Xm ago", "Xh ago", "Xd ago"

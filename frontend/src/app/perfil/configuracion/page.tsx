@@ -69,7 +69,7 @@ export default function ProfileSettingsPage() {
       <div className="container mx-auto px-4 max-w-5xl pt-6 pb-12">
         <div className="mb-6">
           <Link
-            href="/perfil"
+            href={userProfile ? `/perfil/${userProfile.username}` : '/comunidad'}
             className="inline-flex items-center text-zinc-400 hover:text-white transition-colors"
           >
             <ArrowLeft size={16} className="mr-2" />

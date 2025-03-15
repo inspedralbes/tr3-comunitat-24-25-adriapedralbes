@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { PostCard } from '@/components/Community/Posts/PostCard';
+import { PostDetailModal } from '@/components/Community/Posts/PostDetailModal';
 import { Post } from '@/types/Post';
 import { communityService } from '@/services/community';
+import { formatAvatarUrl } from '@/utils/formatUtils';
 
 interface UserPostsTabProps {
   userId: string;
@@ -14,6 +16,8 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserPosts = async () => {
@@ -22,8 +26,44 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
       try {
         // Obtener posts del usuario
         const response = await communityService.getUserPosts(userId);
-        setPosts(Array.isArray(response) ? response : 
-                (response.results ? response.results : []));
+        
+        // Procesar la respuesta para asegurarnos de que los datos son consistentes
+        let postsData;
+        if (Array.isArray(response)) {
+          postsData = response;
+        } else if (response.results) {
+          postsData = response.results;
+        } else {
+          postsData = [];
+        }
+        
+        // Normalizar las URL de avatares para todos los posts
+        const normalizedPosts = postsData.map(post => {
+          // Asegurarnos de que tengamos un objeto author completo
+          const author = post.author || { username: 'unknown' };
+          
+          // Crear una nueva URL formateada para el avatar
+          let avatarUrl = null;
+          if (author.avatar_url) {
+            avatarUrl = author.avatar_url.startsWith('http') 
+              ? author.avatar_url 
+              : `http://127.0.0.1:8000${author.avatar_url}`;
+          } else if (author.avatarUrl) {
+            avatarUrl = author.avatarUrl.startsWith('http') 
+              ? author.avatarUrl 
+              : `http://127.0.0.1:8000${author.avatarUrl}`;
+          }
+          
+          return {
+            ...post,
+            author: {
+              ...author,
+              avatarUrl: avatarUrl
+            }
+          };
+        });
+        
+        setPosts(normalizedPosts);
       } catch (err) {
         console.error('Error fetching user posts:', err);
         setError('No se pudieron cargar las publicaciones.');
@@ -38,8 +78,12 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
   }, [userId]);
 
   const handlePostClick = (postId: string) => {
-    // Redirigir o abrir modal con el detalle del post
-    console.log('Post clicked:', postId);
+    // Find the post by ID
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      setSelectedPost(post);
+      setIsModalOpen(true);
+    }
   };
 
   if (isLoading) {
@@ -95,6 +139,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
         // Extraer URL de imagen
         const imageUrl = post.imageUrl || post.image || null;
         
+        // No necesitamos reconstruir el author aquí, ya lo hicimos en el useEffect
         return (
           <PostCard
             key={post.id}
@@ -112,6 +157,13 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
           />
         );
       })}
+      
+      {/* Post Detail Modal */}
+      <PostDetailModal 
+        post={selectedPost} 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 };

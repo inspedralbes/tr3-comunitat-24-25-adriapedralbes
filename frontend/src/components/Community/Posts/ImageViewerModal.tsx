@@ -1,6 +1,8 @@
-import React, { useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import Image from 'next/image';
+import React, { useRef, useEffect } from 'react';
+
+import { formatImageUrl } from '@/utils/formatUtils';
 
 interface ImageViewerModalProps {
   imageUrl: string;
@@ -77,13 +79,13 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
         
         <div className="w-full h-full flex items-center justify-center overflow-hidden rounded-lg" onClick={(e) => e.stopPropagation()}>
           <Image
-            src={imageUrl}
+            src={formatImageUrl(imageUrl) || ''}
             alt={altText}
             width={1200}
             height={800}
             className="max-h-[85vh] object-contain"
             priority={true}
-            unoptimized={imageUrl.includes('127.0.0.1') || imageUrl.includes('localhost')}
+            unoptimized={true}
           />
         </div>
       </div>

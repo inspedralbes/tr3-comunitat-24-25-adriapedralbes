@@ -1,6 +1,10 @@
 import { User } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
+
+import { formatAvatarUrl } from '@/utils/formatUtils';
+import { formatPostDate } from '@/utils/dateUtils';
 
 interface CommentUserBadgeProps {
     username: string;
@@ -38,16 +42,20 @@ export const CommentUserBadge: React.FC<CommentUserBadgeProps> = ({
     };
     return (
         <div className="flex items-center gap-2">
-            <div className="relative inline-block flex-shrink-0">
-                <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center overflow-hidden">
+            <Link 
+                href={`/perfil/${username}`} 
+                onClick={(e) => e.stopPropagation()} 
+                className="relative inline-block flex-shrink-0"
+            >
+                <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all">
                     {avatarUrl ? (
                         <Image
-                            src={avatarUrl}
+                            src={formatAvatarUrl(avatarUrl) || ''}
                             alt={username}
                             width={32}
                             height={32}
                             className="w-full h-full object-cover"
-                            unoptimized={avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost')}
+                            unoptimized={true}
                         />
                     ) : (
                         <User className="text-zinc-400" size={16} />
@@ -58,11 +66,17 @@ export const CommentUserBadge: React.FC<CommentUserBadgeProps> = ({
                         {level}
                     </div>
                 )}
-            </div>
+            </Link>
             <div>
                 <div className="flex items-center gap-2">
-                    <span className="font-medium text-white">{username}</span>
-                    <span className="text-xs text-zinc-400">{timestamp}</span>
+                    <Link 
+                        href={`/perfil/${username}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="font-medium text-white hover:text-blue-400 transition-colors"
+                    >
+                        {username}
+                    </Link>
+                    <span className="text-xs text-zinc-400">{formatPostDate(timestamp)}</span>
                 </div>
             </div>
         </div>
