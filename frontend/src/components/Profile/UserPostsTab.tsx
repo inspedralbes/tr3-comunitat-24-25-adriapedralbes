@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { PostCard } from '@/components/Community/Posts/PostCard';
 import { PostDetailModal } from '@/components/Community/Posts/PostDetailModal';
 import { Post } from '@/types/Post';
+import { Comment } from '@/types/Comment';
 import { communityService } from '@/services/community';
 import { formatAvatarUrl } from '@/utils/formatUtils';
 
@@ -19,11 +20,47 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
   const [error, setError] = useState('');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [postsComments, setPostsComments] = useState<Record<string, Comment[]>>({});
+  const [viewedPosts, setViewedPosts] = useState<Record<string, string>>({});
+
+  // Cargar el registro de posts vistos desde localStorage al iniciar
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedViewedPosts = localStorage.getItem(`viewed_posts_${userId}`);
+        if (savedViewedPosts) {
+          setViewedPosts(JSON.parse(savedViewedPosts));
+        }
+      } catch (error) {
+        console.error('Error loading viewed posts from localStorage:', error);
+      }
+    }
+  }, [userId]);
   
   // Obtener el username de los parámetros de la URL
   const params = useParams();
   const username = params.username as string;
   const postIdFromUrl = params.postId as string;
+
+  // Función para registrar un post como visto cuando se abre el detalle
+  const recordPostView = useCallback((postId: string) => {
+    const now = new Date().toISOString();
+    
+    setViewedPosts(prev => {
+      const updatedViewedPosts = { ...prev, [postId]: now };
+      
+      // Guardar en localStorage para persistencia
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(`viewed_posts_${userId}`, JSON.stringify(updatedViewedPosts));
+        } catch (error) {
+          console.error('Error saving viewed posts to localStorage:', error);
+        }
+      }
+      
+      return updatedViewedPosts;
+    });
+  }, [userId]);
 
   useEffect(() => {
     const fetchUserPosts = async () => {
@@ -71,6 +108,58 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
         
         setPosts(normalizedPosts);
         
+        // Cargar comentarios para cada post
+        const commentsPromises = normalizedPosts.map(post => 
+          communityService.getPostComments(post.id)
+            .then(comments => {
+              // Normalizar los datos de comentarios y avatares
+              const normalizedComments = Array.isArray(comments) ? comments : (comments.results || []);
+              
+              // Procesar los comentarios para asegurar que los avatares están bien formateados
+              const processedComments = normalizedComments.map(comment => {
+                // Asegurarnos de que el autor del comentario tiene avatarUrl normalizada
+                if (comment.author) {
+                  comment.author = {
+                    ...comment.author,
+                    avatarUrl: formatAvatarUrl(comment.author.avatar_url || comment.author.avatarUrl)
+                  };
+                }
+                
+                // También procesar las respuestas si existen
+                if (comment.replies && comment.replies.length > 0) {
+                  comment.replies = comment.replies.map((reply) => {
+                    if (reply.author) {
+                      reply.author = {
+                        ...reply.author,
+                        avatarUrl: formatAvatarUrl(reply.author.avatar_url || reply.author.avatarUrl)
+                      };
+                    }
+                    return reply;
+                  });
+                }
+                
+                return comment;
+              });
+              
+              return { postId: post.id, comments: processedComments };
+            })
+            .catch(err => {
+              console.error(`Error fetching comments for post ${post.id}:`, err);
+              return { postId: post.id, comments: [] };
+            })
+        );
+        
+        // Esperar a que se resuelvan todas las promesas de comentarios
+        const commentsResults = await Promise.all(commentsPromises);
+        
+        // Crear un objeto con los comentarios indexados por ID de post
+        const commentsMap: Record<string, Comment[]> = {};
+        commentsResults.forEach(result => {
+          commentsMap[result.postId] = result.comments;
+        });
+        
+        setPostsComments(commentsMap);
+        
         // Si hay un postId en la URL, abrir automáticamente ese post
         if (postIdFromUrl) {
           // Extraer solo el ID (los UUIDs tienen 36 caracteres)
@@ -79,6 +168,10 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
           // Buscar el post por ID
           const post = normalizedPosts.find(p => p.id === postId);
           if (post) {
+            // Marcar el post como visto
+            recordPostView(postId);
+            
+            // Abrir el modal
             setSelectedPost(post);
             setIsModalOpen(true);
           }
@@ -98,6 +191,9 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
 
   // Handler para cuando se hace clic en un post
   const handlePostClick = useCallback((postId: string) => {
+    // Registrar la vista
+    recordPostView(postId);
+    
     // Buscar el post por ID
     const post = posts.find(p => p.id === postId);
     if (post) {
@@ -120,7 +216,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
         }
       }
     }
-  }, [posts, username]);
+  }, [posts, username, recordPostView]);
 
   if (isLoading) {
     return (
@@ -190,6 +286,9 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
             comments={post.comments_count || 0}
             imageUrl={imageUrl}
             onPostClick={handlePostClick}
+            postComments={postsComments[post.id] || []}
+            isViewed={!!viewedPosts[post.id]}
+            lastViewedAt={viewedPosts[post.id] || null}
           />
         );
       })}
