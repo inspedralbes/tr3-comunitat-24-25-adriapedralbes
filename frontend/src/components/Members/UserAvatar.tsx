@@ -1,11 +1,11 @@
 import React from 'react';
 import Image from 'next/image';
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar-temp";
 
 interface UserAvatarProps {
     username: string;
-    avatarUrl: string;
+    avatarUrl: string | null;
     level: number;
     size?: "sm" | "md" | "lg";
 }

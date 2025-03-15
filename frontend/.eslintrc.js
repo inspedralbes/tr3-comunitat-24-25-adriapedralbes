@@ -56,6 +56,7 @@ module.exports = {
     ],
     "@typescript-eslint/no-empty-function": "warn",
     "@typescript-eslint/no-empty-interface": "warn",
+    "@typescript-eslint/no-empty-object-type": "warn",
 
     // React
     "react/react-in-jsx-scope": "off", // No necesario en Next.js
@@ -93,6 +94,10 @@ module.exports = {
     // Accesibilidad
     "jsx-a11y/alt-text": "warn", // Requiere texto alternativo en imágenes
     "jsx-a11y/anchor-is-valid": "warn", // Verifica uso correcto de enlaces
+    "jsx-a11y/click-events-have-key-events": "warn",
+    "jsx-a11y/no-static-element-interactions": "warn",
+    "jsx-a11y/heading-has-content": "warn",
+    "jsx-a11y/label-has-associated-control": "warn",
 
     // Reglas de formato y estilo
     "no-console": ["warn", { allow: ["warn", "error"] }],

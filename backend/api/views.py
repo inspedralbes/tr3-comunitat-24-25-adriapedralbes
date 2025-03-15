@@ -71,9 +71,10 @@ def test_beehiiv(request):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])  # Explícitamente permitir acceso sin autenticación
 def subscribe(request):
     """
-    API endpoint para suscribirse a la newsletter.
+    API endpoint para suscribirse a la newsletter. No requiere autenticación.
     """
     serializer = SubscriberSerializer(data=request.data)
     
@@ -151,6 +152,7 @@ def subscribe(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])  # Explícitamente permitir acceso sin autenticación
 def confirm_subscription(request, token):
     """
     API endpoint para confirmar la suscripción.
@@ -220,6 +222,7 @@ def confirm_subscription(request, token):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])  # Explícitamente permitir acceso sin autenticación
 def unsubscribe(request, token):
     """
     API endpoint para cancelar la suscripción.
@@ -245,8 +248,9 @@ def send_confirmation_email(subscriber):
     """
     Envía un email de confirmación al suscriptor.
     """
-    confirmation_link = f"{settings.SITE_URL}/api/newsletter/confirm/{subscriber.confirmation_token}"
-    unsubscribe_link = f"{settings.SITE_URL}/api/newsletter/unsubscribe/{subscriber.confirmation_token}/"
+    # Ahora usamos la ruta del frontend en lugar de la API
+    confirmation_link = f"{settings.SITE_URL}/newsletter/confirm/{subscriber.confirmation_token}"
+    unsubscribe_link = f"{settings.SITE_URL}/newsletter/unsubscribe/{subscriber.confirmation_token}/"
     
     subject = '¿ERES UNA IA?'
     

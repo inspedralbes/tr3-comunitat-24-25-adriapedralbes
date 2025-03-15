@@ -93,7 +93,7 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({
                         const timestamp = post.timestamp || post.created_at || 'hace un momento';
                         
                         // Extraer URL de imagen si existe
-                        const imageUrl = post.imageUrl || post.image || null;
+                        const imageUrl = post.imageUrl || post.image || undefined;
                         
                         // Normalizar la URL del avatar - asegurarse de que author.avatarUrl siempre exista
                         const author = {

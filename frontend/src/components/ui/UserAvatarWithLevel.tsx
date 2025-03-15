@@ -1,6 +1,6 @@
 import React from 'react';
 import { User } from '@/types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar-temp';
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { cn } from '@/lib/utils';
 
@@ -44,7 +44,7 @@ export default function UserAvatarWithLevel({
   return (
     <div className={cn('relative inline-block', className)}>
       <Avatar className={cn(sizeClasses[size])}>
-        <AvatarImage src={user.avatar_url} alt={user.username} />
+        <AvatarImage src={user.avatar_url || undefined} alt={user.username || 'User'} />
         <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
           {user.username ? user.username.substring(0, 2).toUpperCase() : 'U'}
         </AvatarFallback>

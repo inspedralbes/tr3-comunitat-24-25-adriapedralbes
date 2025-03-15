@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { AuthModal, AuthModalType } from "@/components/Auth";
@@ -17,7 +17,7 @@ import { Post } from "@/types/Post";
 import { Comment } from "@/types/Comment";
 import { getPostViewsRecord, recordPostView } from "@/utils/postViewStorage";
 
-export default function CommunityPage() {
+function CommunityContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeCategory, setActiveCategory] = useState('all');
@@ -256,8 +256,8 @@ export default function CommunityPage() {
         // Solo si no estamos en el tipo de ordenamiento 'pinned'
         let filteredRegularPosts;
         if (activeSortType !== 'pinned') {
-          const pinnedIds = pinnedPostsArray.map(post => post.id);
-          filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+          const pinnedIds = pinnedPostsArray.map((post: any) => post.id);
+          filteredRegularPosts = allPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
           setRegularPosts(filteredRegularPosts);
         } else {
           // Si el tipo es 'pinned', mostrar solo los posts fijados
@@ -297,8 +297,8 @@ export default function CommunityPage() {
         // Filtrar los posts fijados si no estamos en vista de 'pinned'
         let filteredRegularPosts;
         if (activeSortType !== 'pinned') {
-          const pinnedIds = pinnedPosts.map(post => post.id);
-          filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+          const pinnedIds = pinnedPosts.map((post: any) => post.id);
+          filteredRegularPosts = allPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
         } else {
           // Si el tipo es 'pinned', mostrar solo posts fijados
           filteredRegularPosts = allPostsArray;
@@ -319,8 +319,8 @@ export default function CommunityPage() {
         // Filtrar los posts fijados si no estamos en vista de 'pinned'
         let filteredPosts = categoryPostsArray;
         if (activeSortType !== 'pinned') {
-          const pinnedIds = pinnedPosts.map(post => post.id);
-          filteredPosts = categoryPostsArray.filter(post => !pinnedIds.includes(post.id));
+          const pinnedIds = pinnedPosts.map((post: any) => post.id);
+          filteredPosts = categoryPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
         }
         
         // Cargar comentarios para los posts filtrados
@@ -396,8 +396,8 @@ export default function CommunityPage() {
             const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
             
             if (activeSortType !== 'pinned') {
-              const pinnedIds = pinnedPostsArray.map(post => post.id);
-              const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+              const pinnedIds = pinnedPostsArray.map((post: any) => post.id);
+              const filteredRegularPosts = allPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
               setPinnedPosts(pinnedPostsArray);
               setRegularPosts(filteredRegularPosts);
             } else {
@@ -460,8 +460,8 @@ export default function CommunityPage() {
       
       // Filtrar los posts fijados para evitar duplicados (excepto en vista 'pinned')
       if (activeSortType !== 'pinned') {
-        const pinnedIds = pinnedPosts.map(post => post.id);
-        const filteredNewPosts = newPostsArray.filter(post => !pinnedIds.includes(post.id));
+        const pinnedIds = pinnedPosts.map((post: any) => post.id);
+        const filteredNewPosts = newPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
         setRegularPosts(filteredNewPosts);
       } else {
         setRegularPosts(newPostsArray);
@@ -552,5 +552,13 @@ export default function CommunityPage() {
         onSuccess={handleAuthSuccess}
       />
     </MainLayout>
+  );
+}
+
+export default function CommunityPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 max-w-6xl pt-6 pb-24 sm:pt-8">Cargando...</div>}>
+      <CommunityContent />
+    </Suspense>
   );
 }

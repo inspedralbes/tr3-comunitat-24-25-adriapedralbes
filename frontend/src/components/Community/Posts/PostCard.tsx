@@ -14,6 +14,7 @@ interface PostCardProps {
         username: string;
         level?: number;
         avatarUrl?: string;
+        avatar_url?: string;
     };
     timestamp: string;
     category?: string;
@@ -34,6 +35,7 @@ interface PostCardProps {
 interface Commenter {
     username: string;
     avatarUrl?: string;
+    avatar_url?: string;
 }
 
 // Tipo para comentarios con anidación

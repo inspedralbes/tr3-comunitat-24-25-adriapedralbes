@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
-import { ToastProvider, ToastViewport } from "@/components/ui/toast";
+// Usamos componentes simples en lugar de importar de @/components/ui/toast
+// Definición simplificada de los componentes de toast
 import { AnimatePresence, motion } from "framer-motion";
+
+const Toast = ({ className, style, children }: any) => (
+  <div className={`bg-white dark:bg-gray-800 rounded-md shadow-md p-4 ${className || ''}`} style={style}>{children}</div>
+);
+
+const ToastTitle = ({ className, children }: any) => (
+  <div className={`font-semibold text-black dark:text-white ${className || ''}`}>{children}</div>
+);
+
+const ToastDescription = ({ className, children }: any) => (
+  <div className={`text-gray-700 dark:text-gray-300 ${className || ''}`}>{children}</div>
+);
+
+const ToastProvider = ({ children }: any) => <>{children}</>;
+const ToastViewport = ({ className, children }: any) => <div className={className}>{children}</div>;
 
 // Interfaces para los tipos de notificaciones
 export interface LevelUpNotification {
@@ -114,7 +129,16 @@ const AchievementNotification: React.FC<AchievementNotificationProps> = ({
 // Función para obtener el color del borde
 const getBorderColor = (notification: GamificationNotification) => {
   if (notification.type === 'level-up') {
-    return '#8B5CF6'; // Color violeta para subida de nivel
+    // Usar el color de badge de levelInfo para nivel
+    const bgColor = notification.levelInfo.badge_color;
+    
+    if (bgColor.includes('green')) return '#10B981';
+    if (bgColor.includes('blue')) return '#3B82F6';
+    if (bgColor.includes('yellow')) return '#F59E0B';
+    if (bgColor.includes('red')) return '#EF4444';
+    if (bgColor.includes('purple')) return '#8B5CF6';
+    
+    return '#8B5CF6'; // Color violeta por defecto para subida de nivel
   }
   
   // Extraer el color del badge, buscamos el valor hexadecimal o devolvemos un color por defecto
@@ -131,6 +155,9 @@ const getBorderColor = (notification: GamificationNotification) => {
 
 // Función para obtener el color del badge
 const getBadgeColor = (notification: GamificationNotification) => {
+  if (notification.type === 'level-up') {
+    return notification.levelInfo.badge_color || 'bg-blue-500';
+  }
   return notification.badge_color || 'bg-blue-500';
 };
 

@@ -5,6 +5,7 @@ export interface Comment {
         username: string;
         level?: number;
         avatarUrl?: string;
+        avatar_url?: string;
     };
     content: string;
     timestamp: string;

@@ -6,7 +6,7 @@ interface TooltipProviderProps {
   delayDuration?: number;
 }
 
-export const TooltipProvider: React.FC<TooltipProviderProps> = ({ 
+const TooltipProvider: React.FC<TooltipProviderProps> = ({ 
   children,
   delayDuration = 300 
 }) => {
@@ -20,7 +20,7 @@ interface TooltipProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({
+const TooltipComponent: React.FC<TooltipProps> = ({
   children,
   delayDuration,
   open: controlledOpen,
@@ -35,27 +35,40 @@ interface TooltipTriggerProps {
   className?: string;
 }
 
-export const TooltipTrigger: React.FC<TooltipTriggerProps> = ({ 
+const TooltipTrigger: React.FC<TooltipTriggerProps> = ({ 
   children,
   asChild = false,
   className 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   
-  const child = asChild 
-    ? React.Children.only(children) 
-    : <span className={className}>{children}</span>;
+  // Aplicamos un enfoque más simple para evitar problemas de tipado
+  if (asChild && React.isValidElement(children)) {
+    // Si es asChild, creamos un clon con las props necesarias
+    return (
+      <span 
+        onMouseEnter={() => setIsOpen(true)}
+        onMouseLeave={() => setIsOpen(false)}
+        data-state={isOpen ? 'open' : 'closed'}
+        data-tooltip-trigger="true"
+      >
+        {children}
+      </span>
+    );
+  }
   
-  return React.cloneElement(child as React.ReactElement, {
-    onMouseEnter: () => setIsOpen(true),
-    onMouseLeave: () => setIsOpen(false),
-    'data-state': isOpen ? 'open' : 'closed',
-    'data-tooltip-trigger': true,
-    className: [
-      (child as React.ReactElement).props.className,
-      className
-    ].filter(Boolean).join(' ')
-  });
+  // Si no es asChild, simplemente envolvemos en un span
+  return (
+    <span 
+      className={className}
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+      data-state={isOpen ? 'open' : 'closed'}
+      data-tooltip-trigger="true"
+    >
+      {children}
+    </span>
+  );
 };
 
 interface TooltipContentProps {
@@ -67,7 +80,7 @@ interface TooltipContentProps {
   align?: 'start' | 'center' | 'end';
 }
 
-export const TooltipContent: React.FC<TooltipContentProps> = ({ 
+const TooltipContent: React.FC<TooltipContentProps> = ({ 
   children,
   className,
   sideOffset = 5,
@@ -140,6 +153,13 @@ export const TooltipContent: React.FC<TooltipContentProps> = ({
 };
 
 // Para usar como componente compuesto
+type TooltipType = React.FC<TooltipProps> & {
+  Provider: typeof TooltipProvider;
+  Trigger: typeof TooltipTrigger;
+  Content: typeof TooltipContent;
+};
+
+const Tooltip = TooltipComponent as TooltipType;
 Tooltip.Provider = TooltipProvider;
 Tooltip.Trigger = TooltipTrigger;
 Tooltip.Content = TooltipContent;

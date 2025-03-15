@@ -181,14 +181,14 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     console.log('Array de comentarios normalizado:', commentsArray);
                     
                     // Inspeccionar las URLs de los avatares
-                    commentsArray.forEach((comment, index) => {
+                    commentsArray.forEach((comment: any, index: number) => {
                         console.log(`Comentario ${index} - autor:`, comment.author.username);
                         console.log(`Comentario ${index} - avatar_url:`, comment.author.avatar_url);
                         console.log(`Comentario ${index} - avatarUrl:`, comment.author.avatarUrl);
                     });
 
                     // Normalizar las propiedades para hacerlas compatibles con nuestra interfaz
-                    const enhancedComments = commentsArray.map(comment => {
+                    const enhancedComments = commentsArray.map((comment: any) => {
                         // Asegurarnos de que content sea un string
                         const content = typeof comment.content === 'string' 
                             ? comment.content 
@@ -211,7 +211,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             // Normalizar avatar_url a avatarUrl
                                         avatarUrl: authorAvatarUrl
                                     },
-                            replies: comment.replies?.map(reply => {
+                            replies: comment.replies?.map((reply: any) => {
                                 // Asegurarnos de que el contenido de la respuesta sea string
                                 const replyContent = typeof reply.content === 'string'
                                     ? reply.content
@@ -601,7 +601,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                         username={post.author.username}
                         level={post.author.level}
                         avatarUrl={post.author.avatarUrl || post.author.avatar_url}
-                        timestamp={post.timestamp}
+                        timestamp={post.timestamp || post.created_at || 'hace un momento'}
                         category={typeof post.category === 'object' && post.category !== null ? post.category.name : post.category}
                         categoryColor={post.categoryColor || 'bg-[#444442] border border-white/5'}
                     />

@@ -2,17 +2,56 @@
 
 import { useState } from "react";
 
+import { AuthModal, AuthModalType } from "@/components/Auth";
 import { Button } from "@/components/ui/button";
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically handle the actual subscription logic
-    // For now, we'll just simulate a successful submission
-    setSubmitted(true);
+    setErrorMessage(null);
+    
+    if (!email) {
+      setErrorMessage("Por favor, introduce tu email");
+      return;
+    }
+    
+    setSubmitting(true);
+    
+    try {
+      // Realizar solicitud directa al backend sin requerir autenticación
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+      
+      const response = await fetch(`${apiUrl}/newsletter/subscribe/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: "", // Podemos dejar el nombre vacío o usar un valor por defecto
+          email,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Ha ocurrido un error al procesar la suscripción');
+      }
+      
+      setSubmitted(true);
+      setEmail("");
+    } catch (error: any) {
+      console.error("Error:", error);
+      setErrorMessage(error.message || "Ha ocurrido un error. Por favor, inténtalo de nuevo.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -85,6 +124,12 @@ export function NewsletterForm() {
         </p>
       </div>
 
+      {errorMessage && (
+        <div className="p-4 mb-4 bg-red-500/20 rounded-lg">
+          <p className="text-red-400 font-medium">{errorMessage}</p>
+        </div>
+      )}
+
       {submitted ? (
         <div className="p-4 bg-green-500/20 rounded-lg">
           <p className="text-green-400 font-medium">¡Gracias por suscribirte! Pronto recibirás nuestras novedades.</p>
@@ -102,11 +147,15 @@ export function NewsletterForm() {
           <Button 
             type="submit"
             className="bg-white text-black hover:bg-gray-200 px-8 py-3 font-medium"
+            disabled={submitting}
           >
-            Subscribe
+            {submitting ? "Enviando..." : "Subscribe"}
           </Button>
         </form>
       )}
+      
+      {/* Modal de autenticación ya no es necesario */}
+      {/* Mantenemos el componente por si en el futuro se quiere usar para otras funcionalidades */}
     </div>
   );
 }

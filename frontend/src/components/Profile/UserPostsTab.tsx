@@ -81,7 +81,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
         }
         
         // Normalizar las URL de avatares para todos los posts
-        const normalizedPosts = postsData.map(post => {
+        const normalizedPosts = postsData.map((post: any) => {
           // Asegurarnos de que tengamos un objeto author completo
           const author = post.author || { username: 'unknown' };
           
@@ -109,29 +109,29 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
         setPosts(normalizedPosts);
         
         // Cargar comentarios para cada post
-        const commentsPromises = normalizedPosts.map(post => 
+        const commentsPromises = normalizedPosts.map((post: Post) => 
           communityService.getPostComments(post.id)
             .then(comments => {
               // Normalizar los datos de comentarios y avatares
               const normalizedComments = Array.isArray(comments) ? comments : (comments.results || []);
               
               // Procesar los comentarios para asegurar que los avatares están bien formateados
-              const processedComments = normalizedComments.map(comment => {
+              const processedComments = normalizedComments.map((comment: any) => {
                 // Asegurarnos de que el autor del comentario tiene avatarUrl normalizada
                 if (comment.author) {
                   comment.author = {
                     ...comment.author,
-                    avatarUrl: formatAvatarUrl(comment.author.avatar_url || comment.author.avatarUrl)
+                    avatarUrl: formatAvatarUrl(comment.author.avatar_url || comment.author.avatarUrl) || undefined
                   };
                 }
                 
                 // También procesar las respuestas si existen
                 if (comment.replies && comment.replies.length > 0) {
-                  comment.replies = comment.replies.map((reply) => {
+                  comment.replies = comment.replies.map((reply: Comment) => {
                     if (reply.author) {
                       reply.author = {
                         ...reply.author,
-                        avatarUrl: formatAvatarUrl(reply.author.avatar_url || reply.author.avatarUrl)
+                        avatarUrl: formatAvatarUrl(reply.author.avatar_url || reply.author.avatarUrl) || undefined
                       };
                     }
                     return reply;
@@ -166,7 +166,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
           const postId = postIdFromUrl.length > 36 ? postIdFromUrl.substring(0, 36) : postIdFromUrl;
           
           // Buscar el post por ID
-          const post = normalizedPosts.find(p => p.id === postId);
+          const post = normalizedPosts.find((p: Post) => p.id === postId);
           if (post) {
             // Marcar el post como visto
             recordPostView(postId);
@@ -195,7 +195,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
     recordPostView(postId);
     
     // Buscar el post por ID
-    const post = posts.find(p => p.id === postId);
+    const post = posts.find((p: Post) => p.id === postId);
     if (post) {
       setSelectedPost(post);
       setIsModalOpen(true);
@@ -269,7 +269,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
         const timestamp = post.timestamp || post.created_at || 'hace un momento';
         
         // Extraer URL de imagen
-        const imageUrl = post.imageUrl || post.image || null;
+        const imageUrl = post.imageUrl || post.image || undefined;
         
         // No necesitamos reconstruir el author aquí, ya lo hicimos en el useEffect
         return (

@@ -5,7 +5,7 @@ import { UserAvatar } from '@/components/Members/UserAvatar';
 export interface LeaderboardUser {
     position: number;
     username: string;
-    avatarUrl: string;
+    avatarUrl: string | null;
     points: number;
     level?: number;
 }

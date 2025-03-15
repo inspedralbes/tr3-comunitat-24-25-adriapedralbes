@@ -13,8 +13,9 @@ export interface LeaderboardUserResponse extends User {
 export interface LeaderboardUserFormatted {
   position: number;
   username: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
   points: number;
+  level: number;
 }
 
 // Función para transformar la respuesta de la API al formato del componente
@@ -36,7 +37,7 @@ const formatLeaderboardUsers = (users: LeaderboardUserResponse[]): LeaderboardUs
     return {
       position: user.position || 0,
       username: user.username,
-      avatarUrl: avatarUrl,
+      avatarUrl: avatarUrl || '',  // Valor predeterminado como string vacío si es null
       points: user.points || 0,
       level: user.level || 1
     };
@@ -102,7 +103,7 @@ export const rankingService = {
       return {
         username: response.username,
         level: response.level || 1,
-        avatarUrl: avatarUrl,
+        avatarUrl: avatarUrl || '',  // Valor predeterminado como string vacío si es null
         // Suponemos que necesita 10 puntos por nivel, pero esto debería venir del backend
         pointsToNextLevel: 10 - (response.points % 10)
       };
@@ -112,7 +113,7 @@ export const rankingService = {
       return {
         username: 'Usuario',
         level: 1,
-        avatarUrl: null,
+        avatarUrl: '', // Valor predeterminado como string vacío si es null
         pointsToNextLevel: 10
       };
     }

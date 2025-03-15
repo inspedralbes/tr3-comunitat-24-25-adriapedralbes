@@ -73,7 +73,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const [error, setError] = useState('');
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [user, setUser] = useState<{
-        avatar_url?: string;
+        avatar_url?: string | null;
         username?: string;
         level?: number;
     } | null>(null);

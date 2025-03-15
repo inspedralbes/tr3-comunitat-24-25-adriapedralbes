@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { User } from '@/types/user';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar-adapter";
+import { User } from '@/types/User';
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from 'next/link';
 
@@ -28,12 +28,12 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
 
   // Datos mock de ejemplo para el leaderboard
   const mockLeaderboard = [
-    { id: 1, position: 1, username: 'maria_gonzalez', level: 8, points: 3450, avatar_url: '' },
-    { id: 2, position: 2, username: 'carlos93', level: 7, points: 2980, avatar_url: '' },
-    { id: 3, position: 3, username: 'laura_dev', level: 6, points: 2340, avatar_url: '' },
-    { id: 4, position: 4, username: 'davidcode', level: 5, points: 1890, avatar_url: '' },
-    { id: 5, position: 5, username: 'elena_tech', level: 4, points: 1350, avatar_url: '' },
-    { id: 6, position: 6, username: 'robert_js', level: 4, points: 1290, avatar_url: '' },
+    { id: '1', position: 1, username: 'maria_gonzalez', level: 8, points: 3450, avatar_url: '' },
+    { id: '2', position: 2, username: 'carlos93', level: 7, points: 2980, avatar_url: '' },
+    { id: '3', position: 3, username: 'laura_dev', level: 6, points: 2340, avatar_url: '' },
+    { id: '4', position: 4, username: 'davidcode', level: 5, points: 1890, avatar_url: '' },
+    { id: '5', position: 5, username: 'elena_tech', level: 4, points: 1350, avatar_url: '' },
+    { id: '6', position: 6, username: 'robert_js', level: 4, points: 1290, avatar_url: '' },
   ];
   
   const leaderboard = mockLeaderboard;
@@ -64,15 +64,14 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
           <CardTitle className="text-lg">{title}</CardTitle>
           
           {showFilters && (
-            <Select value={period} onValueChange={(value: any) => setPeriod(value)}>
-              <SelectTrigger className="w-32 h-8">
-                <SelectValue placeholder="Periodo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todo</SelectItem>
-                <SelectItem value="month">Este mes</SelectItem>
-                <SelectItem value="week">Esta semana</SelectItem>
-              </SelectContent>
+            <Select 
+              value={period} 
+              onValueChange={(value: any) => setPeriod(value)}
+              className="w-32 h-8"
+            >
+              <SelectItem value="all">Todo</SelectItem>
+              <SelectItem value="month">Este mes</SelectItem>
+              <SelectItem value="week">Esta semana</SelectItem>
             </Select>
           )}
         </div>
@@ -108,7 +107,7 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
                 
                 {/* Avatar */}
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar_url} alt={user.username} />
+                  <AvatarImage src={user.avatar_url || undefined} alt={user.username} />
                   <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
                     {user.username.substring(0, 2).toUpperCase()}
                   </AvatarFallback>

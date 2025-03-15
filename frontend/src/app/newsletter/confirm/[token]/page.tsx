@@ -2,19 +2,33 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-export default function ConfirmPage({ params }: { params: { token: string } }) {
+export default function ConfirmPage() {
+  const params = useParams();
+  const tokenParam = params.token as string;
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     // Accedemos al token desde los parámetros directamente
-    const token = params.token;
+    const token = tokenParam;
     
     const confirmSubscription = async () => {
       try {
+        // Realizar la solicitud directamente al backend
+        // Nota: El email que recibe el usuario apunta a /api/newsletter/confirm/{token}
+        // pero esa ruta ahora redirecciona a esta página /newsletter/confirm/{token}
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        
         const response = await fetch(
-          `http://localhost:8000/api/newsletter/confirm/${token}/`
+          `${backendUrl}/newsletter/confirm/${token}/`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
         );
         const data = await response.json();
 
@@ -35,7 +49,7 @@ export default function ConfirmPage({ params }: { params: { token: string } }) {
     };
 
     confirmSubscription();
-  }, [params.token]); // Dependencia correcta
+  }, [tokenParam]); // Dependencia correcta
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">

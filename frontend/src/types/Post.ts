@@ -25,4 +25,5 @@ export interface Post {
     comments?: number;
     isPinned?: boolean;
     imageUrl?: string;
+    categoryColor?: string;
 }

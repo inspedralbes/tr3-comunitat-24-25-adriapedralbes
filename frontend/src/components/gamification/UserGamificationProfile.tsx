@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User } from '@/types/user';
+import { User } from '@/types/User';
 import LevelProgressBar from './LevelProgressBar';
 import UserAchievements from './UserAchievements';
 import { Award, Trophy, Calendar, Star, Clock } from 'lucide-react';

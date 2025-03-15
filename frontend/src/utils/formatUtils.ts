@@ -9,7 +9,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
  * @param url The avatar URL to format
  * @returns The formatted URL
  */
-export const formatAvatarUrl = (url: string | null): string | null => {
+export const formatAvatarUrl = (url: string | null | undefined): string | null => {
   if (!url) return null;
   
   // If it already starts with http, it's a complete URL
@@ -24,6 +24,6 @@ export const formatAvatarUrl = (url: string | null): string | null => {
  * @param url The image URL to format
  * @returns The formatted URL
  */
-export const formatImageUrl = (url: string | null): string | null => {
+export const formatImageUrl = (url: string | null | undefined): string | null => {
   return formatAvatarUrl(url);
 };
