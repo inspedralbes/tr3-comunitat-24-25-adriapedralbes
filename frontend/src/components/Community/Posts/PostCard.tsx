@@ -204,15 +204,17 @@ export const PostCard: React.FC<PostCardProps> = ({
             {/* Imagen adjunta */}
             {imageUrl && (
                 <div className="mt-2 mb-3">
-                    <Image
-                        src={imageUrl.startsWith('http') ? imageUrl : `http://127.0.0.1:8000${imageUrl}`}
-                        alt={`Contenido de ${title}`}
-                        width={500}
-                        height={300}
-                        className="rounded-lg max-h-28 object-cover border border-white/10"
-                        priority={true}
-                        unoptimized={true}
-                    />
+                    <div className="cursor-pointer hover:opacity-95 transition-all">
+                        <Image
+                            src={imageUrl.startsWith('http') ? imageUrl : `http://127.0.0.1:8000${imageUrl}`}
+                            alt={`Contenido de ${title}`}
+                            width={500}
+                            height={300}
+                            className="rounded-lg max-h-28 object-cover border border-white/10"
+                            priority={true}
+                            unoptimized={true}
+                        />
+                    </div>
                 </div>
             )}
 

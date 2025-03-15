@@ -8,6 +8,7 @@ import { communityService } from '@/services/community';
 import { authService } from '@/services/auth';
 import { Comment } from '@/types/Comment';
 import { Post } from '@/types/Post';
+import { ImageViewerModal } from '@/components/Community/Posts/ImageViewerModal';
 
 interface PostDetailModalProps {
     post: Post | null;
@@ -48,6 +49,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const [likesCount, setLikesCount] = useState(post?.likes || 0);
     const [comments, setComments] = useState<EnhancedComment[]>([]);
     const [currentUser, setCurrentUser] = useState<any>(null);
+    const [imageViewerOpen, setImageViewerOpen] = useState(false);
 
     // Cargar perfil del usuario actual
     useEffect(() => {
@@ -69,6 +71,11 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
             setLiked(post.is_liked || false);
             setLikesCount(post.likes || 0);
         }
+        
+        // Reiniciar el estado del visor de imágenes al abrir el post
+        if (isOpen) {
+            setImageViewerOpen(false);
+        }
     }, [isOpen, post]);
 
     // Función para confirmar salida si hay comentario pendiente (memoizada para evitar recreación)
@@ -83,7 +90,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-                if (confirmDiscardComment()) {
+                if (confirmDiscardComment() && !imageViewerOpen) { // No cerrar si el visor de imagen está abierto
                     setComment('');
                     onClose();
                 }
@@ -98,12 +105,12 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isOpen, onClose, comment, confirmDiscardComment]);
+    }, [isOpen, onClose, comment, confirmDiscardComment, imageViewerOpen]);
 
     // Close on escape key
     useEffect(() => {
         const handleEscapeKey = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
+            if (event.key === 'Escape' && !imageViewerOpen) { // No cerrar si el visor de imagen está abierto
                 if (confirmDiscardComment()) {
                     setComment('');
                     onClose();
@@ -118,7 +125,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         return () => {
             document.removeEventListener('keydown', handleEscapeKey);
         };
-    }, [isOpen, onClose, comment, confirmDiscardComment]);
+    }, [isOpen, onClose, comment, confirmDiscardComment, imageViewerOpen]);
 
     // Handle like action
     const handleLike = () => {
@@ -566,7 +573,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         <div className="fixed inset-0 bg-black/75 z-50 flex items-start justify-center pt-8 sm:pt-16 overflow-y-auto">
             <div
                 ref={modalRef}
-                className="bg-[#1f1f1e] w-full max-w-3xl mx-4 rounded-lg border border-white/10 shadow-xl"
+                className="bg-[#1f1f1e] w-full max-w-3xl mx-4 rounded-lg border border-white/10 shadow-xl z-50"
             >
                 {/* Header */}
                 <div className="flex justify-between items-center px-5 py-2.5 border-b border-white/10">
@@ -613,14 +620,22 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     {/* Image if available */}
                     {post.imageUrl && (
                         <div className="mt-2 mb-3">
-                            <Image
-                                src={post.imageUrl}
-                                alt={`Contenido de ${title}`}
-                                width={600}
-                                height={400}
-                                className="rounded-lg max-h-72 object-cover border border-white/10"
-                                unoptimized={post.imageUrl.includes('127.0.0.1') || post.imageUrl.includes('localhost')}
-                            />
+                            <div 
+                                className="cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Evitar que el click se propague
+                                    setImageViewerOpen(true);
+                                }}
+                            >
+                                <Image
+                                    src={post.imageUrl}
+                                    alt={`Contenido de ${title}`}
+                                    width={600}
+                                    height={400}
+                                    className="rounded-lg max-h-72 object-cover border border-white/10"
+                                    unoptimized={post.imageUrl.includes('127.0.0.1') || post.imageUrl.includes('localhost')}
+                                />
+                            </div>
                         </div>
                     )}
 
@@ -771,6 +786,16 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     </div>
                 </div>
             </div>
+            
+            {/* Modal de visualización de imagen completa */}
+            {post.imageUrl && imageViewerOpen && (
+                <ImageViewerModal
+                    imageUrl={post.imageUrl}
+                    isOpen={imageViewerOpen}
+                    onClose={() => setImageViewerOpen(false)}
+                    altText={`Imagen de ${post.author.username}: ${title}`}
+                />
+            )}
         </div>
     );
 };
