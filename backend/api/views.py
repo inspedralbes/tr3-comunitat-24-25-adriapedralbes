@@ -345,8 +345,20 @@ class UserMeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(request.user, context={'request': request})
-        return Response(serializer.data)
+        user = request.user
+        serializer = UserSerializer(user, context={'request': request})
+        user_data = serializer.data
+        
+        # Añadir contador de posts, likes recibidos y comentarios
+        user_data['posts_count'] = Post.objects.filter(author=user).count()
+        
+        post_likes = PostLike.objects.filter(post__author=user).count()
+        comment_likes = CommentLike.objects.filter(comment__author=user).count()
+        user_data['likes_received'] = post_likes + comment_likes
+        
+        user_data['comments_count'] = Comment.objects.filter(author=user).count()
+        
+        return Response(user_data)
 
     def patch(self, request):
         serializer = UserSerializer(request.user, data=request.data, partial=True, context={'request': request})
@@ -484,6 +496,32 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             pass
         
         return Response(activity[:20])  # Limitamos a 20 actividades recientes
+    
+    @action(detail=True, methods=['get'])
+    def comments_count(self, request, pk=None):
+        """
+        Obtener el número de comentarios de un usuario.
+        """
+        user = self.get_object()
+        count = Comment.objects.filter(author=user).count()
+        return Response({'count': count})
+    
+    @action(detail=True, methods=['get'], url_path='likes/received')
+    def likes_received(self, request, pk=None):
+        """
+        Obtener el número de likes recibidos por un usuario en sus posts y comentarios.
+        """
+        user = self.get_object()
+        
+        # Contar likes en posts del usuario
+        post_likes = PostLike.objects.filter(post__author=user).count()
+        
+        # Contar likes en comentarios del usuario
+        comment_likes = CommentLike.objects.filter(comment__author=user).count()
+        
+        total_likes = post_likes + comment_likes
+        
+        return Response({'count': total_likes})
 
 
 class LeaderboardView(generics.ListAPIView):

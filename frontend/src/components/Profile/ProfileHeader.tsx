@@ -86,21 +86,21 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
             <div className="flex items-center gap-1 text-zinc-300">
               <ThumbsUp size={16} />
               <span>
-                <span className="font-semibold">0</span> likes recibidos
+                <span className="font-semibold">{userProfile.likes_received || 0}</span> likes recibidos
               </span>
             </div>
             
             <div className="flex items-center gap-1 text-zinc-300">
               <Flag size={16} />
               <span>
-                <span className="font-semibold">0</span> posts
+                <span className="font-semibold">{userProfile.posts_count || 0}</span> posts
               </span>
             </div>
             
             <div className="flex items-center gap-1 text-zinc-300">
               <MessageCircle size={16} />
               <span>
-                <span className="font-semibold">0</span> comentarios
+                <span className="font-semibold">{userProfile.comments_count || 0}</span> comentarios
               </span>
             </div>
           </div>
