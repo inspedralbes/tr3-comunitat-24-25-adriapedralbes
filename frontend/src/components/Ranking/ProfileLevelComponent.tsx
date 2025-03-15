@@ -97,11 +97,48 @@ interface LevelBlockProps {
 }
 
 const LevelBlock: React.FC<LevelBlockProps> = ({ level, isUnlocked, isActive, percentage }) => {
+    // Obtener el color del badge según el nivel
+    const getBadgeColor = (level: number) => {
+        const colors: Record<number, string> = {
+            1: 'bg-gray-500',
+            2: 'bg-green-500',
+            3: 'bg-blue-500',
+            4: 'bg-indigo-500',
+            5: 'bg-purple-500',
+            6: 'bg-pink-500',
+            7: 'bg-red-500',
+            8: 'bg-yellow-500',
+            9: 'bg-amber-500',
+            10: 'bg-orange-500',
+        };
+        return colors[level] || 'bg-blue-500';
+    };
+    
+    // Determinar el color de texto según el nivel
+    const textColorClass = level === 8 || level === 9 ? 'text-black' : 'text-white';
+    
+    // Color de fondo actual para niveles activos
+    const getActiveBgColor = (level: number) => {
+        const colors: Record<number, string> = {
+            1: 'bg-gray-900/20',
+            2: 'bg-green-900/20',
+            3: 'bg-blue-900/20',
+            4: 'bg-indigo-900/20',
+            5: 'bg-purple-900/20',
+            6: 'bg-pink-900/20',
+            7: 'bg-red-900/20',
+            8: 'bg-yellow-900/20',
+            9: 'bg-amber-900/20',
+            10: 'bg-orange-900/20',
+        };
+        return colors[level] || 'bg-blue-900/20';
+    };
+    
     return (
-        <div className={`relative flex items-center p-3 rounded-lg ${isActive ? 'bg-blue-900/20' : 'bg-[#2A2A28]'}`}>
+        <div className={`relative flex items-center p-3 rounded-lg ${isActive ? getActiveBgColor(level) : 'bg-[#2A2A28]'}`}>
             {isUnlocked ? (
                 <div className="flex items-center w-full">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${isActive ? 'bg-blue-600' : 'bg-blue-700'} text-white font-bold mr-3`}>
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${getBadgeColor(level)} ${textColorClass} font-bold mr-3`}>
                         {level}
                     </div>
                     <div className="flex-1">

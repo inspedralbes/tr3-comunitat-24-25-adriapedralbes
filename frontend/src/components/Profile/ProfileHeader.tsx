@@ -11,6 +11,30 @@ interface ProfileHeaderProps {
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => {
+  // Función para obtener el color del badge según el nivel
+  const getBadgeColor = (level: number) => {
+    const colors: Record<number, string> = {
+      1: 'bg-gray-500',
+      2: 'bg-green-500',
+      3: 'bg-blue-500',
+      4: 'bg-indigo-500',
+      5: 'bg-purple-500',
+      6: 'bg-pink-500',
+      7: 'bg-red-500',
+      8: 'bg-yellow-500',
+      9: 'bg-amber-500',
+      10: 'bg-orange-500',
+    };
+    return colors[level] || 'bg-blue-500';
+  };
+
+  // Determinar si el texto debe ser negro (para fondos claros)
+  const getTextColor = (level: number) => {
+    return level === 8 || level === 9 ? 'text-black' : 'text-white';
+  };
+
+  const level = userProfile.level || 1;
+
   return (
     <div className="bg-[#323230] rounded-lg p-6 border border-white/10 mb-6">
       <div className="flex flex-col md:flex-row items-start gap-6">
@@ -32,8 +56,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
               </div>
             )}
           </div>
-          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold text-white border-2 border-[#323230]">
-            {userProfile.level || 1}
+          <div className={`absolute -bottom-2 -right-2 w-8 h-8 ${getBadgeColor(level)} rounded-full flex items-center justify-center text-sm font-bold ${getTextColor(level)} border-2 border-[#323230]`}>
+            {level}
           </div>
         </div>
 
