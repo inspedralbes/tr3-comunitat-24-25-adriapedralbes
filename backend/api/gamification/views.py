@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, generics
 from django.shortcuts import get_object_or_404
+from django.db.models import Count, F, FloatField
+from django.db.models.functions import Cast
 
 from api.models import User
 from .models import UserLevel, UserAchievement, UserAchievementUnlock
@@ -115,3 +117,46 @@ def achievement_list(request):
         })
     
     return Response(achievement_data)
+
+
+@api_view(['GET'])
+def level_distribution(request):
+    """
+    Obtiene la distribución de usuarios por nivel en porcentajes.
+    """
+    total_users = User.objects.count()
+    
+    # Si no hay usuarios, devolver distribución vacía
+    if total_users == 0:
+        return Response([])
+    
+    # Contar usuarios por nivel
+    level_counts = User.objects.values('level').annotate(
+        count=Count('id'),
+        percentage=Cast(Count('id') * 100.0 / total_users, FloatField())
+    ).order_by('level')
+    
+    # Asegurar que todos los niveles están representados
+    all_levels = UserLevel.objects.all().order_by('level')
+    levels_data = []
+    
+    for level in all_levels:
+        # Buscar si hay usuarios en este nivel
+        level_data = next(
+            (item for item in level_counts if item['level'] == level.level),
+            {'level': level.level, 'count': 0, 'percentage': 0.0}
+        )
+        
+        # Redondear a 1 decimal
+        percentage = round(level_data['percentage'], 1)
+        
+        levels_data.append({
+            'level': level.level,
+            'title': level.title,
+            'count': level_data['count'],
+            'percentage': percentage,
+            'badge_color': level.badge_color,
+            'icon': level.icon
+        })
+    
+    return Response(levels_data)

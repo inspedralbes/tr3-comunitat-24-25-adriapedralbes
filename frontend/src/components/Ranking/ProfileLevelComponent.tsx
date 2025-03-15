@@ -1,5 +1,6 @@
-import { LockIcon } from 'lucide-react';
-import React from 'react';
+import { LockIcon, Loader2Icon } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { LevelDistribution, rankingService } from '@/services/ranking';
 import { UserLargeAvatar } from './UserLargeAvatar';
 
 interface ProfileLevelComponentProps {
@@ -15,6 +16,24 @@ export const ProfileLevelComponent: React.FC<ProfileLevelComponentProps> = ({
     avatarUrl,
     pointsToNextLevel,
 }) => {
+    const [levelDistribution, setLevelDistribution] = useState<LevelDistribution[]>([]);
+    const [loading, setLoading] = useState(true);
+    
+    useEffect(() => {
+        const fetchLevelDistribution = async () => {
+            try {
+                setLoading(true);
+                const data = await rankingService.getLevelDistribution();
+                setLevelDistribution(data);
+            } catch (error) {
+                console.error('Error al obtener distribución de niveles:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchLevelDistribution();
+    }, []);
     return (
         <div className="bg-[#323230]/90 rounded-lg border border-white/10 p-8">
             <div className="flex flex-col items-center md:flex-row md:items-start gap-6">
@@ -36,32 +55,35 @@ export const ProfileLevelComponent: React.FC<ProfileLevelComponentProps> = ({
 
             {/* Grid de niveles */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
-                {/* Nivel 1 - Activo */}
-                <LevelBlock level={1} isUnlocked={true} percentage={93} isActive={level === 1} />
-
-                {/* Nivel 2 - Bloqueado */}
-                <LevelBlock level={2} isUnlocked={false} percentage={6} isActive={level === 2} />
-
-                {/* Nivel 3 - Bloqueado */}
-                <LevelBlock level={3} isUnlocked={false} percentage={0} isActive={level === 3} />
-
-                {/* Nivel 4 - Bloqueado */}
-                <LevelBlock level={4} isUnlocked={false} percentage={1} isActive={level === 4} />
-
-                {/* Nivel 5 - Bloqueado */}
-                <LevelBlock level={5} isUnlocked={false} percentage={0} isActive={level === 5} />
-
-                {/* Nivel 6 - Bloqueado */}
-                <LevelBlock level={6} isUnlocked={false} percentage={0} isActive={level === 6} />
-
-                {/* Nivel 7 - Bloqueado */}
-                <LevelBlock level={7} isUnlocked={false} percentage={0} isActive={level === 7} />
-
-                {/* Nivel 8 - Bloqueado */}
-                <LevelBlock level={8} isUnlocked={false} percentage={0} isActive={level === 8} />
-
-                {/* Nivel 9 - Bloqueado */}
-                <LevelBlock level={9} isUnlocked={false} percentage={0} isActive={level === 9} />
+                {loading ? (
+                    <div className="col-span-5 flex justify-center items-center py-8">
+                        <Loader2Icon className="animate-spin h-8 w-8 text-blue-500" />
+                    </div>
+                ) : (
+                    levelDistribution.length > 0 ? (
+                        // Mostrar niveles con datos reales
+                        levelDistribution.map((levelData) => (
+                            <LevelBlock 
+                                key={levelData.level}
+                                level={levelData.level} 
+                                isUnlocked={level >= levelData.level} 
+                                percentage={levelData.percentage} 
+                                isActive={level === levelData.level} 
+                            />
+                        ))
+                    ) : (
+                        // Fallback por si no hay datos
+                        Array.from({ length: 9 }, (_, i) => i + 1).map((levelNum) => (
+                            <LevelBlock 
+                                key={levelNum}
+                                level={levelNum} 
+                                isUnlocked={level >= levelNum} 
+                                percentage={0} 
+                                isActive={level === levelNum} 
+                            />
+                        ))
+                    )
+                )}
             </div>
         </div>
     );

@@ -14,13 +14,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Iniciando configuración del sistema de gamificación...'))
         
-        self.setup_levels()
-        self.setup_actions()
-        self.setup_achievements()
+        self.setup_levels(options)
+        self.setup_actions(options)
+        self.setup_achievements(options)
         
         self.stdout.write(self.style.SUCCESS('Sistema de gamificación configurado correctamente'))
     
-    def setup_levels(self):
+    def setup_levels(self, options):
         """Configura los niveles de usuario"""
         self.stdout.write('Configurando niveles de usuario...')
         
@@ -84,7 +84,7 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS(f'Creados {len(levels)} niveles de usuario'))
     
-    def setup_actions(self):
+    def setup_actions(self, options):
         """Configura las acciones de usuario y sus recompensas"""
         self.stdout.write('Configurando acciones de usuario...')
         
@@ -146,7 +146,7 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS(f'Creadas {len(action_objects)} acciones de usuario'))
     
-    def setup_achievements(self):
+    def setup_achievements(self, options):
         """Configura los logros que pueden desbloquear los usuarios"""
         self.stdout.write('Configurando logros...')
         

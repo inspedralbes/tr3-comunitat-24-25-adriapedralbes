@@ -43,6 +43,16 @@ const formatLeaderboardUsers = (users: LeaderboardUserResponse[]): LeaderboardUs
   });
 };
 
+// Interfaz para la distribución de niveles
+export interface LevelDistribution {
+  level: number;
+  title: string;
+  count: number;
+  percentage: number;
+  badge_color: string;
+  icon: string | null;
+}
+
 // Servicio para interactuar con la API de ranking/leaderboard
 export const rankingService = {
   // Obtener el leaderboard general
@@ -106,6 +116,12 @@ export const rankingService = {
         pointsToNextLevel: 10
       };
     }
+  },
+  
+  // Obtener la distribución de usuarios por nivel
+  getLevelDistribution: async (): Promise<LevelDistribution[]> => {
+    const response = await api.get('gamification/level-distribution/');
+    return response; 
   }
 };
 
