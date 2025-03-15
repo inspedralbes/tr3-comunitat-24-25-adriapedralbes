@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 
 import { PostCard } from '@/components/Community/Posts/PostCard';
 import { PostDetailModal } from '@/components/Community/Posts/PostDetailModal';
@@ -18,6 +19,11 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
   const [error, setError] = useState('');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Obtener el username de los parámetros de la URL
+  const params = useParams();
+  const username = params.username as string;
+  const postIdFromUrl = params.postId as string;
 
   useEffect(() => {
     const fetchUserPosts = async () => {
@@ -64,6 +70,19 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
         });
         
         setPosts(normalizedPosts);
+        
+        // Si hay un postId en la URL, abrir automáticamente ese post
+        if (postIdFromUrl) {
+          // Extraer solo el ID (los UUIDs tienen 36 caracteres)
+          const postId = postIdFromUrl.length > 36 ? postIdFromUrl.substring(0, 36) : postIdFromUrl;
+          
+          // Buscar el post por ID
+          const post = normalizedPosts.find(p => p.id === postId);
+          if (post) {
+            setSelectedPost(post);
+            setIsModalOpen(true);
+          }
+        }
       } catch (err) {
         console.error('Error fetching user posts:', err);
         setError('No se pudieron cargar las publicaciones.');
@@ -75,16 +94,33 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
     if (userId) {
       fetchUserPosts();
     }
-  }, [userId]);
+  }, [userId, postIdFromUrl]);
 
-  const handlePostClick = (postId: string) => {
-    // Find the post by ID
+  // Handler para cuando se hace clic en un post
+  const handlePostClick = useCallback((postId: string) => {
+    // Buscar el post por ID
     const post = posts.find(p => p.id === postId);
     if (post) {
       setSelectedPost(post);
       setIsModalOpen(true);
+      
+      // Actualizar la URL para incluir el ID del post pero sin navegar
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
+        const regex = new RegExp(`^/perfil/${username}$`);
+        
+        // Solo actualizar si estamos en la página principal de perfil
+        if (regex.test(currentPath)) {
+          // Modificar el historial sin navegar (evita recargas)
+          window.history.replaceState(
+            { postId }, 
+            '', 
+            `/perfil/${username}/${postId}${post.title ? `-${post.title.toLowerCase().replace(/[^\\w\\s-]/g, '').replace(/\\s+/g, '-').replace(/--+/g, '-').substring(0, 50)}` : ''}`
+          );
+        }
+      }
     }
-  };
+  }, [posts, username]);
 
   if (isLoading) {
     return (
@@ -162,7 +198,14 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
       <PostDetailModal 
         post={selectedPost} 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        onClose={() => {
+          // Restaurar la URL original al cerrar el modal
+          if (typeof window !== 'undefined') {
+            window.history.replaceState({}, '', `/perfil/${username}`);
+          }
+          setSelectedPost(null);
+          setIsModalOpen(false);
+        }} 
       />
     </div>
   );

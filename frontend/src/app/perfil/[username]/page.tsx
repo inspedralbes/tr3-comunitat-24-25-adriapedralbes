@@ -1,7 +1,7 @@
 "use client";
 
 import { HardDrive, Info, MessageCircle } from 'lucide-react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 import { ProfileHeader } from '@/components/Profile/ProfileHeader';
@@ -17,7 +17,9 @@ type TabType = 'posts' | 'activity' | 'info';
 export default function UserProfilePage() {
   const router = useRouter();
   const params = useParams();
+  const pathname = usePathname();
   const username = params.username as string;
+  const postId = params.postId as string;
   
   const [activeTab, setActiveTab] = useState<TabType>('posts');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
