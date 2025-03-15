@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { PostCard } from '@/components/Community/Posts/PostCard';
+import { PostDetailModal } from '@/components/Community/Posts/PostDetailModal';
 import { Post } from '@/types/Post';
 import { communityService } from '@/services/community';
 
@@ -14,6 +15,8 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserPosts = async () => {
@@ -37,9 +40,66 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
     }
   }, [userId]);
 
-  const handlePostClick = (postId: string) => {
-    // Redirigir o abrir modal con el detalle del post
-    console.log('Post clicked:', postId);
+  const handlePostClick = async (postId: string) => {
+    try {
+      // Obtener los detalles del post directamente de la API
+      const postData = await communityService.getPostById(postId);
+      
+      if (postData) {
+        // Normalizar el post para asegurar que tiene la estructura esperada
+        const normalizedPost = {
+          id: postData.id,
+          author: {
+            id: postData.author?.id,
+            username: postData.author?.username || 'Usuario',
+            level: postData.author?.level,
+            avatarUrl: postData.author?.avatar_url || postData.author?.avatarUrl,
+            avatar_url: postData.author?.avatar_url
+          },
+          title: postData.title,
+          content: typeof postData.content === 'string' ? postData.content : JSON.stringify(postData.content),
+          category: typeof postData.category === 'object' && postData.category !== null ? postData.category.name : postData.category,
+          categoryColor: typeof postData.category === 'object' && postData.category !== null && postData.category.color ? postData.category.color : 'bg-[#444442] border border-white/5',
+          created_at: postData.created_at,
+          updated_at: postData.updated_at,
+          image: postData.image,
+          comments_count: postData.comments_count || 0,
+          is_pinned: postData.is_pinned,
+          timestamp: postData.timestamp || postData.created_at,
+          likes: postData.likes || 0,
+          comments: postData.comments_count || 0,
+          isPinned: postData.is_pinned,
+          imageUrl: postData.image || postData.imageUrl,
+          is_liked: postData.is_liked
+        };
+        
+        setSelectedPost(normalizedPost);
+        setIsModalOpen(true);
+      }
+    } catch (err) {
+      console.error('Error al obtener detalles del post:', err);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedPost(null);
+    
+    // Opcionalmente actualizamos los posts para reflejar cambios
+    if (userId) {
+      const refreshPosts = async () => {
+        try {
+          // Obtener posts del usuario actualizados
+          const response = await communityService.getUserPosts(userId);
+          setPosts(Array.isArray(response) ? response : 
+                  (response.results ? response.results : []));
+        } catch (err) {
+          console.error('Error actualizando posts:', err);
+        }
+      };
+      
+      refreshPosts();
+    }
   };
 
   if (isLoading) {
@@ -112,6 +172,13 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
           />
         );
       })}
+
+      {/* Modal de detalle del post */}
+      <PostDetailModal
+        post={selectedPost}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+      />
     </div>
   );
 };
