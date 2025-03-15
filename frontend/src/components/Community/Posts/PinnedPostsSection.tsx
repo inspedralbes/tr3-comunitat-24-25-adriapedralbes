@@ -1,5 +1,5 @@
 import { Trophy } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Post } from '@/types/Post';
 import { Comment } from '@/types/Comment';
@@ -25,6 +25,17 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({
     postViewsRecord = {}
 }) => {
     const [isVisible, setIsVisible] = useState(true);
+    const [visiblePosts, setVisiblePosts] = useState<Post[]>([]);
+    
+    // Efecto para actualizar los posts con transición suave
+    useEffect(() => {
+        // Si no estamos cargando y tenemos posts, actualizar inmediatamente
+        if (!isLoading) {
+            // Si la longitud es la misma, probablemente solo estamos actualizando datos
+            // después de cerrar un modal, así que no se necesita ninguna transición
+            setVisiblePosts(pinnedPosts);
+        }
+    }, [pinnedPosts, isLoading]);
 
     if (!isVisible || (pinnedPosts.length === 0 && !isLoading)) {
         return null;
@@ -59,7 +70,7 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({
                         </div>
                     </div>
                 ) : (
-                    pinnedPosts.map((post) => {
+                    visiblePosts.map((post) => {
                         // Extracción segura del nombre de la categoría de la respuesta de la API
                         let categoryName = '';
                         let categoryColor = 'bg-[#444442] border border-white/5';

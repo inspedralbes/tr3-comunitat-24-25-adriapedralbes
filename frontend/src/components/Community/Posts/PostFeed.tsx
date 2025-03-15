@@ -37,12 +37,19 @@ export const PostFeed: React.FC<PostFeedProps> = ({
             return;
         }
         
+        // Importante: si ya tenemos posts visibles y los nuevos posts tienen la misma longitud,
+        // probablemente estamos actualizando después de cerrar un modal, así que no hacemos transición
+        if (visiblePosts.length > 0 && posts.length > 0 && posts.length === visiblePosts.length) {
+            setVisiblePosts(posts);
+            return;
+        }
+        
         if (posts.length === 0) {
             setVisiblePosts([]);
             return;
         }
         
-        // Iniciar transición
+        // Iniciar transición solo si es necesario (cambio real en los posts)
         setIsTransitioning(true);
         
         // Pequeño retraso para la animación
@@ -52,7 +59,7 @@ export const PostFeed: React.FC<PostFeedProps> = ({
         }, 300);
         
         return () => clearTimeout(timer);
-    }, [posts, isLoading]);
+    }, [posts, isLoading, visiblePosts.length]);
     
     // Filtrar posts según la categoría seleccionada
     let filteredPosts = visiblePosts || [];

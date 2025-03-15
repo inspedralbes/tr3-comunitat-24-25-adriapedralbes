@@ -11,8 +11,6 @@ import { PostDetailModal } from "@/components/Community/Posts/PostDetailModal";
 import { PostFeed } from "@/components/Community/Posts/PostFeed";
 import { WritePostComponent } from "@/components/Community/Posts/WritePostComponent";
 import MainLayout from '@/components/layouts/MainLayout';
-// import { pinnedPosts, regularPosts } from "@/mockData/mockData"; // Comentado para usar datos reales de la API
-// import { topUsers } from "@/leaderboardData"; // Comentado para usar datos reales de la API
 import { authService } from '@/services/auth';
 import { communityService } from '@/services/community';
 import { Post } from "@/types/Post";
@@ -28,6 +26,7 @@ export default function CommunityPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [categories, setCategories] = useState([]);
   const [pinnedPosts, setPinnedPosts] = useState<Post[]>([]);
   const [regularPosts, setRegularPosts] = useState<Post[]>([]);
@@ -38,6 +37,7 @@ export default function CommunityPage() {
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [skipLoadingIndicator, setSkipLoadingIndicator] = useState(false);
 
   // Comprobar si el usuario está autenticado
   useEffect(() => {
@@ -105,7 +105,6 @@ export default function CommunityPage() {
       console.error('Error al cargar comentarios de los posts:', error);
     }
   };
-
 
   // Función para cargar el contenido del post (definida antes de ser usada en el efecto)
   const loadPostContent = useCallback(async (postId: string, updateUrl = true) => {
@@ -378,41 +377,62 @@ export default function CommunityPage() {
     }
   }, [loadPostContent, selectedPost]);
 
+  // Añadir el efecto para actualizaciones silenciosas en segundo plano
+  useEffect(() => {
+    if (!isModalOpen && !isLoadingInitial) {
+      // Solo actualizar si no hay modal abierto y no estamos en la carga inicial
+      const refreshInterval = setInterval(() => {
+        const silentRefresh = async () => {
+          try {
+            // No activar flag de carga para actualizaciones en segundo plano
+            const [pinnedData, postsData] = await Promise.all([
+              communityService.getPinnedPosts(),
+              communityService.getAllPosts(activeCategory !== 'all' ? activeCategory : undefined, 1, activeSortType)
+            ]);
+            
+            const pinnedPostsArray = Array.isArray(pinnedData) ? pinnedData : 
+                              (pinnedData.results ? pinnedData.results : []);
+            
+            const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
+            
+            if (activeSortType !== 'pinned') {
+              const pinnedIds = pinnedPostsArray.map(post => post.id);
+              const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
+              setPinnedPosts(pinnedPostsArray);
+              setRegularPosts(filteredRegularPosts);
+            } else {
+              setPinnedPosts(pinnedPostsArray);
+              setRegularPosts(allPostsArray);
+            }
+          } catch (err) {
+            console.error('Error en la actualización silenciosa:', err);
+          }
+        };
+
+        silentRefresh();
+      }, 30000); // Actualizar cada 30 segundos
+      
+      return () => clearInterval(refreshInterval);
+    }
+  }, [isModalOpen, isLoadingInitial, activeCategory, activeSortType]);
 
   const closeModal = () => {
-    // Restaurar la URL original al cerrar el modal sin usar router (evita parpadeo)
+    // Activar el flag para evitar cualquier skeleton
+    setSkipLoadingIndicator(true);
+    
+    // Restaurar URL original
     if (typeof window !== 'undefined') {
       window.history.replaceState({}, '', '/comunidad');
     }
+    
+    // Cerrar el modal inmediatamente
+    setSelectedPost(null);
     setIsModalOpen(false);
     
-    // Optionally refresh data when closing modal to ensure all changes are reflected
-    const refreshPosts = async () => {
-      try {
-        // Obtener posts fijados actualizados
-        const pinnedData = await communityService.getPinnedPosts();
-        const pinnedPostsArray = Array.isArray(pinnedData) ? pinnedData : 
-                               (pinnedData.results ? pinnedData.results : []);
-        setPinnedPosts(pinnedPostsArray);
-        
-        // Obtener posts regulares actualizados
-        const postsData = await communityService.getAllPosts(activeCategory !== 'all' ? activeCategory : undefined, 1, activeSortType);
-        const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
-        
-        // Filtrar los posts regulares para eliminar los que ya están fijados (excepto en vista 'pinned')
-        if (activeSortType !== 'pinned') {
-          const pinnedIds = pinnedPostsArray.map(post => post.id);
-          const filteredRegularPosts = allPostsArray.filter(post => !pinnedIds.includes(post.id));
-          setRegularPosts(filteredRegularPosts);
-        } else {
-          setRegularPosts(allPostsArray);
-        }
-      } catch (err) {
-        console.error('Error al actualizar posts después de cerrar modal:', err);
-      }
-    };
-    
-    refreshPosts();
+    // Mantener el flag activo por un tiempo suficiente
+    setTimeout(() => {
+      setSkipLoadingIndicator(false);
+    }, 2000);
   };
 
   // Función para crear un nuevo post
@@ -487,23 +507,23 @@ export default function CommunityPage() {
 
             {/* Publicaciones fijadas */}
             <PinnedPostsSection 
-              pinnedPosts={pinnedPosts} 
-              onPostClick={handlePostClick} 
-              isLoading={isLoadingInitial}
-              postComments={postComments}
-              viewedPosts={viewedPosts}
-              postViewsRecord={postViewsRecord}
+            pinnedPosts={pinnedPosts} 
+            onPostClick={handlePostClick} 
+            isLoading={isLoadingInitial && !selectedPost && !skipLoadingIndicator}
+            postComments={postComments}
+            viewedPosts={viewedPosts}
+            postViewsRecord={postViewsRecord}
             />
 
             {/* Feed de publicaciones */}
             <PostFeed 
-              posts={regularPosts} 
-              filter={activeCategory} 
-              onPostClick={handlePostClick} 
-              isLoading={isLoadingInitial || isLoadingPosts}
-              postComments={postComments}
-              viewedPosts={viewedPosts}
-              postViewsRecord={postViewsRecord}
+            posts={regularPosts} 
+            filter={activeCategory} 
+            onPostClick={handlePostClick} 
+            isLoading={isLoadingInitial && !selectedPost && !skipLoadingIndicator}
+            postComments={postComments}
+            viewedPosts={viewedPosts}
+            postViewsRecord={postViewsRecord}
             />
           </div>
 
