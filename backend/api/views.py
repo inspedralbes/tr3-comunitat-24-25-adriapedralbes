@@ -1,4 +1,9 @@
 from rest_framework import status, viewsets, permissions, generics, filters
+from api.gamification.services import award_points
+import logging
+
+# Configurar logger
+logger = logging.getLogger(__name__)
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +24,8 @@ from django.utils.html import strip_tags
 from django.urls import reverse
 from .welcome_email import send_welcome_email
 from .beehiiv import add_subscriber_to_beehiiv
+from datetime import timedelta
+import datetime
 import uuid
 import os
 
@@ -457,8 +464,24 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             *comment_likes_data
         ]
         
+        # Convertir todas las fechas de created_at a string con formato ISO
+        for item in activity:
+            # Agregar log para depuración
+            logger.debug(f"created_at type: {type(item['created_at'])} value: {item['created_at']}")
+            
+            # Asegurarse de que todos sean strings
+            if isinstance(item['created_at'], datetime.datetime):
+                item['created_at'] = item['created_at'].isoformat()
+            elif not isinstance(item['created_at'], str):
+                item['created_at'] = str(item['created_at'])
+        
         # Ordenar por fecha de creación (más reciente primero)
-        activity.sort(key=lambda x: x['created_at'], reverse=True)
+        try:
+            activity.sort(key=lambda x: x['created_at'], reverse=True)
+        except Exception as e:
+            logger.error(f"Error al ordenar actividad: {str(e)}")
+            # En caso de error, intentar evitarlo devolviendo sin ordenar
+            pass
         
         return Response(activity[:20])  # Limitamos a 20 actividades recientes
 
@@ -532,7 +555,15 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # Guardar el autor como el usuario autenticado
-        serializer.save(author=self.request.user)
+        post = serializer.save(author=self.request.user)
+        
+        # Otorgar puntos por crear un post
+        try:
+            award_points(self.request.user, 'create_post', reference_id=str(post.id))
+        except Exception as e:
+            # Loggear el error pero permitir que la creación del post continúe
+            logger.error(f"Error al otorgar puntos: {str(e)}")
+            # No bloqueamos la creación del post si hay error en la gamificación
 
     def get_queryset(self):
         queryset = Post.objects.all()
@@ -601,12 +632,19 @@ class CommentViewSet(viewsets.ModelViewSet):
         parent = Comment.objects.filter(id=parent_id).first() if parent_id else None
         mentioned_user = User.objects.filter(id=mentioned_user_id).first() if mentioned_user_id else None
         
-        serializer.save(
+        comment = serializer.save(
             author=self.request.user,
             post=post,
             parent=parent,
             mentioned_user=mentioned_user
         )
+        
+        # Otorgar puntos por crear un comentario
+        try:
+            award_points(self.request.user, 'create_comment', reference_id=str(comment.id))
+        except Exception as e:
+            # Loggear el error pero permitir que la creación del comentario continúe
+            logger.error(f"Error al otorgar puntos: {str(e)}")
 
 
 class PostLikeView(APIView):
@@ -624,10 +662,15 @@ class PostLikeView(APIView):
             post.likes += 1
             post.save(update_fields=['likes'])
             
-            # Si el autor no es el mismo usuario que da like, dar puntos al autor
-            if post.author != request.user:
-                post.author.points += 1
-                post.author.save(update_fields=['points'])
+            # Otorgar puntos al usuario que da like
+            try:
+                award_points(request.user, 'give_like_post', reference_id=str(post.id))
+            
+                # Si el autor no es el mismo usuario que da like, otorgar puntos al autor por recibir like
+                if post.author != request.user:
+                    award_points(post.author, 'receive_like_post', reference_id=str(post.id))
+            except Exception as e:
+                logger.error(f"Error al otorgar puntos por like: {str(e)}")
             
             return Response({'status': 'liked', 'likes': post.likes})
         else:
@@ -638,10 +681,7 @@ class PostLikeView(APIView):
             post.likes = max(0, post.likes - 1)
             post.save(update_fields=['likes'])
             
-            # Si el autor no es el mismo usuario, restar puntos
-            if post.author != request.user:
-                post.author.points = max(0, post.author.points - 1)
-                post.author.save(update_fields=['points'])
+            # Nota: No restamos puntos al quitar likes para mantener la integridad del sistema
             
             return Response({'status': 'unliked', 'likes': post.likes})
 
@@ -661,10 +701,15 @@ class CommentLikeView(APIView):
             comment.likes += 1
             comment.save(update_fields=['likes'])
             
-            # Si el autor no es el mismo usuario que da like, dar puntos al autor
-            if comment.author != request.user:
-                comment.author.points += 1
-                comment.author.save(update_fields=['points'])
+            # Otorgar puntos al usuario que da like
+            try:
+                award_points(request.user, 'give_like_comment', reference_id=str(comment.id))
+            
+                # Si el autor no es el mismo usuario que da like, otorgar puntos al autor por recibir like
+                if comment.author != request.user:
+                    award_points(comment.author, 'receive_like_comment', reference_id=str(comment.id))
+            except Exception as e:
+                logger.error(f"Error al otorgar puntos por like a comentario: {str(e)}")
             
             return Response({'status': 'liked', 'likes': comment.likes})
         else:
@@ -675,9 +720,6 @@ class CommentLikeView(APIView):
             comment.likes = max(0, comment.likes - 1)
             comment.save(update_fields=['likes'])
             
-            # Si el autor no es el mismo usuario, restar puntos
-            if comment.author != request.user:
-                comment.author.points = max(0, comment.author.points - 1)
-                comment.author.save(update_fields=['points'])
+            # Nota: No restamos puntos al quitar likes para mantener la integridad del sistema
             
             return Response({'status': 'unliked', 'likes': comment.likes})

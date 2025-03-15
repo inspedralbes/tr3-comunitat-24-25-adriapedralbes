@@ -3,6 +3,7 @@ export * from './auth';
 export * from './community';
 export * from './user';
 export * from './ranking';
+export * from './gamification';
 
 // Exportar servicios como objeto
 import apiService from './api';
@@ -10,13 +11,15 @@ import auth from './auth';
 import community from './community';
 import user from './user';
 import ranking from './ranking';
+import gamification from './gamification';
 
 const services = {
   api: apiService,
   auth,
   community,
   user,
-  ranking
+  ranking,
+  gamification
 };
 
 export default services;

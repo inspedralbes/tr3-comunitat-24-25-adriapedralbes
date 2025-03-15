@@ -36,6 +36,8 @@ services:
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_HOST=postgres
       - DATABASE_PORT=${DATABASE_PORT}
+      # Configuración de gamificación
+      - FORCE_GAMIFICATION_SETUP=false
     restart: on-failure
     command: sh -c "chmod +x /app/entrypoint.sh && /app/entrypoint.sh"
     depends_on:

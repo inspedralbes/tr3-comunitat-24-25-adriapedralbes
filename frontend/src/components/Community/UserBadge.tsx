@@ -1,6 +1,8 @@
 import { User } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
+import Link from 'next/link';
+import UserLevelBadge from '@/components/ui/UserLevelBadge';
 
 interface UserBadgeProps {
   username: string;
@@ -19,13 +21,22 @@ export const UserBadge: React.FC<UserBadgeProps> = ({
   category,
   categoryColor = 'bg-zinc-700'
 }) => {
+  // Formatear la URL del avatar
+  const formattedAvatarUrl = avatarUrl && !avatarUrl.startsWith('http') 
+    ? `http://127.0.0.1:8000${avatarUrl}` 
+    : avatarUrl;
+
   return (
     <div className="flex items-center gap-2">
-      <div className="relative flex-shrink-0 self-start">
-        <div className="w-10 h-10 bg-zinc-700 rounded-full flex items-center justify-center overflow-hidden">
-          {avatarUrl ? (
+      <Link 
+        href={`/profile/${username}`} 
+        onClick={(e) => e.stopPropagation()} 
+        className="relative flex-shrink-0 self-start group"
+      >
+        <div className="w-10 h-10 bg-zinc-700 rounded-full flex items-center justify-center overflow-hidden border-2 border-zinc-800 transition-all duration-200 group-hover:border-blue-500 group-hover:shadow-[0_0_10px_rgba(59,130,246,0.4)]">
+          {formattedAvatarUrl ? (
             <Image
-              src={avatarUrl}
+              src={formattedAvatarUrl}
               alt={username}
               width={40}
               height={40}
@@ -33,26 +44,37 @@ export const UserBadge: React.FC<UserBadgeProps> = ({
               unoptimized={true}
             />
           ) : (
-            <User className="text-zinc-400" size={20} />
+            <div className="w-full h-full flex items-center justify-center text-zinc-400">
+              <User size={20} />
+            </div>
           )}
         </div>
-        {level && (
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white border border-zinc-900 z-10">
-            {level}
-          </div>
-        )}
-      </div>
+        
+        {/* Badge de nivel con efecto de brillo en hover */}
+        <div className="absolute -bottom-1 -right-1 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12">
+          <UserLevelBadge level={level} size="sm" showTooltip={true} />
+        </div>
+      </Link>
+      
       <div>
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{username}</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link 
+            href={`/profile/${username}`}
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium hover:text-blue-400 transition-colors"
+          >
+            {username}
+          </Link>
+          
           <span className="text-xs text-zinc-400">{timestamp}</span>
+          
           {category && (
-            <>
+            <div className="flex items-center gap-1">
               <span className="text-zinc-400 text-xs">in</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColor}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColor} font-medium`}>
                 {category}
               </span>
-            </>
+            </div>
           )}
         </div>
       </div>
