@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import React, { useEffect, useState, useCallback } from 'react';
 
 import { PostCard } from '@/components/Community/Posts/PostCard';
 import { PostDetailModal } from '@/components/Community/Posts/PostDetailModal';
-import { Post } from '@/types/Post';
-import { Comment } from '@/types/Comment';
 import { communityService } from '@/services/community';
+import { Comment } from '@/types/Comment';
+import { Post } from '@/types/Post';
 import { formatAvatarUrl } from '@/utils/formatUtils';
 
 interface UserPostsTabProps {
@@ -81,7 +81,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
         }
         
         // Normalizar las URL de avatares para todos los posts
-        const normalizedPosts = postsData.map((post: any) => {
+        const normalizedPosts = postsData.map((post: Post) => {
           // Asegurarnos de que tengamos un objeto author completo
           const author = post.author || { username: 'unknown' };
           
@@ -116,7 +116,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
               const normalizedComments = Array.isArray(comments) ? comments : (comments.results || []);
               
               // Procesar los comentarios para asegurar que los avatares están bien formateados
-              const processedComments = normalizedComments.map((comment: any) => {
+              const processedComments = normalizedComments.map((comment: Comment) => {
                 // Asegurarnos de que el autor del comentario tiene avatarUrl normalizada
                 if (comment.author) {
                   comment.author = {
@@ -187,7 +187,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
     if (userId) {
       fetchUserPosts();
     }
-  }, [userId, postIdFromUrl]);
+  }, [userId, postIdFromUrl, recordPostView]);
 
   // Handler para cuando se hace clic en un post
   const handlePostClick = useCallback((postId: string) => {

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import { AuthModal, AuthModalType } from "@/components/Auth";
+import { AuthModal as _AuthModal, AuthModalType as _AuthModalType } from "@/components/Auth";
 import { NewsletterAvatarCircles } from "@/components/Newsletter/newsletter-avatar-circles";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ export function NewsletterHero() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [_showAuthModal, _setShowAuthModal] = useState(false);
   
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -59,9 +59,10 @@ export function NewsletterHero() {
       setName("");
       setEmail("");
       setAccepted(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       console.error("Error:", error);
-      setErrorMessage(error.message || "Ha ocurrido un error. Por favor, inténtalo de nuevo.");
+      setErrorMessage(errorMessage || "Ha ocurrido un error. Por favor, inténtalo de nuevo.");
     } finally {
       setIsSubmitting(false);
     }

@@ -1,8 +1,8 @@
 import { Trophy } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
-import { Post } from '@/types/Post';
 import { Comment } from '@/types/Comment';
+import { Post } from '@/types/Post';
 import { PostViewRecord } from '@/types/PostView';
 
 import { PostCard } from './PostCard';

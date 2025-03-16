@@ -1,12 +1,13 @@
 import { ThumbsUp, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
-import React, { useState, useEffect } from 'react';
-import { communityService } from '@/services/community';
-import { formatRelativeTime, isNewComment, parseDjangoTimestamp } from '@/utils/dateUtils';
+import React, { useState } from 'react';
+
 
 import { CommentAvatars } from '@/components/Community/Comments/CommentAvatars';
 import { PostAuthor } from '@/components/Community/Posts/PostAuthor';
+import { communityService } from '@/services/community';
 import { Comment } from '@/types/Comment';
+import { formatRelativeTime, isNewComment, parseDjangoTimestamp } from '@/utils/dateUtils';
 
 interface PostCardProps {
     id: string;
@@ -39,14 +40,14 @@ interface Commenter {
 }
 
 // Tipo para comentarios con anidación
-interface CommentWithReplies {
-    author: { 
-        username: string; 
-        avatarUrl?: string;
-    };
-    timestamp: string;
-    replies?: CommentWithReplies[];
-}
+// interface CommentWithReplies {
+//     author: { 
+//         username: string; 
+//         avatarUrl?: string;
+//     };
+//     timestamp: string;
+//     replies?: CommentWithReplies[];
+// }
 
 export const PostCard: React.FC<PostCardProps> = ({
     id,
@@ -63,7 +64,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     isLiked = false,
     onPostClick,
     postComments = [],
-    isViewed = false,
+    _isViewed = false,
     lastViewedAt = null
 }) => {
     // Estado local para controlar el like
@@ -118,12 +119,13 @@ export const PostCard: React.FC<PostCardProps> = ({
             
             // Verificar que el formato de fecha es válido
             try {
-                const date = parseDjangoTimestamp(commentTime);
-                if (isNaN(date.getTime())) {
-                    console.warn('Invalid date format in comment:', commentTime);
-                }
-            } catch (error) {
-                console.error('Error parsing comment date:', error);
+            const date = parseDjangoTimestamp(commentTime);
+            if (isNaN(date.getTime())) {
+            // Formato de fecha inválido
+            }
+            } catch {
+            // Silenciamos el error
+            // Error al analizar la fecha
             }
         }
         
@@ -142,8 +144,9 @@ export const PostCard: React.FC<PostCardProps> = ({
                             replyDate > currentLastDate) {
                             lastCommentTime = replyTime;
                         }
-                    } catch (error) {
-                        console.error('Error comparing dates:', error);
+                    } catch {
+                    // Silenciamos el error
+                    // Error al comparar fechas
                     }
                 }
             }
@@ -151,12 +154,12 @@ export const PostCard: React.FC<PostCardProps> = ({
         
         // Depurar el timestamp y el formato resultante
         if (lastCommentTime) {
-            console.log('Post:', id, 'Last comment time:', lastCommentTime);
-            console.log('Formatted as:', formatRelativeTime(lastCommentTime));
+            // console.log('Post:', id, 'Last comment time:', lastCommentTime);
+            // console.log('Formatted as:', formatRelativeTime(lastCommentTime));
             
             if (lastViewedAt) {
-                console.log('Last viewed at:', lastViewedAt);
-                console.log('Is newest comment:', isNewComment(lastViewedAt, lastCommentTime));
+                // console.log('Last viewed at:', lastViewedAt);
+                // console.log('Is newest comment:', isNewComment(lastViewedAt, lastCommentTime));
             }
         }
         
@@ -234,8 +237,9 @@ export const PostCard: React.FC<PostCardProps> = ({
                                         setIsPostLiked(response.status === 'liked');
                                         setLikesCount(response.likes);
                                     })
-                                    .catch(error => {
-                                        console.error('Error al dar/quitar like:', error);
+                                    .catch(() => {
+                                        // Capturamos el error
+                                        console.error('Error al dar/quitar like');
                                     });
                             }}
                         >

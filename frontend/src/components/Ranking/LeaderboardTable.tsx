@@ -1,5 +1,6 @@
-import Image from 'next/image';
+import { default as _Image } from 'next/image';
 import React from 'react';
+
 import { UserAvatar } from '@/components/Members/UserAvatar';
 
 export interface LeaderboardUser {

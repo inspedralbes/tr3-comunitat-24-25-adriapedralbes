@@ -26,11 +26,13 @@ const formatLeaderboardUsers = (users: LeaderboardUserResponse[]): LeaderboardUs
     if (user.avatar_url) {
       // Validar que la URL del avatar es válida
       try {
-        const url = new URL(user.avatar_url);
+        // Solo necesitamos validar la URL
+        new URL(user.avatar_url);
         avatarUrl = user.avatar_url;
-      } catch (e) {
+      } catch {
+        // Silenciamos el error
         // Si la URL no es válida, no usar avatar
-        console.warn(`Avatar URL inválida para ${user.username}: ${user.avatar_url}`);
+        // console.warn(`Avatar URL inválida para ${user.username}: ${user.avatar_url}`);
       }
     }
     
@@ -93,10 +95,12 @@ export const rankingService = {
       let avatarUrl = null;
       if (response.avatar_url) {
         try {
-          const url = new URL(response.avatar_url);
+          // Solo necesitamos validar la URL
+          new URL(response.avatar_url);
           avatarUrl = response.avatar_url;
-        } catch (e) {
-          console.warn(`Avatar URL inválido para usuario actual: ${response.avatar_url}`);
+        } catch {
+          // Silenciamos el error
+          // console.warn(`Avatar URL inválido para usuario actual: ${response.avatar_url}`);
         }
       }
 

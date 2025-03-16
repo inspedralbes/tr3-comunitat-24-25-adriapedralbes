@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-import { CalendarEvent, MonthData, ViewMode } from '@/types/Calendar';
+import { CalendarEvent, MonthData } from '@/types/Calendar';
 import { getMonthData } from '@/utils/calendarUtils';
 
 import { CalendarHeader } from './CalendarHeader';

@@ -1,8 +1,9 @@
 import React from 'react';
-import { User } from '@/types';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar-temp';
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { cn } from '@/lib/utils';
+import { User } from '@/types';
 
 interface UserAvatarWithLevelProps {
   user: User;

@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { Progress } from "@/components/ui/progress";
 import { User } from '@/types/User';
 
@@ -25,7 +26,7 @@ const UserLevel: React.FC<UserLevelProps> = ({
 
   const level = user?.level || mockProgression.current_level || 1;
   const points = user?.points || mockProgression.current_points || 0;
-  const nextLevelPoints = mockProgression.next_level_points || 100;
+  const _nextLevelPoints = mockProgression.next_level_points || 100;
   const pointsNeeded = mockProgression.points_needed || 100;
   const progressPercentage = mockProgression.progress_percentage || 0;
   const maxLevelReached = mockProgression.max_level_reached || false;

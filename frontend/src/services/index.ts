@@ -9,9 +9,9 @@ export * from './gamification';
 import apiService from './api';
 import auth from './auth';
 import community from './community';
-import user from './user';
-import ranking from './ranking';
 import gamification from './gamification';
+import ranking from './ranking';
+import user from './user';
 
 const services = {
   api: apiService,

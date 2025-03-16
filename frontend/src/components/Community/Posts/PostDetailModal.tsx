@@ -1,17 +1,16 @@
 import { ThumbsUp, MessageCircle, Bell, Smile, CornerUpRight } from 'lucide-react';
 import Image from 'next/image';
-import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
-import { formatAvatarUrl, formatImageUrl } from '@/utils/formatUtils';
-
+import { ImageViewerModal } from '@/components/Community/Posts/ImageViewerModal';
 import { UserBadge } from '@/components/Community/UserBadge';
 import { Button } from '@/components/ui/button';
+import { authService, UserProfile } from '@/services/auth';
 import { communityService } from '@/services/community';
-import { authService } from '@/services/auth';
 import { Comment } from '@/types/Comment';
 import { Post } from '@/types/Post';
-import { ImageViewerModal } from '@/components/Community/Posts/ImageViewerModal';
+import { formatAvatarUrl, formatImageUrl } from '@/utils/formatUtils';
 
 interface PostDetailModalProps {
     post: Post | null;
@@ -44,7 +43,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     isOpen,
     onClose
 }) => {
-    const router = useRouter();
+    const _router = useRouter();
     const [comment, setComment] = useState('');
     const [replyToComment, setReplyToComment] = useState<ReplyToInfo | null>(null);
     const [lastRespondedComment, setLastRespondedComment] = useState<ReplyToInfo | null>(null);
@@ -52,7 +51,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const [liked, setLiked] = useState(post?.is_liked || false);
     const [likesCount, setLikesCount] = useState(post?.likes || 0);
     const [comments, setComments] = useState<EnhancedComment[]>([]);
-    const [currentUser, setCurrentUser] = useState<any>(null);
+    const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
     const [imageViewerOpen, setImageViewerOpen] = useState(false);
 
     // Cargar perfil del usuario actual
@@ -172,28 +171,26 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     // Cargar comentarios del post seleccionado desde la API
                     const commentsData = await communityService.getPostComments(post.id);
                     
-                    console.log('Comentarios recibidos:', commentsData);
+                    // console.log('Comentarios recibidos:', commentsData);
                     // Normalizar los datos recibidos de la API
-                    let commentsArray = Array.isArray(commentsData) 
+                    const commentsArray = Array.isArray(commentsData) 
                         ? commentsData 
                         : (commentsData.results || []);
                     
-                    console.log('Array de comentarios normalizado:', commentsArray);
+                    // console.log('Array de comentarios normalizado:', commentsArray);
                     
-                    // Inspeccionar las URLs de los avatares
-                    commentsArray.forEach((comment: any, index: number) => {
-                        console.log(`Comentario ${index} - autor:`, comment.author.username);
-                        console.log(`Comentario ${index} - avatar_url:`, comment.author.avatar_url);
-                        console.log(`Comentario ${index} - avatarUrl:`, comment.author.avatarUrl);
+                    // Inspección de las URLs de los avatares no es necesaria en prod
+                    commentsArray.forEach((_comment: Comment, _index: number) => {
+                        // la lógica fue comentada
                     });
 
                     // Normalizar las propiedades para hacerlas compatibles con nuestra interfaz
-                    const enhancedComments = commentsArray.map((comment: any) => {
+                    const enhancedComments = commentsArray.map((comment: Comment) => {
                         // Asegurarnos de que content sea un string
                         const content = typeof comment.content === 'string' 
                             ? comment.content 
                             : JSON.stringify(comment.content);
-                        console.log('Tipo de content:', typeof comment.content);
+                        // console.log('Tipo de content:', typeof comment.content);
 
                         // Asegurar que la URL del avatar está completa
                         const authorAvatarUrl = comment.author.avatar_url || comment.author.avatarUrl;
@@ -207,11 +204,11 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                         author: {
                         ...comment.author,
                         // Asegurar que tenemos el ID del autor
-                        id: comment.author.id || comment.author_id,
+                        id: comment.author.id || '',
                             // Normalizar avatar_url a avatarUrl
                                         avatarUrl: authorAvatarUrl
                                     },
-                            replies: comment.replies?.map((reply: any) => {
+                            replies: comment.replies?.map((reply: Comment) => {
                                 // Asegurarnos de que el contenido de la respuesta sea string
                                 const replyContent = typeof reply.content === 'string'
                                     ? reply.content
@@ -231,7 +228,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     author: {
                                         ...reply.author,
                                         // Asegurar que tenemos el ID del autor
-                                        id: reply.author.id || reply.author_id,
+                                        id: reply.author.id || '',
                                         // Normalizar avatar_url a avatarUrl para las respuestas
                                         avatarUrl: replyAuthorAvatarUrl
                                     }
@@ -324,7 +321,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 mentioned_user_id: replyToComment?.userId || undefined // ID del usuario mencionado cuando respondemos
             };
             
-            console.log('Enviando comentario con datos:', commentData);
+            // console.log('Enviando comentario con datos:', commentData);
 
             // Enviar el comentario a la API
             const response = await communityService.createComment(commentData);
@@ -624,12 +621,13 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     {/* Image if available */}
                     {post.imageUrl && (
                         <div className="mt-2 mb-3">
-                            <div 
-                                className="cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={(e) => {
-                                    e.stopPropagation(); // Evitar que el click se propague
-                                    setImageViewerOpen(true);
-                                }}
+                            <button 
+                            className="cursor-pointer hover:opacity-90 transition-opacity block w-full"
+                            onClick={(e) => {
+                            e.stopPropagation(); // Evitar que el click se propague
+                            setImageViewerOpen(true);
+                            }}
+                                aria-label="Ver imagen a tamaño completo"
                             >
                                 <Image
                                     src={formatImageUrl(post.imageUrl) || ''}
@@ -639,7 +637,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     className="rounded-lg max-h-72 object-cover border border-white/10"
                                     unoptimized={true}
                                 />
-                            </div>
+                            </button>
                         </div>
                     )}
 

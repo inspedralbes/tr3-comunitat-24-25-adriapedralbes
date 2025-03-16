@@ -41,7 +41,7 @@ export default function MiembrosPage() {
             
             try {
                 const usersData = await userService.getAllUsers();
-                console.log('Datos de usuarios recibidos:', usersData);
+                // Datos de usuarios recibidos
                 const users = Array.isArray(usersData) ? usersData : 
                              (usersData.results ? usersData.results : []);
                 
@@ -49,15 +49,12 @@ export default function MiembrosPage() {
                 for (let i = 0; i < users.length; i++) {
                     if ((!users[i].date_joined && !users[i].created_at) && users[i].id) {
                         try {
-                            console.log(`Obteniendo datos adicionales para usuario ${users[i].username}`);
+                            // Obteniendo datos adicionales para el usuario
                             const userData = await userService.getUserById(users[i].id.toString());
                             if (userData && (userData.date_joined || userData.created_at)) {
                                 users[i].date_joined = userData.date_joined || users[i].date_joined;
                                 users[i].created_at = userData.created_at || users[i].created_at;
-                                console.log(`Datos adicionales obtenidos para ${users[i].username}:`, {
-                                    date_joined: users[i].date_joined,
-                                    created_at: users[i].created_at
-                                });
+                                // Datos adicionales obtenidos
                             }
                         } catch (error) {
                             console.error(`Error al obtener datos adicionales para ${users[i].username}:`, error);
@@ -68,7 +65,7 @@ export default function MiembrosPage() {
                 // Transformar los datos de usuarios a formato de miembros
                 const transformedMembers: Member[] = users.map((user: User) => {
                     // Crear un handle seguro - solo con el nombre de usuario (sin ID)
-                    let handle = `@${user.username.toLowerCase().replace(/\s+/g, '-')}`;
+                    const handle = `@${user.username.toLowerCase().replace(/\s+/g, '-')}`;
                     
                     // Formatear la fecha de unión con manejo de error
                     let joinedDate = 'Desconocido';
@@ -78,7 +75,7 @@ export default function MiembrosPage() {
                         
                         if (dateString) {
                             // Imprimir la fecha para depuración
-                            console.log(`Usuario ${user.username}, fecha de registro:`, dateString);
+                            // Fecha de registro procesada
                             joinedDate = new Date(dateString).toLocaleDateString('en-US', { 
                                 month: 'short', 
                                 day: 'numeric', 
@@ -123,7 +120,7 @@ export default function MiembrosPage() {
                 });
                 
                 // Imprimir para depuración
-                console.log(`Miembros filtrados: Total=${transformedMembers.length}, Admins=${adminCount}, Online=${onlineCount}`);
+                // Miembros filtrados y contados
             } catch (err) {
                 console.error('Error al cargar usuarios:', err);
                 setError('Hubo un problema al cargar los miembros. Por favor, intenta nuevamente.');

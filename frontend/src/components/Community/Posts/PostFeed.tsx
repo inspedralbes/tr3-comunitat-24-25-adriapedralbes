@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 import { PostSkeleton } from '@/components/ui/PostSkeleton';
-import { Post } from '@/types/Post';
 import { Comment } from '@/types/Comment';
+import { Post } from '@/types/Post';
 import { PostViewRecord } from '@/types/PostView';
 
 import { PostCard } from './PostCard';

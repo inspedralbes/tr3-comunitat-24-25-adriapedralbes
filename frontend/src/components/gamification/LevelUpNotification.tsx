@@ -1,4 +1,9 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Award, Star, Trophy } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+
+import { Button } from "@/components/ui/button";
+import { ConfettiExplosion } from '@/components/ui/confetti';
 import {
   Dialog,
   DialogContent,
@@ -7,10 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ConfettiExplosion } from '@/components/ui/confetti';
-import { Sparkles, Award, Star, Trophy } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface LevelUpNotificationProps {

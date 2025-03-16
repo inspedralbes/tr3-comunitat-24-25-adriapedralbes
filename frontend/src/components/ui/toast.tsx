@@ -1,7 +1,10 @@
-import * as React from "react"
-import toast, { Toaster } from "react-hot-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
+import * as React from "react"
+// Importamos los elementos necesarios de react-hot-toast
+import * as ReactHotToast from "react-hot-toast";
+const { Toaster } = ReactHotToast;
+const toastFunc = ReactHotToast.default || ReactHotToast.toast;
 
 import { cn } from "@/lib/utils"
 
@@ -55,7 +58,7 @@ const Toast: React.FC<ToastProps> = ({ className, variant, ...props }) => {
 }
 Toast.displayName = "Toast"
 
-interface ToastActionProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+type ToastActionProps = React.ButtonHTMLAttributes<HTMLButtonElement>
 
 const ToastAction: React.FC<ToastActionProps> = ({ className, ...props }) => (
   <button
@@ -68,7 +71,7 @@ const ToastAction: React.FC<ToastActionProps> = ({ className, ...props }) => (
 )
 ToastAction.displayName = "ToastAction"
 
-interface ToastCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+type ToastCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>
 
 const ToastClose: React.FC<ToastCloseProps> = ({ className, ...props }) => (
   <button
@@ -84,17 +87,19 @@ const ToastClose: React.FC<ToastCloseProps> = ({ className, ...props }) => (
 )
 ToastClose.displayName = "ToastClose"
 
-interface ToastTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
+type ToastTitleProps = React.HTMLAttributes<HTMLHeadingElement>
 
 const ToastTitle: React.FC<ToastTitleProps> = ({ className, ...props }) => (
   <h3
     className={cn("text-sm font-semibold", className)}
     {...props}
-  />
+  >
+    {props.children}
+  </h3>
 )
 ToastTitle.displayName = "ToastTitle"
 
-interface ToastDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+type ToastDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
 
 const ToastDescription: React.FC<ToastDescriptionProps> = ({ className, ...props }) => (
   <p
@@ -106,11 +111,11 @@ ToastDescription.displayName = "ToastDescription"
 
 // Custom function to show toast using react-hot-toast
 const showToast = {
-  default: (message: string) => toast(message),
-  success: (message: string) => toast.success(message),
-  error: (message: string) => toast.error(message),
-  loading: (message: string) => toast.loading(message),
-  dismiss: () => toast.dismiss()
+  default: (message: string) => toastFunc(message),
+  success: (message: string) => ReactHotToast.toast.success(message),
+  error: (message: string) => ReactHotToast.toast.error(message),
+  loading: (message: string) => ReactHotToast.toast.loading(message),
+  dismiss: () => ReactHotToast.toast.dismiss()
 }
 
 type ToastActionElement = React.ReactElement<typeof ToastAction>

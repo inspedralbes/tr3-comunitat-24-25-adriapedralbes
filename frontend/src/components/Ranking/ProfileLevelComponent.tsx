@@ -1,6 +1,8 @@
 import { LockIcon, Loader2Icon } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+
 import { LevelDistribution, rankingService } from '@/services/ranking';
+
 import { UserLargeAvatar } from './UserLargeAvatar';
 
 interface ProfileLevelComponentProps {

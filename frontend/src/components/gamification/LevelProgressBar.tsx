@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+
 import { Progress } from "@/components/ui/progress";
 
 interface LevelProgressBarProps {

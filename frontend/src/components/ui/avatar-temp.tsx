@@ -22,8 +22,8 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { unoptimized?: boolean }
->(({ className, unoptimized, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & { _unoptimized?: boolean }
+>(({ className, _unoptimized, ...props }, ref) => {
   // Omitir la propiedad unoptimized ya que Radix no la soporta
   // pero queremos mantenerla en la API para compatibilidad
   return (

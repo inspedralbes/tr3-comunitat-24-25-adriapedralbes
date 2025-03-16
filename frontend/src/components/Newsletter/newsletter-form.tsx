@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 
-import { AuthModal, AuthModalType } from "@/components/Auth";
+import { AuthModal as _AuthModal, AuthModalType as _AuthModalType } from "@/components/Auth";
 import { Button } from "@/components/ui/button";
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [_showAuthModal, _setShowAuthModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,9 +46,10 @@ export function NewsletterForm() {
       
       setSubmitted(true);
       setEmail("");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       console.error("Error:", error);
-      setErrorMessage(error.message || "Ha ocurrido un error. Por favor, inténtalo de nuevo.");
+      setErrorMessage(errorMessage || "Ha ocurrido un error. Por favor, inténtalo de nuevo.");
     } finally {
       setSubmitting(false);
     }

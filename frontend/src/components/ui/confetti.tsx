@@ -9,10 +9,10 @@ interface ConfettiExplosionProps {
 }
 
 export function ConfettiExplosion({
-  force = 0.8,
+  _force = 0.8,
   duration = 3000,
   particleCount = 80,
-  width = 1000,
+  _width = 1000,
   colors = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d']
 }: ConfettiExplosionProps) {
   // Implementación CSS simplificada de confeti

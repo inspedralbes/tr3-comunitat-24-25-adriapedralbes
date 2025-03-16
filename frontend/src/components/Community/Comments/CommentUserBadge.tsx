@@ -3,8 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
-import { formatAvatarUrl } from '@/utils/formatUtils';
 import { formatPostDate } from '@/utils/dateUtils';
+import { formatAvatarUrl } from '@/utils/formatUtils';
 
 interface CommentUserBadgeProps {
     username: string;

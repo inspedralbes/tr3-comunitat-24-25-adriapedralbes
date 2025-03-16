@@ -1,13 +1,13 @@
 "use client";
 
-import { MessageCircle, ThumbsUp, User } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { MessageCircle as _MessageCircle, ThumbsUp, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
 
-import { formatAvatarUrl } from '@/utils/formatUtils';
 
 import { communityService } from '@/services/community';
+import { formatAvatarUrl } from '@/utils/formatUtils';
 
 interface UserActivity {
   id: string;

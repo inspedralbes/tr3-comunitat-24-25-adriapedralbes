@@ -57,9 +57,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile: i
     setSuccess('');
 
     try {
-      console.log('Uploading avatar file:', file.name, file.type, file.size);
+      // console.log('Uploading avatar file:', file.name, file.type, file.size);
       const updatedProfile = await authService.updateAvatar(file);
-      console.log('Profile updated with new avatar:', updatedProfile);
+      // console.log('Profile updated with new avatar:', updatedProfile);
       
       // Actualizar el estado con la nueva URL del avatar
       setUserProfile(updatedProfile);
@@ -80,7 +80,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile: i
 
     try {
       // Actualizar perfil con avatar_url = null
-      await authService.updateProfile({ avatar_url: null as any });
+      await authService.updateProfile({ avatar_url: null as unknown as string });
       setAvatarPreview(null);
       setSuccess('Foto de perfil eliminada correctamente.');
     } catch (err) {
@@ -136,12 +136,21 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile: i
       <form onSubmit={handleSubmit}>
         {/* Avatar */}
         <div className="mb-6">
-          <label className="block text-zinc-300 mb-2 font-medium">Foto de perfil</label>
+          <span className="block text-zinc-300 mb-2 font-medium">Foto de perfil</span>
           <div className="flex items-center gap-4">
             <div className="relative">
               <div
                 className="w-20 h-20 bg-[#444442] rounded-full overflow-hidden border border-white/10 cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={handleAvatarClick}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleAvatarClick();
+                    e.preventDefault();
+                  }
+                }}
+                aria-label="Cambiar avatar"
               >
                 {avatarPreview ? (
                   <Image

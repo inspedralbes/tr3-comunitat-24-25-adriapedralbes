@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+
 import { GamificationNotification } from '@/components/gamification/AchievementNotification';
 
 export const useGamificationNotifications = () => {

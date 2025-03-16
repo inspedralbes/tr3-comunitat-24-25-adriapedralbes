@@ -1,11 +1,13 @@
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { User } from '@/types';
-import UserAvatarWithLevel from '@/components/ui/UserAvatarWithLevel';
+import { Calendar, MessageSquare, Award } from 'lucide-react';
 import Link from 'next/link';
+import React from 'react';
+
 import { LevelProgressBar } from '@/components/gamification';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MessageSquare, Award } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import UserAvatarWithLevel from '@/components/ui/UserAvatarWithLevel';
+import { User } from '@/types';
+
 
 interface UserCardProps {
   user: User;

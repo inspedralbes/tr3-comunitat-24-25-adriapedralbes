@@ -4,9 +4,9 @@ import { Award, Flag, MessageCircle, ThumbsUp, User } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
 
+import { UserProfile } from '@/services/auth';
 import { formatAvatarUrl } from '@/utils/formatUtils';
 
-import { UserProfile } from '@/services/auth';
 
 interface ProfileHeaderProps {
   userProfile: UserProfile;

@@ -1,21 +1,23 @@
+import { Award, Trophy, Calendar, Star, Clock } from 'lucide-react';
 import React, { useState } from 'react';
+
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User } from '@/types/User';
+
 import LevelProgressBar from './LevelProgressBar';
 import UserAchievements from './UserAchievements';
-import { Award, Trophy, Calendar, Star, Clock } from 'lucide-react';
 
 interface UserGamificationProfileProps {
-  user?: User;
+  _user?: User;
   className?: string;
 }
 
 const UserGamificationProfile: React.FC<UserGamificationProfileProps> = ({
-  user,
+  _user,
   className = ''
 }) => {
-  const [activeTab, setActiveTab] = useState('achievements');
+  const [_activeTab, setActiveTab] = useState('achievements');
 
   // Datos simulados
   const mockAchievements = {
@@ -31,7 +33,7 @@ const UserGamificationProfile: React.FC<UserGamificationProfileProps> = ({
   };
   
   const achievements = mockAchievements;
-  const isLoadingAchievements = false;
+  const _isLoadingAchievements = false;
 
   // Niveles de ejemplo
   const mockLevels = [

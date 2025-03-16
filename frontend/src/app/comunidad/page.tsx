@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 
 import { AuthModal, AuthModalType } from "@/components/Auth";
 import { CategoryFilter } from "@/components/Community/CategoryFilter";
@@ -13,20 +13,20 @@ import { WritePostComponent } from "@/components/Community/Posts/WritePostCompon
 import MainLayout from '@/components/layouts/MainLayout';
 import { authService } from '@/services/auth';
 import { communityService } from '@/services/community';
-import { Post } from "@/types/Post";
 import { Comment } from "@/types/Comment";
+import { Post } from "@/types/Post";
 import { getPostViewsRecord, recordPostView } from "@/utils/postViewStorage";
 
 function CommunityContent() {
-  const router = useRouter();
+  const _router = useRouter();
   const searchParams = useSearchParams();
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeSortType, setActiveSortType] = useState('default');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
-  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [_isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [_isRefreshing, _setIsRefreshing] = useState(false);
   const [categories, setCategories] = useState([]);
   const [pinnedPosts, setPinnedPosts] = useState<Post[]>([]);
   const [regularPosts, setRegularPosts] = useState<Post[]>([]);
@@ -35,7 +35,7 @@ function CommunityContent() {
   const [postViewsRecord, setPostViewsRecord] = useState({});
   const [leaderboardUsers, setLeaderboardUsers] = useState([]);
   const [error, setError] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [_isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [skipLoadingIndicator, setSkipLoadingIndicator] = useState(false);
 
@@ -70,7 +70,7 @@ function CommunityContent() {
   }, []);
 
   // Función para cargar los comentarios de un post
-  const fetchPostComments = async (postId: string) => {
+  const fetchPostComments = useCallback(async (postId: string) => {
     try {
       const commentsData = await communityService.getPostComments(postId);
       const commentsArray = Array.isArray(commentsData)
@@ -88,10 +88,10 @@ function CommunityContent() {
       console.error(`Error al cargar comentarios para el post ${postId}:`, error);
       return [];
     }
-  };
+  }, []);
 
-  // Función para cargar los comentarios de varios posts
-  const fetchCommentsForPosts = async (posts: Post[]) => {
+  // Función para cargar los comentarios de varios posts - envuelta en useCallback
+  const fetchCommentsForPosts = useCallback(async (posts: Post[]) => {
     // Limitar a 10 posts para evitar demasiadas peticiones simultáneas
     const postsToFetch = posts.slice(0, 10);
     
@@ -104,10 +104,10 @@ function CommunityContent() {
     } catch (error) {
       console.error('Error al cargar comentarios de los posts:', error);
     }
-  };
+  }, [fetchPostComments]);
 
   // Función para cargar el contenido del post (definida antes de ser usada en el efecto)
-  const loadPostContent = useCallback(async (postId: string, updateUrl = true) => {
+  const loadPostContent = useCallback(async (postId: string, _updateUrl = true) => {
     try {
       // Agregar el post a la lista de posts vistos
       const updatedViewedPosts = new Set(viewedPosts);
@@ -256,8 +256,8 @@ function CommunityContent() {
         // Solo si no estamos en el tipo de ordenamiento 'pinned'
         let filteredRegularPosts;
         if (activeSortType !== 'pinned') {
-          const pinnedIds = pinnedPostsArray.map((post: any) => post.id);
-          filteredRegularPosts = allPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
+          const pinnedIds = pinnedPostsArray.map((post: Post) => post.id);
+          filteredRegularPosts = allPostsArray.filter((post: Post) => !pinnedIds.includes(post.id));
           setRegularPosts(filteredRegularPosts);
         } else {
           // Si el tipo es 'pinned', mostrar solo los posts fijados
@@ -282,7 +282,7 @@ function CommunityContent() {
     };
     
     fetchInitialData();
-  }, [activeSortType]);
+  }, [activeSortType, fetchCommentsForPosts]);
 
   // Cargar posts filtrados por categoría
   useEffect(() => {
@@ -297,8 +297,8 @@ function CommunityContent() {
         // Filtrar los posts fijados si no estamos en vista de 'pinned'
         let filteredRegularPosts;
         if (activeSortType !== 'pinned') {
-          const pinnedIds = pinnedPosts.map((post: any) => post.id);
-          filteredRegularPosts = allPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
+          const pinnedIds = pinnedPosts.map((post: Post) => post.id);
+          filteredRegularPosts = allPostsArray.filter((post: Post) => !pinnedIds.includes(post.id));
         } else {
           // Si el tipo es 'pinned', mostrar solo posts fijados
           filteredRegularPosts = allPostsArray;
@@ -319,8 +319,8 @@ function CommunityContent() {
         // Filtrar los posts fijados si no estamos en vista de 'pinned'
         let filteredPosts = categoryPostsArray;
         if (activeSortType !== 'pinned') {
-          const pinnedIds = pinnedPosts.map((post: any) => post.id);
-          filteredPosts = categoryPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
+          const pinnedIds = pinnedPosts.map((post: Post) => post.id);
+          filteredPosts = categoryPostsArray.filter((post: Post) => !pinnedIds.includes(post.id));
         }
         
         // Cargar comentarios para los posts filtrados
@@ -338,7 +338,7 @@ function CommunityContent() {
     };
     
     fetchFilteredPosts();
-  }, [activeCategory, isLoadingInitial, pinnedPosts, activeSortType]);
+  }, [activeCategory, isLoadingInitial, pinnedPosts, activeSortType, fetchCommentsForPosts]);
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
@@ -349,7 +349,7 @@ function CommunityContent() {
   };
 
   // Después definimos la función auxiliar que usa loadPostContent
-  const handlePostLoadWithoutUrlChange = useCallback(async (postId: string) => {
+  const _handlePostLoadWithoutUrlChange = useCallback(async (postId: string) => {
     await loadPostContent(postId, false);
   }, [loadPostContent]);
 
@@ -396,8 +396,8 @@ function CommunityContent() {
             const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
             
             if (activeSortType !== 'pinned') {
-              const pinnedIds = pinnedPostsArray.map((post: any) => post.id);
-              const filteredRegularPosts = allPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
+              const pinnedIds = pinnedPostsArray.map((post: Post) => post.id);
+              const filteredRegularPosts = allPostsArray.filter((post: Post) => !pinnedIds.includes(post.id));
               setPinnedPosts(pinnedPostsArray);
               setRegularPosts(filteredRegularPosts);
             } else {
@@ -460,8 +460,8 @@ function CommunityContent() {
       
       // Filtrar los posts fijados para evitar duplicados (excepto en vista 'pinned')
       if (activeSortType !== 'pinned') {
-        const pinnedIds = pinnedPosts.map((post: any) => post.id);
-        const filteredNewPosts = newPostsArray.filter((post: any) => !pinnedIds.includes(post.id));
+        const pinnedIds = pinnedPosts.map((post: Post) => post.id);
+        const filteredNewPosts = newPostsArray.filter((post: Post) => !pinnedIds.includes(post.id));
         setRegularPosts(filteredNewPosts);
       } else {
         setRegularPosts(newPostsArray);

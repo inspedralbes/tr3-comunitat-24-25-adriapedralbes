@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, Children, isValidElement } from 'react';
 
 interface TooltipProviderProps {
   children: React.ReactNode;
@@ -8,7 +8,7 @@ interface TooltipProviderProps {
 
 const TooltipProvider: React.FC<TooltipProviderProps> = ({ 
   children,
-  delayDuration = 300 
+  _delayDuration = 300 
 }) => {
   return <>{children}</>;
 };
@@ -22,9 +22,9 @@ interface TooltipProps {
 
 const TooltipComponent: React.FC<TooltipProps> = ({
   children,
-  delayDuration,
-  open: controlledOpen,
-  onOpenChange
+  _delayDuration,
+  _open: _controlledOpen,
+  _onOpenChange
 }) => {
   return <>{children}</>;
 };
@@ -43,7 +43,7 @@ const TooltipTrigger: React.FC<TooltipTriggerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   
   // Aplicamos un enfoque más simple para evitar problemas de tipado
-  if (asChild && React.isValidElement(children)) {
+  if (asChild && Children.only(children) && isValidElement(children)) {
     // Si es asChild, creamos un clon con las props necesarias
     return (
       <span 
@@ -84,9 +84,9 @@ const TooltipContent: React.FC<TooltipContentProps> = ({
   children,
   className,
   sideOffset = 5,
-  alignOffset = 0,
+  _alignOffset = 0,
   side = 'top',
-  align = 'center'
+  _align = 'center'
 }) => {
   // Comprobamos el estado del trigger padre
   const isOpen = (document.querySelector('[data-tooltip-trigger][data-state="open"]') !== null);

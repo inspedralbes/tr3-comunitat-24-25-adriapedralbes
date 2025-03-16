@@ -4,10 +4,10 @@ import { HardDrive, Info, MessageCircle } from 'lucide-react';
 import { useRouter, useParams, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
+import MainLayout from '@/components/layouts/MainLayout';
 import { ProfileHeader } from '@/components/Profile/ProfileHeader';
 import { UserActivityTab } from '@/components/Profile/UserActivityTab';
 import { UserPostsTab } from '@/components/Profile/UserPostsTab';
-import MainLayout from '@/components/layouts/MainLayout';
 import { Button } from '@/components/ui/button';
 import { UserProfile, authService } from '@/services/auth';
 import { getUserByUsername } from '@/services/users';
@@ -17,9 +17,9 @@ type TabType = 'posts' | 'activity' | 'info';
 export default function UserProfilePage() {
   const router = useRouter();
   const params = useParams();
-  const pathname = usePathname();
+  const _pathname = usePathname();
   const username = params.username as string;
-  const postId = params.postId as string;
+  const _postId = params.postId as string;
   
   const [activeTab, setActiveTab] = useState<TabType>('posts');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);

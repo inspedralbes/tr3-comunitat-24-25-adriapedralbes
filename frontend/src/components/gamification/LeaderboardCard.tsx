@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar-adapter";
-import { User } from '@/types/User';
-import { Skeleton } from "@/components/ui/skeleton";
 import Link from 'next/link';
+import React, { useState } from 'react';
+
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar-adapter";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Select, SelectContent as _SelectContent, SelectItem, SelectTrigger as _SelectTrigger, SelectValue as _SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { User } from '@/types/User';
 
 interface LeaderboardCardProps {
   title?: string;
@@ -24,7 +25,7 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
   const [period, setPeriod] = useState<'all' | 'month' | 'week'>(initialPeriod);
 
   // Estado local para gestionar la carga
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
 
   // Datos mock de ejemplo para el leaderboard
   const mockLeaderboard = [
@@ -66,7 +67,7 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
           {showFilters && (
             <Select 
               value={period} 
-              onValueChange={(value: any) => setPeriod(value)}
+              onValueChange={(value) => setPeriod(value as 'all' | 'month' | 'week')}
               className="w-32 h-8"
             >
               <SelectItem value="all">Todo</SelectItem>

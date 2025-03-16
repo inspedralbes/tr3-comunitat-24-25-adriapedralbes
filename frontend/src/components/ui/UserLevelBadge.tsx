@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { User } from '@/types';
+import React, { useState } from 'react';
+
 import { cn } from '@/lib/utils';
+import { User } from '@/types';
 
 interface UserLevelBadgeProps {
   user?: User;

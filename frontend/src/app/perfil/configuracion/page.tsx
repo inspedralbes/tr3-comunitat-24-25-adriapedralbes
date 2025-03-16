@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
-import { ProfileSettings } from '@/components/Profile/ProfileSettings';
 import MainLayout from '@/components/layouts/MainLayout';
+import { ProfileSettings } from '@/components/Profile/ProfileSettings';
 import { UserProfile, authService } from '@/services/auth';
 
 export default function ProfileSettingsPage() {

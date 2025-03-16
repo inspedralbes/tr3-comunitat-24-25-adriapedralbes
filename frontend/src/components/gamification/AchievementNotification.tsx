@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from "framer-motion";
+import React, { useEffect } from 'react';
 // Usamos componentes simples en lugar de importar de @/components/ui/toast
 // Definición simplificada de los componentes de toast
-import { AnimatePresence, motion } from "framer-motion";
 
-const Toast = ({ className, style, children }: any) => (
+const Toast = ({ className, style, children }: React.HTMLProps<HTMLDivElement> & { className?: string }) => (
   <div className={`bg-white dark:bg-gray-800 rounded-md shadow-md p-4 ${className || ''}`} style={style}>{children}</div>
 );
 
-const ToastTitle = ({ className, children }: any) => (
+const ToastTitle = ({ className, children }: React.HTMLProps<HTMLDivElement> & { className?: string }) => (
   <div className={`font-semibold text-black dark:text-white ${className || ''}`}>{children}</div>
 );
 
-const ToastDescription = ({ className, children }: any) => (
+const ToastDescription = ({ className, children }: React.HTMLProps<HTMLDivElement> & { className?: string }) => (
   <div className={`text-gray-700 dark:text-gray-300 ${className || ''}`}>{children}</div>
 );
 
-const ToastProvider = ({ children }: any) => <>{children}</>;
-const ToastViewport = ({ className, children }: any) => <div className={className}>{children}</div>;
+const ToastProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+const ToastViewport = ({ className, children }: React.HTMLProps<HTMLDivElement> & { className?: string }) => <div className={className}>{children}</div>;
 
 // Interfaces para los tipos de notificaciones
 export interface LevelUpNotification {

@@ -1,10 +1,5 @@
-interface UserAchievementsProps {
-  userId?: string;
-  limit?: number;
-  showAll?: boolean;
-  className?: string;
-}import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import React from 'react';
 
 // Definimos nuestros propios tipos localmente
 interface UserAchievementData {
@@ -17,8 +12,15 @@ interface UserAchievementData {
   unlocked_at: string;
 }
 
+interface UserAchievementsProps {
+  _userId?: string; // Renombrado con _ para indicar que no se usa
+  limit?: number;
+  showAll?: boolean;
+  className?: string;
+}
+
 const UserAchievements: React.FC<UserAchievementsProps> = ({
-  userId,
+  _userId,
   limit = 5,
   showAll = false,
   className = ''

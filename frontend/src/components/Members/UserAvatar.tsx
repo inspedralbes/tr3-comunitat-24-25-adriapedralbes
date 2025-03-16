@@ -1,7 +1,7 @@
-import React from 'react';
 import Image from 'next/image';
+import React from 'react';
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar-temp";
+import { Avatar, AvatarImage as _AvatarImage, AvatarFallback } from "@/components/ui/avatar-temp";
 
 interface UserAvatarProps {
     username: string;

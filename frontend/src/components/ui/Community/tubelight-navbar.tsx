@@ -9,7 +9,7 @@ import React, { useEffect, useState, useRef } from "react";
 
 import { AuthModal, AuthModalType } from "@/components/Auth";
 import { cn } from "@/lib/utils";
-import { authService } from "@/services/auth";
+import { authService, UserProfile } from "@/services/auth";
 
 interface NavItem {
   name: string;
@@ -29,7 +29,7 @@ export function NavBar({ items, className }: NavBarProps) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalType, setAuthModalType] = useState<AuthModalType>(AuthModalType.LOGIN);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 

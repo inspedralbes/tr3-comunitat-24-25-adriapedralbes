@@ -1,24 +1,4 @@
-    // Función para obtener el color del badge según el nivel
-    const getBadgeColor = (level: number) => {
-        const colors: Record<number, string> = {
-            1: 'bg-gray-500',
-            2: 'bg-green-500',
-            3: 'bg-blue-500',
-            4: 'bg-indigo-500',
-            5: 'bg-purple-500',
-            6: 'bg-pink-500',
-            7: 'bg-red-500',
-            8: 'bg-yellow-500',
-            9: 'bg-amber-500',
-            10: 'bg-orange-500',
-        };
-        return colors[level] || 'bg-blue-500';
-    };
-
-    // Determinar si el texto debe ser negro (para fondos claros)
-    const getTextColor = (level: number) => {
-        return level === 8 || level === 9 ? 'text-black' : 'text-white';
-    };import { User, Paperclip, Link2, Video, BarChart2, Smile } from 'lucide-react';
+import { User, Paperclip, Link2, Video, BarChart2, Smile } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
 
@@ -42,7 +22,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     categories = []
 }) => {
     // Función para obtener el color del badge según el nivel
-    const getBadgeColor = (level: number) => {
+    const _getBadgeColor = (level: number) => {
         const colors: Record<number, string> = {
             1: 'bg-gray-500',
             2: 'bg-green-500',
@@ -59,7 +39,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     };
 
     // Determinar si el texto debe ser negro (para fondos claros)
-    const getTextColor = (level: number) => {
+    const _getTextColor = (level: number) => {
         return level === 8 || level === 9 ? 'text-black' : 'text-white';
     };
 
@@ -295,7 +275,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                 )}
                             </div>
                             {user?.level && (
-                                <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${getBadgeColor(user.level)} rounded-full flex items-center justify-center text-[10px] font-bold ${getTextColor(user.level)} border border-zinc-900 z-10`}>
+                                <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10`}>
                                     {user.level}
                                 </div>
                             )}
@@ -333,7 +313,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                     )}
                                 </div>
                                 {user?.level && (
-                                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${getBadgeColor(user.level)} rounded-full flex items-center justify-center text-[10px] font-bold ${getTextColor(user.level)} border border-zinc-900 z-10`}>
+                                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10`}>
                                         {user.level}
                                     </div>
                                 )}

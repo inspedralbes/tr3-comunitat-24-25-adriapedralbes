@@ -61,9 +61,9 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
   return (
     <div 
       className="fixed inset-0 bg-black/85 z-[60] flex items-center justify-center p-4 overflow-hidden" 
-      onClick={(e) => {
-        e.stopPropagation(); // Detener la propagación en el contenedor principal
-      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Visor de imagen"
     >
       <div ref={modalRef} className="relative max-w-5xl max-h-[90vh] w-full">
         <button
@@ -77,16 +77,23 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
           <X size={24} />
         </button>
         
-        <div className="w-full h-full flex items-center justify-center overflow-hidden rounded-lg" onClick={(e) => e.stopPropagation()}>
-          <Image
-            src={formatImageUrl(imageUrl) || ''}
-            alt={altText}
-            width={1200}
-            height={800}
-            className="max-h-[85vh] object-contain"
-            priority={true}
-            unoptimized={true}
-          />
+        <div className="w-full h-full flex items-center justify-center overflow-hidden rounded-lg" role="presentation">
+          <button 
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.key === 'Escape' && onClose()}
+            className="bg-transparent border-0 p-0 cursor-default focus:outline-none"
+            aria-label="Ver imagen"
+          >
+            <Image
+              src={formatImageUrl(imageUrl) || ''}
+              alt={altText}
+              width={1200}
+              height={800}
+              className="max-h-[85vh] object-contain"
+              priority={true}
+              unoptimized={true}
+            />
+          </button>
         </div>
       </div>
     </div>

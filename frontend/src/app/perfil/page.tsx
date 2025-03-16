@@ -11,7 +11,7 @@ import { authService } from '@/services/auth';
  */
 export default function ProfileRedirectPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const [_isLoading, _setIsLoading] = useState(true);
 
   useEffect(() => {
     const redirectToUserProfile = async () => {

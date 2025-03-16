@@ -4,8 +4,8 @@ import Link from 'next/link';
 import React from 'react';
 
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
-import { formatAvatarUrl } from '@/utils/formatUtils';
 import { formatPostDate } from '@/utils/dateUtils';
+import { formatAvatarUrl as _formatAvatarUrl } from '@/utils/formatUtils';
 
 interface UserBadgeProps {
   username: string;

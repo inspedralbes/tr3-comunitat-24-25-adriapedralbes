@@ -6,7 +6,7 @@ import { Dispatch, SetStateAction } from 'react';
  */
 export const createModalCloseHandler = (
   setSkipLoadingIndicator: Dispatch<SetStateAction<boolean>>,
-  setSelectedPost: Dispatch<SetStateAction<any>>,
+  setSelectedPost: Dispatch<SetStateAction<unknown | null>>,
   setIsModalOpen: Dispatch<SetStateAction<boolean>>
 ) => {
   return () => {

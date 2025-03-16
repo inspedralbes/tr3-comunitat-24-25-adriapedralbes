@@ -31,8 +31,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     try {
       await authService.login({ username, password });
       onSuccess();
-    } catch (err: any) {
-      setError(err.message || 'Credenciales inválidas. Por favor, intenta de nuevo.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || 'Credenciales inválidas. Por favor, intenta de nuevo.');
     } finally {
       setIsLoading(false);
     }
@@ -44,7 +45,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
       <div 
         className="relative bg-[#323230] p-6 rounded-lg w-full max-w-md mx-4 md:mx-auto shadow-xl border border-white/10"
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-labelledby="login-dialog-title"
       >
         <button 
           onClick={onClose} 
@@ -54,7 +56,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           <X size={20} />
         </button>
 
-        <h2 className="text-2xl font-bold text-white mb-6">Iniciar sesión</h2>
+        <h2 id="login-dialog-title" className="text-2xl font-bold text-white mb-6">Iniciar sesión</h2>
         
         {error && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 text-red-200 rounded-md text-sm">
