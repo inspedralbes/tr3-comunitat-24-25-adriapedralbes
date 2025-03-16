@@ -2,6 +2,8 @@ import { ThumbsUp, Reply } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
 
+import UserLevelBadge from '@/components/ui/UserLevelBadge';
+
 interface CommentComponentProps {
     username: string;
     timestamp: string;
@@ -45,10 +47,10 @@ export const CommentComponent: React.FC<CommentComponentProps> = ({
                         )}
                     </div>
 
-                    {/* Badge de nivel con z-index para asegurar que aparezca por encima */}
+                    {/* Badge de nivel con UserLevelBadge para consistencia de colores */}
                     {level && (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
-                            {level}
+                        <div className="absolute -bottom-1 -right-1 z-10">
+                            <UserLevelBadge level={level} size="sm" showTooltip={true} />
                         </div>
                     )}
                 </div>

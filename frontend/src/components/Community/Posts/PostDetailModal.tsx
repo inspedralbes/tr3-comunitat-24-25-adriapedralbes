@@ -6,6 +6,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { ImageViewerModal } from '@/components/Community/Posts/ImageViewerModal';
 import { UserBadge } from '@/components/Community/UserBadge';
 import { Button } from '@/components/ui/button';
+import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { authService, UserProfile } from '@/services/auth';
 import { communityService } from '@/services/community';
 import { Comment } from '@/types/Comment';
@@ -466,8 +467,8 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             )}
                         </div>
                         {comment.author.level && (
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
-                                {comment.author.level}
+                            <div className="absolute -bottom-1 -right-1 z-10">
+                                <UserLevelBadge level={comment.author.level} size="sm" showTooltip={true} />
                             </div>
                         )}
                     </div>
@@ -697,8 +698,8 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     )}
                                 </div>
                                 {currentUser?.level && (
-                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
-                                        {currentUser.level}
+                                    <div className="absolute -bottom-1 -right-1 z-10">
+                                        <UserLevelBadge level={currentUser.level} size="sm" showTooltip={true} />
                                     </div>
                                 )}
                             </div>

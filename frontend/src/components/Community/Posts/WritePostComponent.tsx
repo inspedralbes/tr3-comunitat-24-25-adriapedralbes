@@ -2,6 +2,8 @@ import { User, Paperclip, Link2, Video, BarChart2, Smile } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
 
+import UserLevelBadge from '@/components/ui/UserLevelBadge';
+
 import { AuthModal, AuthModalType } from '@/components/Auth';
 import { authService } from '@/services/auth';
 
@@ -21,27 +23,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     onSubmit,
     categories = []
 }) => {
-    // Función para obtener el color del badge según el nivel
-    const _getBadgeColor = (level: number) => {
-        const colors: Record<number, string> = {
-            1: 'bg-gray-500',
-            2: 'bg-green-500',
-            3: 'bg-blue-500',
-            4: 'bg-indigo-500',
-            5: 'bg-purple-500',
-            6: 'bg-pink-500',
-            7: 'bg-red-500',
-            8: 'bg-yellow-500',
-            9: 'bg-amber-500',
-            10: 'bg-orange-500',
-        };
-        return colors[level] || 'bg-blue-500';
-    };
-
-    // Determinar si el texto debe ser negro (para fondos claros)
-    const _getTextColor = (level: number) => {
-        return level === 8 || level === 9 ? 'text-black' : 'text-white';
-    };
+    // Estas funciones ya no son necesarias, se utilizará el componente UserLevelBadge
 
     const [isExpanded, setIsExpanded] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -275,8 +257,8 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                 )}
                             </div>
                             {user?.level && (
-                                <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10`}>
-                                    {user.level}
+                                <div className="absolute -bottom-1 -right-1 z-10">
+                                    <UserLevelBadge level={user.level} size="sm" showTooltip={false} />
                                 </div>
                             )}
                         </div>
@@ -313,8 +295,8 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                     )}
                                 </div>
                                 {user?.level && (
-                                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10`}>
-                                        {user.level}
+                                    <div className="absolute -bottom-1 -right-1 z-10">
+                                        <UserLevelBadge level={user.level} size="sm" showTooltip={true} />
                                     </div>
                                 )}
                             </div>

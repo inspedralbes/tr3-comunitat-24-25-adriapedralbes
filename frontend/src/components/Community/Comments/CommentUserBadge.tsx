@@ -3,6 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
+import UserLevelBadge from '@/components/ui/UserLevelBadge';
+
 import { formatPostDate } from '@/utils/dateUtils';
 import { formatAvatarUrl } from '@/utils/formatUtils';
 
@@ -19,27 +21,7 @@ export const CommentUserBadge: React.FC<CommentUserBadgeProps> = ({
     avatarUrl,
     timestamp
 }) => {
-    // Función para obtener el color del badge según el nivel
-    const getBadgeColor = (level: number) => {
-        const colors: Record<number, string> = {
-            1: 'bg-gray-500',
-            2: 'bg-green-500',
-            3: 'bg-blue-500',
-            4: 'bg-indigo-500',
-            5: 'bg-purple-500',
-            6: 'bg-pink-500',
-            7: 'bg-red-500',
-            8: 'bg-yellow-500',
-            9: 'bg-amber-500',
-            10: 'bg-orange-500',
-        };
-        return colors[level] || 'bg-blue-500';
-    };
-
-    // Determinar si el texto debe ser negro (para fondos claros)
-    const getTextColor = (level: number) => {
-        return level === 8 || level === 9 ? 'text-black' : 'text-white';
-    };
+    // Ya no necesitamos estas funciones, usaremos el componente UserLevelBadge
     return (
         <div className="flex items-center gap-2">
             <Link 
@@ -62,8 +44,8 @@ export const CommentUserBadge: React.FC<CommentUserBadgeProps> = ({
                     )}
                 </div>
                 {level && (
-                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${getBadgeColor(level)} rounded-full flex items-center justify-center text-[10px] font-bold ${getTextColor(level)} border border-zinc-900 z-10`}>
-                        {level}
+                    <div className="absolute -bottom-1 -right-1 z-10">
+                        <UserLevelBadge level={level} size="sm" showTooltip={true} />
                     </div>
                 )}
             </Link>
