@@ -135,8 +135,9 @@ export const communityService = {
   },
   
   // Actividad de usuario
-  getUserActivity: async (userId: string) => {
-    return api.get(`users/${userId}/activity/`);
+  getUserActivity: async (userId: string, page = 1) => {
+    // Si se implementa paginación, se puede usar el parámetro page
+    return api.get(`users/${userId}/activity/?page=${page}`);
   }
 };
 
