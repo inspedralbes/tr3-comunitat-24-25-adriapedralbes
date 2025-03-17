@@ -22,6 +22,11 @@ services:
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--certificatesresolvers.leresolver.acme.email=talkcompiler@gmail.com"
+      # Configuración de timeouts más largos
+      - "--serversTransport.responseForwarding.flushInterval=100ms"
+      - "--serversTransport.forwardingTimeouts.dialTimeout=30s"
+      - "--serversTransport.forwardingTimeouts.responseHeaderTimeout=30s"
+      - "--serversTransport.forwardingTimeouts.idleConnTimeout=90s"
       - "--certificatesresolvers.leresolver.acme.storage=/acme.json"
       - "--certificatesresolvers.leresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"

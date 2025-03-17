@@ -1,18 +1,53 @@
 "use client";
 
 import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically handle the actual subscription logic
-    // For now, we'll just simulate a successful submission
-    setSubmitted(true);
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      // Usar URL absoluta para evitar problemas CORS
+      const response = await fetch("https://api.futurprive.com/api/newsletter/subscribe/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, name }),
+      });
+      
+      console.log("Response status:", response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Success:", data);
+        setSubmitted(true);
+      } else {
+        // Intentar obtener mensaje de error
+        try {
+          const errorData = await response.json();
+          setError(errorData.message || "Error al suscribirse. Por favor, intenta de nuevo.");
+          console.error("Error data:", errorData);
+        } catch (jsonError) {
+          setError("Error al suscribirse. Por favor, intenta de nuevo.");
+          console.error("Error parsing response:", jsonError);
+        }
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setError("Error de conexión. Por favor, intenta de nuevo más tarde.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -90,20 +125,36 @@ export function NewsletterForm() {
           <p className="text-green-400 font-medium">¡Gracias por suscribirte! Pronto recibirás nuestras novedades.</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-lg mx-auto">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-lg mx-auto">
+          {error && (
+            <div className="p-4 bg-red-500/20 rounded-lg mb-2">
+              <p className="text-red-400 font-medium">{error}</p>
+            </div>
+          )}
+          
+          <input
+            type="text"
+            placeholder="Tu nombre (opcional)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="flex-1 px-4 py-3 bg-[#1c1c1c] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+          
           <input
             type="email"
-            placeholder="Enter Your Email"
+            placeholder="Tu correo electrónico"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             className="flex-1 px-4 py-3 bg-[#1c1c1c] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
+          
           <Button
             type="submit"
             className="bg-white text-black hover:bg-gray-200 px-8 py-3 font-medium"
+            disabled={isLoading}
           >
-            Subscribe
+            {isLoading ? "Enviando..." : "Suscribirse"}
           </Button>
         </form>
       )}

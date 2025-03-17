@@ -53,7 +53,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Agregar WhiteNoise para archivos estáticos
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'api.middleware.CorsMiddleware',  # Middleware CORS personalizado
+    # Eliminar middleware CORS personalizado
     'api.middleware_security.APISecurityMiddleware',  # Middleware de seguridad para la API
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -143,12 +143,7 @@ AUTHENTICATION_BACKENDS = [
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_ORIGIN_WHITELIST = [
-    'https://futurprive.com',
-    'http://futurprive.com',
-    'https://api.futurprive.com',
-    'http://api.futurprive.com',
-]
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',

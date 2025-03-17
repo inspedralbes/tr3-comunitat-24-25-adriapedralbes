@@ -145,17 +145,9 @@ def subscribe(request):
     """
     API endpoint para suscribirse a la newsletter.
     """
-    # Manejar solicitudes OPTIONS directamente
-    if request.method == 'OPTIONS':
-        response = HttpResponse()
-        response["Access-Control-Allow-Origin"] = "*"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Origin, Content-Type, Accept, Authorization, X-Requested-With"
-        response["Access-Control-Max-Age"] = "86400"
-        return response
-        
-    print(f"\n[SUBSCRIBE] Recibida solicitud POST: {request.META.get('HTTP_ORIGIN')}")  # Debug
-    print(f"[SUBSCRIBE] Datos recibidos: {request.data}")  # Debug
+    print(f"\n[DEBUG] Recibida solicitud: {request.method}")
+    print(f"[DEBUG] Origin: {request.META.get('HTTP_ORIGIN')}")
+    print(f"[DEBUG] Datos: {request.data if hasattr(request, 'data') else 'No data'}")
         
     serializer = SubscriberSerializer(data=request.data)
     
