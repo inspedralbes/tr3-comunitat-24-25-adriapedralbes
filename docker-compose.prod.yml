@@ -91,11 +91,18 @@ services:
       - "traefik.http.routers.django-http.rule=Host(`api.futurprive.com`)"
       - "traefik.http.routers.django-http.middlewares=django-https-redirect"
       
-      # Ruta específica para archivos estáticos
-      - "traefik.http.routers.django-static.rule=Host(`api.futurprive.com`) && PathPrefix(`/static/`, `/media/`)"
-      - "traefik.http.routers.django-static.entrypoints=websecure"
-      - "traefik.http.routers.django-static.tls.certresolver=leresolver"
-      - "traefik.http.routers.django-static.priority=200"
+      # Rutas específicas para archivos estáticos (separadas)
+      - "traefik.http.routers.django-static-files.rule=Host(`api.futurprive.com`) && PathPrefix(`/static/`)"
+      - "traefik.http.routers.django-static-files.entrypoints=websecure"
+      - "traefik.http.routers.django-static-files.tls.certresolver=leresolver"
+      - "traefik.http.routers.django-static-files.priority=200"
+      - "traefik.http.routers.django-static-files.service=django"
+      
+      - "traefik.http.routers.django-media-files.rule=Host(`api.futurprive.com`) && PathPrefix(`/media/`)"
+      - "traefik.http.routers.django-media-files.entrypoints=websecure"
+      - "traefik.http.routers.django-media-files.tls.certresolver=leresolver"
+      - "traefik.http.routers.django-media-files.priority=200"
+      - "traefik.http.routers.django-media-files.service=django"
 
   adminer:
     image: adminer:latest

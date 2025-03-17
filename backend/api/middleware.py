@@ -5,7 +5,7 @@ class CorsMiddleware:
     def __call__(self, request):
         # Generar una respuesta inmediata para solicitudes OPTIONS
         if request.method == "OPTIONS":
-            response = self.options_response()
+            response = self.options_response(request)
             return response
 
         # Procesar la solicitud normalmente
@@ -21,17 +21,21 @@ class CorsMiddleware:
             response['Access-Control-Allow-Origin'] = '*'
             
         response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Accept'
+        response['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Requested-With'
         response['Access-Control-Allow-Credentials'] = 'true'
         return response
 
-    def options_response(self):
+    def options_response(self, request):
         """Crear una respuesta para solicitudes OPTIONS"""
         from django.http import HttpResponse
         response = HttpResponse()
-        response['Access-Control-Allow-Origin'] = '*'
+        
+        # Obtener el origen de la solicitud
+        origin = request.headers.get('Origin', '*')
+        response['Access-Control-Allow-Origin'] = origin
+        
         response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Accept'
+        response['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Requested-With'
         response['Access-Control-Allow-Credentials'] = 'true'
         response['Access-Control-Max-Age'] = '86400'
         return response

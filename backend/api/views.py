@@ -150,9 +150,12 @@ def subscribe(request):
         response = HttpResponse()
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response["Access-Control-Allow-Headers"] = "Origin, Content-Type, Accept, Authorization, X-Requested-With"
         response["Access-Control-Max-Age"] = "86400"
         return response
+        
+    print(f"\n[SUBSCRIBE] Recibida solicitud POST: {request.META.get('HTTP_ORIGIN')}")  # Debug
+    print(f"[SUBSCRIBE] Datos recibidos: {request.data}")  # Debug
         
     serializer = SubscriberSerializer(data=request.data)
     
@@ -297,6 +300,10 @@ def confirm_subscription(request, token):
             # Agregar a Beehiiv
             try:
                 print("\n[BEEHIIV] Iniciando registro en Beehiiv para suscriptor confirmado")
+                print(f"[BEEHIIV] Email: {subscriber.email}")
+                print(f"[BEEHIIV] API Key configurada: {'Sí' if settings.BEEHIIV_API_KEY else 'No'}")
+                print(f"[BEEHIIV] Publication ID: {settings.BEEHIIV_PUBLICATION_ID}")
+                
                 success, message = add_subscriber_to_beehiiv(
                     email=subscriber.email,
                     name=subscriber.name,
