@@ -161,14 +161,14 @@ CSRF_TRUSTED_ORIGINS = ['https://api.futurprive.com', 'https://futurprive.com', 
 CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False  # Debe ser False para que JavaScript pueda acceder a la cookie
-CSRF_COOKIE_DOMAIN = 'futurprive.com'  # Dominio principal
+CSRF_COOKIE_DOMAIN = None  # Desactivamos el dominio CSRF para evitar problemas entre subdominios
 
 
 # Configuración de sesiones
 SESSION_COOKIE_AGE = 86400  # 24 horas en segundos
 SESSION_COOKIE_SECURE = True  # Para conexiones HTTPS
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_DOMAIN = 'futurprive.com'  # Dominio principal compartido entre subdominios
+SESSION_COOKIE_DOMAIN = None  # Desactivamos la restricción de dominio para evitar problemas entre subdominios
 SESSION_COOKIE_SAMESITE = 'Lax'  # Opciones: 'Strict', 'Lax', 'None'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True

@@ -42,8 +42,8 @@ X_FRAME_OPTIONS = 'DENY'  # Evitar clickjacking
 
 # Configuración adicional de seguridad para producción
 if not DEBUG:
-    # Forzar HTTPS
-    SECURE_SSL_REDIRECT = True
+    # Desactivamos la redirección HTTPS en Django porque Traefik ya se encarga de esto
+    SECURE_SSL_REDIRECT = False
     
     # Limitar el número máximo de parámetros en solicitudes (protección contra DDoS)
     DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
