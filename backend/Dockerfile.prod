@@ -17,8 +17,8 @@ COPY .env* .
 # Copiar el proyecto
 COPY . .
 
-# No ejecutamos collectstatic durante la construcción
-# será ejecutado durante el inicio del contenedor
+# Ejecutar collectstatic durante la construcción
+RUN python manage.py collectstatic --noinput
 
 # Exponer puerto
 EXPOSE 8000
