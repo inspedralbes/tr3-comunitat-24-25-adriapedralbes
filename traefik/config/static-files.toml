@@ -1,26 +1,18 @@
 [http]
   [http.middlewares]
-    [http.middlewares.static-files]
-      [http.middlewares.static-files.headers]
+    [http.middlewares.static-headers]
+      [http.middlewares.static-headers.headers]
         browserXssFilter = true
         contentTypeNosniff = true
         frameDeny = true
-        sslRedirect = true
-        [http.middlewares.static-files.headers.customResponseHeaders]
+        [http.middlewares.static-headers.headers.customResponseHeaders]
           Cache-Control = "public, max-age=31536000"
 
   [http.routers]
     [http.routers.django-static]
       rule = "Host(`api.futurprive.com`) && PathPrefix(`/static/`)"
-      service = "django-static"
-      middlewares = ["static-files"]
+      service = "django"
+      middlewares = ["static-headers"]
       entryPoints = ["websecure"]
       [http.routers.django-static.tls]
         certResolver = "leresolver"
-
-  [http.services]
-    [http.services.django-static]
-      [http.services.django-static.loadBalancer]
-        passHostHeader = true
-        [[http.services.django-static.loadBalancer.servers]]
-          url = "http://django:8000"
