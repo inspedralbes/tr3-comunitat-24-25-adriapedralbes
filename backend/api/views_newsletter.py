@@ -1,5 +1,5 @@
 """
-Vistas para el manejo de newsletter
+Vistas para el manejo de newsletter - Implementación Optimizada
 """
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -12,6 +12,7 @@ import uuid
 import json
 import logging
 import traceback
+import time
 from threading import Thread
 
 from .models import Subscriber
@@ -21,24 +22,120 @@ from .beehiiv import add_subscriber_to_beehiiv
 
 logger = logging.getLogger(__name__)
 
+# Constantes de configuración
+CORS_ORIGINS = ["https://futurprive.com", "https://www.futurprive.com", "http://localhost:3000"]
+DEFAULT_ORIGIN = "https://futurprive.com"
+
+def apply_cors_headers(response, request):
+    """Aplica los encabezados CORS necesarios a la respuesta."""
+    # Origen dinámico basado en la solicitud
+    request_origin = request.META.get('HTTP_ORIGIN')
+    if request_origin and request_origin in CORS_ORIGINS:
+        response["Access-Control-Allow-Origin"] = request_origin
+    else:
+        # Fallback al origen principal para producción
+        response["Access-Control-Allow-Origin"] = DEFAULT_ORIGIN
+        
+    response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, Origin"
+    response["Access-Control-Allow-Credentials"] = "true"
+    response["Access-Control-Max-Age"] = "86400"  # 24 horas
+    
+    # Prevenir caché para evitar problemas de CORS
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    return response
+
+def process_subscription_background(subscriber, request=None, is_confirmation=False):
+    """
+    Maneja todas las tareas de fondo para una suscripción:
+    1. Enviar email cuando corresponda
+    2. Registrar o actualizar en Beehiiv
+    3. Manejar errores apropiadamente
+    
+    Args:
+        subscriber: El objeto Subscriber a procesar
+        request: La solicitud HTTP original (si está disponible)
+        is_confirmation: Si es una confirmación de suscripción o nuevo registro
+    """
+    start_time = time.time()
+    
+    try:
+        # IP para tracking
+        ip_address = None
+        if request:
+            ip_address = request.META.get('REMOTE_ADDR') or request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+        
+        # Paso 1: Enviar email cuando corresponda
+        if not is_confirmation:
+            # Para nuevas suscripciones enviamos email de confirmación
+            try:
+                send_confirmation_email(subscriber)
+                logger.info(f"Email de confirmación enviado a {subscriber.email}")
+            except Exception as e:
+                logger.error(f"Error enviando email de confirmación a {subscriber.email}: {str(e)}")
+                logger.error(traceback.format_exc())
+        else:
+            # Para confirmaciones enviamos email de bienvenida
+            try:
+                send_welcome_email(subscriber)
+                logger.info(f"Email de bienvenida enviado a {subscriber.email}")
+            except Exception as e:
+                logger.error(f"Error enviando email de bienvenida a {subscriber.email}: {str(e)}")
+                logger.error(traceback.format_exc())
+        
+        # Paso 2: Registrar o actualizar en Beehiiv
+        # Definir el origen adecuado según el tipo de operación
+        if is_confirmation:
+            source = "FuturPrive Newsletter - Email Confirmed"
+        else:
+            source = "FuturPrive Website - Newsletter Form"
+        
+        # Enviar a Beehiiv con reintentos configurados
+        try:
+            logger.info(f"Enviando a Beehiiv: {subscriber.email} (Confirmado: {is_confirmation or subscriber.confirmed})")
+            
+            success, message = add_subscriber_to_beehiiv(
+                email=subscriber.email,
+                name=subscriber.name,
+                source=source,
+                is_confirmed=is_confirmation or subscriber.confirmed,  # Usar el estado actual
+                ip_address=ip_address,
+                max_retries=3  # Más reintentos para asegurar el registro
+            )
+            
+            if success:
+                logger.info(f"Beehiiv: Éxito registrando a {subscriber.email}")
+            else:
+                logger.error(f"Beehiiv: Error registrando a {subscriber.email} - {message}")
+                
+        except Exception as e:
+            logger.error(f"Beehiiv: Excepción al registrar a {subscriber.email} - {str(e)}")
+            logger.error(traceback.format_exc())
+    
+    except Exception as e:
+        # Capturar cualquier error en el hilo de fondo
+        logger.error(f"Error en proceso de fondo para suscriptor {subscriber.email}: {str(e)}")
+        logger.error(traceback.format_exc())
+    
+    finally:
+        # Registrar tiempo total de procesamiento
+        elapsed = time.time() - start_time
+        logger.info(f"Procesamiento de suscriptor {subscriber.email} completado en {elapsed:.2f} segundos")
+
 @api_view(['POST', 'OPTIONS'])
 @permission_classes([AllowAny])
 def subscribe(request):
     """
     API endpoint para suscribirse a la newsletter.
+    Implementación optimizada que responde inmediatamente y procesa en segundo plano.
     """
     # Manejar preflight request
     if request.method == 'OPTIONS':
         response = Response()
-        response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-        response["Access-Control-Allow-Credentials"] = "true"
-        return response
+        return apply_cors_headers(response, request)
         
-    print(f"\n[DEBUG] Recibida solicitud: {request.method}")
-    print(f"[DEBUG] Origin: {request.META.get('HTTP_ORIGIN')}")
-    print(f"[DEBUG] Datos: {request.data if hasattr(request, 'data') else 'No data'}")
+    logger.info(f"Solicitud de suscripción: {request.method} desde {request.META.get('HTTP_ORIGIN')}")
+    logger.debug(f"Datos: {request.data if hasattr(request, 'data') else 'No data'}")
         
     serializer = SubscriberSerializer(data=request.data)
     
@@ -55,14 +152,7 @@ def subscribe(request):
                     'success': False,
                     'message': 'Este correo ya está suscrito a nuestra newsletter.'
                 }, status=status.HTTP_400_BAD_REQUEST)
-                
-                # Aplicar CORS headers
-                response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-                response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-                response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-                response["Access-Control-Allow-Credentials"] = "true"
-                
-                return response
+                return apply_cors_headers(response, request)
             
             # Si existe pero no está confirmado, actualizamos el nombre
             if name and name != subscriber.name:
@@ -78,103 +168,21 @@ def subscribe(request):
                 confirmation_token=str(uuid.uuid4())
             )
             subscriber.save()
+            logger.info(f"Nuevo suscriptor creado: {email}")
         
-        # Enviar email de confirmación
-        try:
-            send_confirmation_email(subscriber)
-            
-            # Obtener la IP del cliente si está disponible para mejor tracking
-            ip_address = request.META.get('REMOTE_ADDR') or request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
-            
-            # Registrar el suscriptor en Beehiiv en segundo plano con información ampliada
-            def register_in_beehiiv_background():
-                try:
-                    print("\n[BEEHIIV] Registrando en Beehiiv (antes de confirmación)")
-                    success, message = add_subscriber_to_beehiiv(
-                        email=subscriber.email,
-                        name=subscriber.name,
-                        source="FuturPrive Website - Newsletter Form",
-                        is_confirmed=False,
-                        ip_address=ip_address,
-                        max_retries=3  # Más reintentos para asegurar el registro
-                    )
-                    if success:
-                        print(f"[BEEHIIV] ÉXITO: Usuario registrado en Beehiiv: {message}")
-                    else:
-                        print(f"[BEEHIIV] ERROR: {message}")
-                except Exception as e:
-                    print(f"[BEEHIIV] EXCEPCIÓN: {str(e)}")
-            
-            # Iniciar proceso en segundo plano
-            beehiiv_thread = Thread(target=register_in_beehiiv_background)
-            beehiiv_thread.daemon = True
-            beehiiv_thread.start()
-            
-            response = Response({
-                'success': True,
-                'message': 'Te hemos enviado un correo para confirmar tu suscripción.'
-            }, status=status.HTTP_201_CREATED)
-            
-            # Aplicar CORS headers
-            response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-            response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-            response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-            response["Access-Control-Allow-Credentials"] = "true"
-            
-            return response
-            
-        except Exception as e:
-            # Logging detallado del error
-            logger.error(f"Error enviando email a {subscriber.email}: {str(e)}")
-            logger.error(traceback.format_exc())
-            
-            # Diagnóstico de conexión
-            connection_test = None
-            try:
-                from .views import test_email_connection
-                connection_test = test_email_connection()
-                error_details = {
-                    'error_type': type(e).__name__,
-                    'error_message': str(e),
-                    'connection_test': connection_test
-                }
-                print("========= EMAIL ERROR DIAGNOSIS =========")
-                print(json.dumps(error_details, indent=2))
-                print("=======================================")
-            except Exception as debug_error:
-                print(f"Error during email diagnostics: {debug_error}")
-            
-            # Intento de registro directo en Beehiiv sin confirmación de email
-            try:
-                print("\n[BEEHIIV-FALLBACK] Intentando registro directo en Beehiiv")
-                success, message = add_subscriber_to_beehiiv(
-                    email=subscriber.email,
-                    name=subscriber.name,
-                    source="FuturPrive Website (Email Failed)",
-                    is_confirmed=True  # Lo marcamos como confirmado directamente
-                )
-                if success:
-                    print(f"[BEEHIIV-FALLBACK] ÉXITO: {message}")
-                    subscriber.confirmed = True
-                    subscriber.save(update_fields=['confirmed'])
-                else:
-                    print(f"[BEEHIIV-FALLBACK] ERROR: {message}")
-            except Exception as beehiiv_error:
-                print(f"[BEEHIIV-FALLBACK] EXCEPCIÓN: {str(beehiiv_error)}")
-            
-            # Guardamos el suscriptor pero informamos del problema con el correo
-            response = Response({
-                'success': True,
-                'message': 'Tu suscripción ha sido procesada correctamente.'
-            }, status=status.HTTP_201_CREATED)
-            
-            # Aplicar CORS headers
-            response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-            response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-            response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-            response["Access-Control-Allow-Credentials"] = "true"
-            
-            return response
+        # CAMBIO CLAVE: Responder inmediatamente para evitar timeout
+        response = Response({
+            'success': True,
+            'message': 'Te hemos enviado un correo para confirmar tu suscripción.'
+        }, status=status.HTTP_201_CREATED)
+        response = apply_cors_headers(response, request)
+        
+        # Iniciar todo el procesamiento en segundo plano
+        thread = Thread(target=process_subscription_background, args=(subscriber, request, False))
+        thread.daemon = True
+        thread.start()
+        
+        return response
     
     # Si la validación falla
     response = Response({
@@ -183,13 +191,7 @@ def subscribe(request):
         'errors': serializer.errors
     }, status=status.HTTP_400_BAD_REQUEST)
     
-    # Aplicar CORS headers
-    response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-    response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-    response["Access-Control-Allow-Credentials"] = "true"
-    
-    return response
+    return apply_cors_headers(response, request)
 
 
 @api_view(['GET'])
@@ -197,82 +199,37 @@ def subscribe(request):
 def confirm_subscription(request, token):
     """
     API endpoint para confirmar la suscripción.
+    Implementación optimizada para responder rápidamente.
     """
     try:
         subscriber = Subscriber.objects.get(confirmation_token=token)
         
         if not subscriber.confirmed:
-            print(f"\n[CONFIRMACIÓN] Confirmando suscripción para: {subscriber.email}")
+            logger.info(f"Confirmando suscripción para: {subscriber.email}")
             subscriber.confirmed = True
             subscriber.save(update_fields=['confirmed'])
             
-            # Enviar email de bienvenida con los recursos prometidos
-            try:
-                send_welcome_email(subscriber)
-                print(f"[CONFIRMACIÓN] Email de bienvenida enviado a: {subscriber.email}")
-            except Exception as e:
-                print(f"Error enviando email de bienvenida: {str(e)}")
-                print(traceback.format_exc())
-            
-            # Agregar a Beehiiv
-            try:
-                print("\n[BEEHIIV] Actualizando suscriptor en Beehiiv como confirmado")
-                
-                # Usar un hilo para evitar timeouts
-                def update_beehiiv_status():
-                    try:
-                        # Obtener la IP del cliente si está disponible
-                        ip_address = request.META.get('REMOTE_ADDR') or request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
-                        
-                        success, message = add_subscriber_to_beehiiv(
-                            email=subscriber.email,
-                            name=subscriber.name,
-                            source="FuturPrive Newsletter - Email Confirmed",
-                            is_confirmed=True,
-                            ip_address=ip_address,
-                            max_retries=3  # Más reintentos para asegurar el registro
-                        )
-                        if success:
-                            print(f"[BEEHIIV] ÉXITO: Usuario confirmado en Beehiiv. {message}")
-                        else:
-                            print(f"[BEEHIIV] ERROR: {message}")
-                    except Exception as e:
-                        print(f"[BEEHIIV] EXCEPCIÓN: {str(e)}")
-                        print(traceback.format_exc())
-                
-                beehiiv_thread = Thread(target=update_beehiiv_status)
-                beehiiv_thread.daemon = True
-                beehiiv_thread.start()
-                
-            except Exception as e:
-                print(f"[BEEHIIV] EXCEPCIÓN: {str(e)}")
-                print(traceback.format_exc())
-            
+            # Responder inmediatamente
             response = Response({
                 'success': True,
                 'message': '¡Gracias! Tu suscripción ha sido confirmada con éxito.'
             })
+            response = apply_cors_headers(response, request)
             
-            # Aplicar CORS headers
-            response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-            response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-            response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-            response["Access-Control-Allow-Credentials"] = "true"
+            # Procesar el resto en segundo plano
+            thread = Thread(target=process_subscription_background, args=(subscriber, request, True))
+            thread.daemon = True
+            thread.start()
             
             return response
         
+        # Ya estaba confirmado
         response = Response({
             'success': True,
             'message': 'Tu suscripción ya ha sido confirmada anteriormente.'
         })
         
-        # Aplicar CORS headers
-        response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-        response["Access-Control-Allow-Credentials"] = "true"
-        
-        return response
+        return apply_cors_headers(response, request)
         
     except Subscriber.DoesNotExist:
         response = Response({
@@ -280,13 +237,7 @@ def confirm_subscription(request, token):
             'message': 'El token de confirmación no es válido.'
         }, status=status.HTTP_404_NOT_FOUND)
         
-        # Aplicar CORS headers
-        response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-        response["Access-Control-Allow-Credentials"] = "true"
-        
-        return response
+        return apply_cors_headers(response, request)
 
 
 @api_view(['GET', 'POST', 'OPTIONS'])
@@ -298,29 +249,20 @@ def unsubscribe(request, token):
     # Manejar preflight request
     if request.method == 'OPTIONS':
         response = Response()
-        response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-        response["Access-Control-Allow-Credentials"] = "true"
-        return response
+        return apply_cors_headers(response, request)
         
     try:
         subscriber = Subscriber.objects.get(confirmation_token=token)
         email = subscriber.email
         subscriber.delete()
+        logger.info(f"Suscriptor eliminado: {email}")
         
         response = Response({
             'success': True,
             'message': f'El correo {email} ha sido eliminado de nuestra lista.'
         })
         
-        # Aplicar CORS headers
-        response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-        response["Access-Control-Allow-Credentials"] = "true"
-        
-        return response
+        return apply_cors_headers(response, request)
         
     except Subscriber.DoesNotExist:
         response = Response({
@@ -328,21 +270,17 @@ def unsubscribe(request, token):
             'message': 'El token de cancelación no es válido.'
         }, status=status.HTTP_404_NOT_FOUND)
         
-        # Aplicar CORS headers
-        response["Access-Control-Allow-Origin"] = "https://futurprive.com"
-        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-        response["Access-Control-Allow-Credentials"] = "true"
-        
-        return response
+        return apply_cors_headers(response, request)
 
 
 def send_confirmation_email(subscriber):
     """
     Envía un email de confirmación al suscriptor.
     """
-    confirmation_link = f"{settings.SITE_URL}/api/newsletter/confirm/{subscriber.confirmation_token}"
-    unsubscribe_link = f"{settings.SITE_URL}/api/newsletter/unsubscribe/{subscriber.confirmation_token}/"
+    # URL real para producción
+    site_url = "https://futurprive.com"
+    confirmation_link = f"{site_url}/api/newsletter/confirm/{subscriber.confirmation_token}"
+    unsubscribe_link = f"{site_url}/api/newsletter/unsubscribe/{subscriber.confirmation_token}/"
     
     subject = '¿ERES UNA IA?'
     
@@ -404,6 +342,7 @@ def send_confirmation_email(subscriber):
     # Versión texto plano
     plain_message = strip_tags(html_message)
     
+    # Usar un timeout más corto para evitar bloqueos
     send_mail(
         subject=subject,
         message=plain_message,
@@ -411,4 +350,6 @@ def send_confirmation_email(subscriber):
         from_email='Adrià Estévez <adria@futurprive.com>',
         recipient_list=[subscriber.email],
         fail_silently=False,
+        # No bloqueando más de 10 segundos en envío de correo
+        timeout=10
     )

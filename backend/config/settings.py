@@ -139,10 +139,18 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# Configuración de CORS
-CORS_ALLOW_ALL_ORIGINS = True
+# Configuración de CORS - Optimizado para producción
+CORS_ALLOW_ALL_ORIGINS = False  # Más seguro especificar los orígenes explícitamente
 CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOWED_ORIGINS = [
+    "https://futurprive.com",
+    "https://www.futurprive.com"
+]
+if DEBUG:
+    # Añadir localhost en modo desarrollo
+    CORS_ALLOWED_ORIGINS.append("http://localhost:3000")
+    
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_ALLOW_METHODS = [
     'DELETE',

@@ -22,6 +22,9 @@ python manage.py collectstatic --noinput
 
 echo "✅ Inicialización completada"
 
-# Iniciar el servidor
-echo "🚀 Iniciando el servidor Django..."
-gunicorn config.wsgi:application --bind 0.0.0.0:8000
+# Iniciar el servidor con timeout extendido
+echo "🚀 Iniciando el servidor Django con timeout extendido..."
+gunicorn config.wsgi:application \
+  --bind 0.0.0.0:8000 \
+  --timeout ${GUNICORN_TIMEOUT:-120} \
+  --workers 3

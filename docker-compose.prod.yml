@@ -66,13 +66,15 @@ services:
              python manage.py makemigrations &&
              python manage.py migrate &&
              python create_superuser.py && 
-             gunicorn --bind 0.0.0.0:8000 config.wsgi:application"
+             gunicorn --bind 0.0.0.0:8000 --timeout 120 --workers 3 config.wsgi:application"
     env_file:
       - ./backend/.env
     environment:
       - DATABASE_HOST=postgres
       # Forzar la creación del superusuario sin sobrescribir credenciales
       - FORCE_SUPERUSER_CREATE=true
+      # Configuración de Gunicorn
+      - GUNICORN_TIMEOUT=120
     networks:
       - web
     volumes:

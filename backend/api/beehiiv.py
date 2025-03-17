@@ -88,11 +88,12 @@ def add_subscriber_to_beehiiv(email, name=None, source="API", is_confirmed=True,
     while retry_count <= max_retries:
         try:
             # Hacer la solicitud a la API con un timeout reducido
+            # Usar un timeout aún más agresivo para producción
             response = requests.post(
                 url, 
                 headers=headers,
                 json=subscription_data,
-                timeout=5  # Timeout de 5 segundos para evitar bloqueos
+                timeout=3  # Timeout reducido a 3 segundos para evitar bloqueos
             )
             
             # Imprimir respuesta completa para depuración
