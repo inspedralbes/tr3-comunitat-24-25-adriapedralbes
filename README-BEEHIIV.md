@@ -1,129 +1,321 @@
-# Beehiiv API Integration Guide
+# Guía de Integración con Beehiiv
 
-## Resumen de Cambios Implementados
+Este documento explica cómo funciona la integración con Beehiiv en nuestra aplicación FuturPrive para la gestión de newsletters.
 
-Para solucionar los problemas con la integración de Beehiiv, hemos realizado las siguientes mejoras:
+## Índice
 
-1. **Tiempo de espera extendido de Gunicorn**
-   - Aumentado a 120 segundos para evitar timeouts de trabajadores
-   - Configurado para trabajar con 3 workers para mejor distribución de carga
+1. [Visión General](#visión-general)
+2. [Estructura de Archivos](#estructura-de-archivos)
+3. [Flujo de Suscripción](#flujo-de-suscripción)
+4. [Configuración](#configuración)
+5. [Endpoints de la API](#endpoints-de-la-api)
+6. [Seguridad y CORS](#seguridad-y-cors)
+7. [Manejo de Errores](#manejo-de-errores)
+8. [Depuración y Solución de Problemas](#depuración-y-solución-de-problemas)
 
-2. **Procesamiento completamente asincrónico**
-   - Ahora la API responde inmediatamente tras guardar en la base de datos
-   - Todo el procesamiento de Beehiiv y correos electrónicos ocurre en segundo plano
-   - El usuario recibe confirmación inmediata sin esperar a Beehiiv
+## Visión General
 
-3. **Optimización de tiempos de espera**
-   - Reducido el timeout de solicitudes a Beehiiv a 3 segundos
-   - Implementado backoff exponencial para reintentos
-   - Mejor manejo de errores y logging detallado
+Nuestra plataforma utiliza Beehiiv como sistema de gestión de newsletters. Cuando un usuario se suscribe, se sigue un proceso de doble opt-in:
 
-4. **Configuración mejorada de CORS**
-   - Limitado a orígenes específicos para mayor seguridad
-   - Configuración distinta para desarrollo y producción
-   - Manejo consistente de headers CORS
+1. El usuario se registra a través de nuestro formulario web
+2. Guardamos su información en nuestra base de datos local
+3. Enviamos un email de confirmación
+4. Registramos al usuario en Beehiiv (en segundo plano)
+5. Cuando el usuario confirma, actualizamos su estado y lo marcamos como confirmado en Beehiiv
 
-## Uso de la API de Beehiiv según Documentación
+La integración está diseñada para ser robusta frente a:
 
-La integración con Beehiiv sigue estos principios de la documentación oficial:
+- Problemas de conexión con Beehiiv
+- Timeouts de API
+- Fallos de email
 
-### Crear Suscripciones
+## Estructura de Archivos
+
+Los archivos clave para la integración son:
+
+- **`backend/api/beehiiv.py`**: Contiene las funciones para comunicarse con la API de Beehiiv
+- **`backend/api/views_newsletter.py`**: Contiene los endpoints para gestión de suscriptores
+- **`backend/api/models.py`**: Define el modelo `Subscriber` que almacena suscriptores
+- **`backend/api/welcome_email.py`**: Gestiona el envío de emails de bienvenida
+- **`backend/config/settings.py`**: Contiene la configuración de Beehiiv (API keys, IDs, etc.)
+
+## Flujo de Suscripción
+
+### 1. Suscripción Inicial
+
+```mermaid
+sequenceDiagram
+    participant Usuario
+    participant Django
+    participant DB
+    participant Thread
+    participant Email
+    participant Beehiiv
+
+    Usuario->>Django: POST /api/newsletter/subscribe/
+    Django->>DB: Guardar suscriptor (confirmado=False)
+    Django->>Usuario: Responder (200 OK)
+    Django->>Thread: Iniciar procesamiento en segundo plano
+    Thread->>Email: Enviar email de confirmación
+    Thread->>Beehiiv: Registrar suscriptor (pending)
+```
+
+### 2. Confirmación de Suscripción
+
+```mermaid
+sequenceDiagram
+    participant Usuario
+    participant Django
+    participant DB
+    participant Thread
+    participant Email
+    participant Beehiiv
+
+    Usuario->>Django: GET /api/newsletter/confirm/{token}/
+    Django->>DB: Actualizar suscriptor (confirmado=True)
+    Django->>Usuario: Responder (200 OK)
+    Django->>Thread: Iniciar procesamiento en segundo plano
+    Thread->>Email: Enviar email de bienvenida
+    Thread->>Beehiiv: Actualizar suscriptor (active)
+```
+
+## Configuración
+
+### Variables de Entorno
+
+Estas variables deben estar configuradas en el archivo `.env` del backend:
 
 ```
-POST https://api.beehiiv.com/v2/publications/{publication_id}/subscriptions
+# Beehiiv API
+BEEHIIV_API_KEY=your_api_key_here
+BEEHIIV_PUBLICATION_ID=pub_your_publication_id_here
+
+# Email (para envío de confirmaciones)
+EMAIL_HOST=your_smtp_host
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your_email@example.com
+EMAIL_HOST_PASSWORD=your_email_password
+
+# URL del sitio (para enlaces de confirmación)
+SITE_URL=https://futurprive.com
 ```
 
-Encabezados necesarios:
-```
-Content-Type: application/json
-Authorization: Bearer YOUR_API_KEY
-```
+### Configuración de Beehiiv
 
-Payload:
+En el panel de administración de Beehiiv debes:
+
+1. Generar una API key con permisos de escritura
+2. Obtener tu Publication ID
+3. Configurar las plantillas de email (opcional, ya que usamos nuestros propios emails)
+
+## Endpoints de la API
+
+### 1. Suscripción
+
+**URL**: `/api/newsletter/subscribe/`  
+**Método**: POST  
+**Permisos**: Público  
+**Cuerpo**:
+
 ```json
 {
-  "email": "string",
-  "reactivate_existing": true,
-  "consent_status": {
-    "status": "express",
-    "proof": {
-      "source": "string",
-      "ip_address": "string",
-      "timestamp": 0
-    }
-  },
-  "referring_site": "string",
-  "send_welcome_email": false,
-  "status": "active"
+  "email": "usuario@example.com",
+  "name": "Nombre Usuario" // Opcional
 }
 ```
 
-### Mejores Prácticas
+**Respuesta exitosa**:
 
-1. **Autenticación**
-   - Utilizar siempre API key en el encabezado Authorization
-   - Formato: `Authorization: Bearer YOUR_API_KEY`
+```json
+{
+  "success": true,
+  "message": "Te hemos enviado un correo para confirmar tu suscripción."
+}
+```
 
-2. **Campos Requeridos**
-   - `email` y `publication_id` son obligatorios
+### 2. Confirmación
 
-3. **Manejo de Errores**
-   - Implementar reintentos con backoff exponencial
-   - Manejar límites de tasa (respuestas 429)
-   - Establecer timeouts razonables (3-5 segundos máximo)
+**URL**: `/api/newsletter/confirm/{token}/`  
+**Método**: GET  
+**Permisos**: Público  
+**Parámetros**: `token` - Token UUID de confirmación  
+**Respuesta exitosa**:
 
-4. **Webhooks**
-   - Para una integración más robusta, considerar usar webhooks
-   - Se podría configurar un endpoint para recibir notificaciones
+```json
+{
+  "success": true,
+  "message": "¡Gracias! Tu suscripción ha sido confirmada con éxito."
+}
+```
 
-## Cómo Funciona Ahora
+### 3. Cancelación de Suscripción
 
-1. El usuario envía un formulario de suscripción desde el sitio web
-2. La API guarda inmediatamente el suscriptor en la base de datos local
-3. La API responde al usuario con un mensaje de éxito (típicamente en <200ms)
-4. En segundo plano, un hilo separado:
-   - Envía el email de confirmación 
-   - Intenta registrar al usuario en Beehiiv
-   - Registra cualquier error para diagnóstico
+**URL**: `/api/newsletter/unsubscribe/{token}/`  
+**Método**: GET/POST  
+**Permisos**: Público  
+**Parámetros**: `token` - Token UUID del suscriptor  
+**Respuesta exitosa**:
 
-Este flujo asegura que:
-- La experiencia del usuario es instantánea
-- No hay timeouts en el frontend
-- Los errores en Beehiiv no afectan al usuario
-- Los datos se guardan siempre en nuestra base de datos
+```json
+{
+  "success": true,
+  "message": "El correo example@email.com ha sido eliminado de nuestra lista."
+}
+```
 
-## Monitoreo y Solución de Problemas
+## Seguridad y CORS
 
-Para diagnosticar problemas:
+### Configuración CORS
 
-1. Revisar los logs de Django para mensajes con prefijo `[BEEHIIV]`
-2. Verificar tiempos de respuesta en los logs de Traefik
-3. Comprobar que los suscriptores aparecen en la base de datos local
-4. Si es necesario, verificar suscriptores directamente en el panel de Beehiiv
+Utilizamos `django-cors-headers` con la siguiente configuración:
 
-## Configuración de Producción
+- En producción: Solo se permiten peticiones desde `futurprive.com` y sus subdominios
+- En desarrollo: Se permite también `localhost:3000`
 
-En entorno de producción:
+Los endpoints de newsletter tienen un manejo especial de CORS para garantizar que las peticiones desde el frontend sean aceptadas incluso si hay errores.
 
-1. La configuración de CORS está limitada a dominios específicos
-2. Los timeouts son más agresivos para evitar bloqueos
-3. Los URLs de confirmación apuntan a https://futurprive.com
-4. Se utiliza registro detallado para diagnóstico
+### Seguridad
 
-## Posibles Mejoras Futuras
+- Todos los tokens son UUIDs aleatorios
+- Las confirmaciones requieren un token válido
+- Las API keys se almacenan solo en variables de entorno
 
-1. **Sistema de colas**
-   - Implementar Celery o similar para una gestión más robusta de tareas
-   - Agregar Redis como backend para persistencia de tareas
+## Manejo de Errores
 
-2. **Webhooks**
-   - Configurar webhooks de Beehiiv para tener confirmación de éxito
-   - Implementar reconciliación periódica entre sistemas
+La integración está diseñada para ser tolerante a fallos:
 
-3. **Monitoreo avanzado**
-   - Agregar métricas de rendimiento y éxito/fallo
-   - Configurar alertas para fallos persistentes
+1. **Procesamiento Asíncrono**:
+
+   - Todo el procesamiento pesado ocurre en segundo plano
+   - La experiencia del usuario no se ve afectada por problemas con Beehiiv
+
+2. **Sistema de Reintentos**:
+
+   - Reintentos automáticos con backoff exponencial para llamadas a Beehiiv
+   - Manejo de rate-limiting (respuestas 429)
+
+3. **Fallbacks**:
+   - Si falla el envío de email, se intenta registrar directamente en Beehiiv
+   - Los datos siempre se guardan en nuestra base de datos local
+
+## Depuración y Solución de Problemas
+
+### Logs
+
+Los logs tienen prefijos específicos para facilitar la depuración:
+
+- `[BEEHIIV]` - Operaciones normales con Beehiiv
+- `[BEEHIIV-FALLBACK]` - Operaciones de contingencia
+- `[CONFIRMACIÓN]` - Procesos de confirmación de suscripción
+
+### Problemas Comunes
+
+1. **Timeout en Gunicorn**
+
+   - Síntoma: Error 502 en la API
+   - Solución: Verificar que el timeout de Gunicorn esté configurado a 120 segundos
+
+2. **Errores de CORS**
+
+   - Síntoma: Error en la consola del navegador sobre CORS
+   - Solución: Verificar que el origen correcto esté en `CORS_ALLOWED_ORIGINS`
+
+3. **Fallos de comunicación con Beehiiv**
+   - Síntoma: Logs con `[BEEHIIV] ERROR`
+   - Solución: Verificar credenciales y conectividad a `api.beehiiv.com`
+
+### Herramientas de Diagnóstico
+
+1. **Verificar el estado de un suscriptor en la base de datos**:
+
+```python
+from api.models import Subscriber
+subscriber = Subscriber.objects.get(email="example@email.com")
+print(f"Confirmado: {subscriber.confirmed}")
+```
+
+2. **Probar conexión con Beehiiv manualmente**:
+
+```python
+from api.beehiiv import add_subscriber_to_beehiiv
+success, message = add_subscriber_to_beehiiv(email="test@example.com")
+print(f"Resultado: {success}, Mensaje: {message}")
+```
+
+## API de Beehiiv
+
+### Documentación Oficial
+
+- [Documentación General](https://developers.beehiiv.com/welcome/getting-started)
+- [API Reference](https://developers.beehiiv.com/api-reference/subscriptions/create)
+- [Webhooks](https://developers.beehiiv.com/webhooks/subscription/created)
+
+### Endpoints Principales
+
+1. **Crear/Actualizar Suscripción**
+
+   ```
+   POST https://api.beehiiv.com/v2/publications/{publication_id}/subscriptions
+   ```
+
+2. **Obtener Suscriptor**
+   ```
+   GET https://api.beehiiv.com/v2/publications/{publication_id}/subscriptions?email={email}
+   ```
+
+### Consejos para Desarrollo
+
+1. **No hagas llamadas directas a Beehiiv desde el frontend**
+
+   - Siempre usa nuestro backend como intermediario
+
+2. **Usa la versión de API v2 de Beehiiv**
+
+   - La v1 está deprecada
+
+3. **Monitorea los tiempos de respuesta**
+   - Si Beehiiv está lento, usa más procesamiento asíncrono
 
 ---
 
-Documento actualizado: 17 de marzo de 2025
+## Comandos Útiles
+
+### Sincronizar Suscriptores con Beehiiv
+
+Para sincronizar manualmente todos los suscriptores con Beehiiv:
+
+```bash
+python manage.py shell
+```
+
+```python
+from api.models import Subscriber
+from api.beehiiv import add_subscriber_to_beehiiv
+
+subscribers = Subscriber.objects.filter(confirmed=True)
+for sub in subscribers:
+    print(f"Sincronizando {sub.email}...")
+    success, msg = add_subscriber_to_beehiiv(sub.email, sub.name, is_confirmed=True)
+    print(f"Resultado: {success}, {msg}")
+```
+
+### Verificar Configuración
+
+Para verificar que la configuración esté correcta:
+
+```python
+from django.conf import settings
+
+print(f"API Key configurada: {'Sí' if settings.BEEHIIV_API_KEY else 'No'}")
+print(f"Publication ID: {settings.BEEHIIV_PUBLICATION_ID}")
+print(f"Site URL: {settings.SITE_URL}")
+```
+
+## Actualizaciones Futuras
+
+Funcionalidades planeadas:
+
+1. Implementación de webhooks para sincronización bidireccional
+2. Sistema de colas (Celery) para mejorar el procesamiento asíncrono
+3. Panel de administración para ver estadísticas de suscriptores
