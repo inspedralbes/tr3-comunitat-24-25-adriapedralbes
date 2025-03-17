@@ -71,11 +71,12 @@ def add_subscriber_to_beehiiv(email, name=None, source="API", is_confirmed=True)
     print(f"[BEEHIIV DEBUG] Datos a enviar: {json.dumps(subscription_data, indent=2)}")
     
     try:
-        # Hacer la solicitud a la API
+        # Hacer la solicitud a la API con un timeout reducido
         response = requests.post(
             url, 
             headers=headers,
-            json=subscription_data
+            json=subscription_data,
+            timeout=5  # Timeout de 5 segundos para evitar bloqueos
         )
         
         # Imprimir respuesta completa para depuración

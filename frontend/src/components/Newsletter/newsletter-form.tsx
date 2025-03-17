@@ -21,7 +21,10 @@ export function NewsletterForm() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Origin": "https://futurprive.com",
         },
+        mode: "cors",
+        credentials: "omit",
         body: JSON.stringify({ email, name }),
       });
       

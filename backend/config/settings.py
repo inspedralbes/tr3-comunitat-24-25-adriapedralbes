@@ -53,7 +53,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Agregar WhiteNoise para archivos estáticos
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    # Eliminar middleware CORS personalizado
+    'api.middleware_newsletter.NewsletterCorsMiddleware',  # Middleware para CORS en endpoints de newsletter
     'api.middleware_security.APISecurityMiddleware',  # Middleware de seguridad para la API
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
