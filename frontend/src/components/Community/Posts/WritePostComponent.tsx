@@ -173,9 +173,17 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
         try {
             if (onSubmit) {
-                // Si hay título, enviarlo; de lo contrario, usar el contenido como título también
-                const title = postTitle.trim() || postContent.split('\n')[0]; // Usar la primera línea como título si no hay título
-                const success = await onSubmit(postContent, title, selectedCategory);
+                // Preparar los datos del post
+                const trimmedContent = postContent.trim();
+                const trimmedTitle = postTitle.trim() || trimmedContent.split('\n')[0]; // Primera línea como título si no hay título específico
+                
+                console.log('Enviando post:', {
+                    title: trimmedTitle,
+                    content: trimmedContent,
+                    categoryId: selectedCategory
+                });
+                
+                const success = await onSubmit(trimmedContent, trimmedTitle, selectedCategory);
 
                 if (success) {
                     // Limpiar el formulario y cerrar

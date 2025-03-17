@@ -444,9 +444,25 @@ function CommunityContent() {
     }
     
     try {
+      // Validar los datos antes de enviar
+      if (!content || content.trim() === '') {
+        console.error('Error: El contenido del post está vacío');
+        return false;
+      }
+      
+      // Limitar la longitud del título y contenido si es necesario
+      const trimmedContent = content.trim();
+      const trimmedTitle = title ? title.trim().substring(0, 255) : '';
+
+      console.log('Creando post con:', {
+        title: trimmedTitle,
+        content: trimmedContent,
+        category_id: categoryId || null
+      });
+      
       await communityService.createPost({
-        title,
-        content,
+        title: trimmedTitle,
+        content: trimmedContent,
         category_id: categoryId
       });
       

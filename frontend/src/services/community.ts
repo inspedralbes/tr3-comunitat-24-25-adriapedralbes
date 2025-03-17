@@ -19,7 +19,7 @@ export interface CreateCommentData {
 export const communityService = {
   // Posts
   getAllPosts: async (category?: string, page = 1, sortType = 'default') => {
-    let endpoint = `posts/?page=${page}`;
+    let endpoint = `posts?page=${page}`;
     
     // Añadir filtro por categoría si está especificado
     if (category && category !== 'all') {
@@ -46,11 +46,11 @@ export const communityService = {
   },
 
   getPinnedPosts: async () => {
-    return api.get('pinned-posts/');
+    return api.get('pinned-posts');
   },
 
   getPostById: async (id: string) => {
-    return api.get(`posts/${id}/`);
+    return api.get(`posts/${id}`);
   },
 
   createPost: async (data: CreatePostData) => {
@@ -65,14 +65,14 @@ export const communityService = {
         formData.append('category_id', data.category_id.toString());
       }
       formData.append('image', data.image);
-      return api.upload('posts/', formData);
+      return api.upload('posts', formData);
     }
     
     // Si no hay imagen, usamos JSON normal
-    return api.post('posts/', {
-      title: data.title,
+    return api.post('posts', {
+      title: data.title || '',
       content: data.content,
-      category_id: data.category_id
+      category_id: data.category_id || null
     });
   },
 
@@ -83,61 +83,61 @@ export const communityService = {
       if (data.content) formData.append('content', data.content);
       if (data.category_id) formData.append('category_id', data.category_id.toString());
       formData.append('image', data.image);
-      return api.upload(`posts/${id}/`, formData);
+      return api.upload(`posts/${id}`, formData);
     }
     
     // Si no hay imagen, usamos JSON normal
-    return api.patch(`posts/${id}/`, data);
+    return api.patch(`posts/${id}`, data);
   },
 
   deletePost: async (id: string) => {
-    return api.delete(`posts/${id}/`);
+    return api.delete(`posts/${id}`);
   },
 
   likePost: async (id: string) => {
-    return api.post(`posts/${id}/like/`, {});
+    return api.post(`posts/${id}/like`, {});
   },
 
   // Comentarios
   getPostComments: async (postId: string) => {
-    return api.get(`posts/${postId}/comments/`);
+    return api.get(`posts/${postId}/comments`);
   },
 
   createComment: async (data: CreateCommentData) => {
-    return api.post('comments/', data);
+    return api.post('comments', data);
   },
 
   updateComment: async (id: string, content: string) => {
-    return api.patch(`comments/${id}/`, { content });
+    return api.patch(`comments/${id}`, { content });
   },
 
   deleteComment: async (id: string) => {
-    return api.delete(`comments/${id}/`);
+    return api.delete(`comments/${id}`);
   },
 
   likeComment: async (id: string) => {
-    return api.post(`comments/${id}/like/`, {});
+    return api.post(`comments/${id}/like`, {});
   },
 
   // Categorías
   getAllCategories: async () => {
-    return api.get('categories/');
+    return api.get('categories');
   },
 
   // Leaderboard
   getLeaderboard: async () => {
-    return api.get('leaderboard/');
+    return api.get('leaderboard');
   },
   
   // Posts de usuario
   getUserPosts: async (userId: string) => {
-    return api.get(`users/${userId}/posts/`);
+    return api.get(`users/${userId}/posts`);
   },
   
   // Actividad de usuario
   getUserActivity: async (userId: string, page = 1) => {
     // Si se implementa paginación, se puede usar el parámetro page
-    return api.get(`users/${userId}/activity/?page=${page}`);
+    return api.get(`users/${userId}/activity?page=${page}`);
   }
 };
 

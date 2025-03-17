@@ -20,18 +20,45 @@ const getApiUrl = () => {
 
 // Función para manejar errores
 const handleResponse = async (response: Response) => {
+  // Mantener un registro de la respuesta para debugging
+  console.log(`[API] Response status: ${response.status} ${response.statusText}`);
+  
   if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      message: 'Ocurrió un error en la comunicación con el servidor'
-    }));
-    throw new Error(error.message || 'Ocurrió un error en el servidor');
+    let errorMessage = `Error ${response.status}: ${response.statusText}`;
+    
+    try {
+      // Intentar extraer mensaje de error del cuerpo de la respuesta
+      const errorData = await response.json();
+      console.error('[API] Error details:', errorData);
+      
+      errorMessage = errorData.message || errorData.detail || errorMessage;
+    } catch (parseError) {
+      // Si no podemos parsear JSON, usar el texto de la respuesta
+      try {
+        const textError = await response.text();
+        if (textError) {
+          console.error('[API] Error text:', textError);
+          errorMessage = textError.substring(0, 200); // Limitar longitud
+        }
+      } catch (textError) {
+        console.error('[API] Could not extract error details:', textError);
+      }
+    }
+    
+    throw new Error(errorMessage);
   }
   
   try {
+    // Para respuestas 204 No Content o similares que no tienen cuerpo
+    if (response.status === 204) {
+      return {};
+    }
+    
     const data = await response.json();
     return data;
   } catch (e) {
-    console.error('Error parsing JSON response:', e);
+    console.warn('[API] Error parsing response JSON:', e);
+    // Si no hay JSON que parsear, devolver objeto vacío
     return {};
   }
 };
@@ -71,7 +98,10 @@ const buildEndpointUrl = (endpoint: string) => {
 // API general con funciones para peticiones HTTP
 export const api = {
   get: async (endpoint: string) => {
-    const response = await fetch(buildEndpointUrl(endpoint), {
+    const url = buildEndpointUrl(endpoint);
+    console.log(`[API] GET request to ${url}`);
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: getHeaders(),
     });
@@ -79,7 +109,10 @@ export const api = {
   },
 
   post: async <T>(endpoint: string, data: T) => {
-    const response = await fetch(buildEndpointUrl(endpoint), {
+    const url = buildEndpointUrl(endpoint);
+    console.log(`[API] POST request to ${url}`, data);
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -88,7 +121,10 @@ export const api = {
   },
 
   put: async <T>(endpoint: string, data: T) => {
-    const response = await fetch(buildEndpointUrl(endpoint), {
+    const url = buildEndpointUrl(endpoint);
+    console.log(`[API] PUT request to ${url}`, data);
+    
+    const response = await fetch(url, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -97,7 +133,10 @@ export const api = {
   },
 
   patch: async <T>(endpoint: string, data: T) => {
-    const response = await fetch(buildEndpointUrl(endpoint), {
+    const url = buildEndpointUrl(endpoint);
+    console.log(`[API] PATCH request to ${url}`, data);
+    
+    const response = await fetch(url, {
       method: 'PATCH',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -106,7 +145,10 @@ export const api = {
   },
 
   delete: async (endpoint: string) => {
-    const response = await fetch(buildEndpointUrl(endpoint), {
+    const url = buildEndpointUrl(endpoint);
+    console.log(`[API] DELETE request to ${url}`);
+    
+    const response = await fetch(url, {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -127,8 +169,11 @@ export const api = {
       }
     }
     
-    // Hacer la solicitud
-    const response = await fetch(buildEndpointUrl(endpoint), {
+    // Hacer la solicitud usando la URL construida correctamente
+    const url = buildEndpointUrl(endpoint);
+    console.log(`[API] Upload request to ${url}`);
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers, // No incluir Content-Type para que el navegador maneje el boundary
       body: formData,
