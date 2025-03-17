@@ -19,49 +19,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.shortcuts import redirect, render
-from django.contrib.auth.forms import AuthenticationForm
-from django.views.decorators.csrf import csrf_protect
-from api.views_security import ratelimited_view, locked_out
-import logging
-
-# Configurar logger para registrar intentos de acceso
-logger = logging.getLogger(__name__)
+from django.shortcuts import redirect
 
 def redirect_to_admin(request):
-    return redirect('backend-admin/')
-
-@csrf_protect
-def admin_honeypot(request):
-    """Honeypot simple para el panel de administración"""
-    form = AuthenticationForm(request)
-    # Registrar intento de acceso
-    if request.method == 'POST':
-        username = request.POST.get('username', '<none>')
-        ip = get_client_ip(request)
-        logger.warning(
-            f"Intento de acceso al honeypot detectado | Usuario: {username} | IP: {ip} | "
-            f"User-Agent: {request.META.get('HTTP_USER_AGENT', '<unknown>')}"
-        )
-    
-    # Renderizar formulario de login falso
-    context = {
-        'form': form,
-        'site_header': 'Administración de Django',
-        'site_title': 'Sitio de administración',
-        'title': 'Iniciar sesión',
-        'app_path': request.get_full_path(),
-    }
-    return render(request, 'admin/login.html', context)
-
-def get_client_ip(request):
-    """Obtener la IP real del cliente, incluso si está detrás de un proxy"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+    return redirect('admin/')
 
 # Personalizar títulos del administrador
 admin.site.site_header = 'FuturPrive Admin'
@@ -70,15 +31,8 @@ admin.site.index_title = 'Panel de Control'
 
 urlpatterns = [
     path('', redirect_to_admin),
-    # Panel de administración falso (honeypot simple)
-    path('admin/', admin_honeypot, name='admin_honeypot'),
-    # Panel de administración real con una URL diferente
-    path('backend-admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    
-    # Rutas de seguridad
-    path('ratelimited/', ratelimited_view, name='ratelimited'),
-    path('accounts/locked/', locked_out, name='locked_out'),
 ]
 
 # Configuración para servir archivos estáticos y multimedia en desarrollo
