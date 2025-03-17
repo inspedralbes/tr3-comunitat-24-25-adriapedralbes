@@ -62,7 +62,7 @@ services:
     container_name: django-app
     restart: always
     command: >-
-      sh -c "python manage.py collectstatic --noinput &&
+      sh -c "python manage.py collectstatic --noinput --clear &&
              python manage.py makemigrations &&
              python manage.py migrate &&
              python create_superuser.py && 
@@ -90,6 +90,12 @@ services:
       - "traefik.http.routers.django-http.entrypoints=web"
       - "traefik.http.routers.django-http.rule=Host(`api.futurprive.com`)"
       - "traefik.http.routers.django-http.middlewares=django-https-redirect"
+      
+      # Ruta específica para archivos estáticos
+      - "traefik.http.routers.django-static.rule=Host(`api.futurprive.com`) && PathPrefix(`/static/`, `/media/`)"
+      - "traefik.http.routers.django-static.entrypoints=websecure"
+      - "traefik.http.routers.django-static.tls.certresolver=leresolver"
+      - "traefik.http.routers.django-static.priority=200"
 
   adminer:
     image: adminer:latest

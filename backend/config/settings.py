@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Agregar WhiteNoise para archivos estáticos
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'api.middleware.CorsMiddleware',  # Middleware CORS personalizado
@@ -111,6 +112,14 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'api/static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Asegurar que los archivos estáticos se sirven en producción
+if not DEBUG:
+    # Usar WhiteNoise para servir archivos estáticos de manera eficiente
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    # Configuración adicional de WhiteNoise
+    WHITENOISE_MAX_AGE = 31536000  # 1 año en segundos
+    WHITENOISE_ALLOW_ALL_ORIGINS = True
 
 # Configuración de archivos multimedia
 MEDIA_URL = '/media/'
