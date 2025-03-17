@@ -58,7 +58,7 @@ export function UserAvatar({ username, avatarUrl, level, size = "md" }: UserAvat
                             fill
                             priority
                             className="object-cover"
-                            unoptimized={avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost')}
+                            unoptimized={true}
                         />
                     </div>
                 ) : (

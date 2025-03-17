@@ -1,10 +1,14 @@
 // Base URL para API
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.futurprive.com/api';
 
-// Función para asegurar que usamos IPv4 en desarrollo
+// Función para retornar la URL de la API
 const getApiUrl = () => {
-  // Sustituir localhost por 127.0.0.1 para evitar problemas con IPv6
-  return API_URL.replace('localhost', '127.0.0.1');
+  // En desarrollo, sustituir localhost por 127.0.0.1 para evitar problemas con IPv6
+  // En producción, usar la URL tal cual
+  if (API_URL.includes('localhost')) {
+    return API_URL.replace('localhost', '127.0.0.1');
+  }
+  return API_URL;
 };
 
 // Función para manejar errores

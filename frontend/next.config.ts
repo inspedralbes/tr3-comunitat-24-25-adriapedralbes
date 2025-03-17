@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'api.futurprive.com',
+        port: '',
+        pathname: '/media/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'ui-avatars.com',
         port: '',
         pathname: '/api/**',
