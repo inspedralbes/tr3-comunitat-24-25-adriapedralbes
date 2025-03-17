@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [_showAuthModal, _setShowAuthModal] = useState(false);
@@ -137,11 +138,7 @@ export function NewsletterForm() {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-lg mx-auto">
-          {error && (
-            <div className="p-4 bg-red-500/20 rounded-lg mb-2">
-              <p className="text-red-400 font-medium">{error}</p>
-            </div>
-          )}
+
 
           <input
             type="text"

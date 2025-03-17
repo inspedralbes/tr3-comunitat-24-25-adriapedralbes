@@ -8,7 +8,7 @@ interface TooltipProviderProps {
 
 const TooltipProvider: React.FC<TooltipProviderProps> = ({ 
   children,
-  _delayDuration = 300 
+  delayDuration = 300 
 }) => {
   return <>{children}</>;
 };
@@ -22,9 +22,9 @@ interface TooltipProps {
 
 const TooltipComponent: React.FC<TooltipProps> = ({
   children,
-  _delayDuration,
-  _open: _controlledOpen,
-  _onOpenChange
+  delayDuration,
+  open: controlledOpen,
+  onOpenChange
 }) => {
   return <>{children}</>;
 };
@@ -84,9 +84,9 @@ const TooltipContent: React.FC<TooltipContentProps> = ({
   children,
   className,
   sideOffset = 5,
-  _alignOffset = 0,
+  alignOffset = 0,
   side = 'top',
-  _align = 'center'
+  align = 'center'
 }) => {
   // Comprobamos el estado del trigger padre
   const isOpen = (document.querySelector('[data-tooltip-trigger][data-state="open"]') !== null);

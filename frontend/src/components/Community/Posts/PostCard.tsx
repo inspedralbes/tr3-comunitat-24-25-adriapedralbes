@@ -64,7 +64,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     isLiked = false,
     onPostClick,
     postComments = [],
-    _isViewed = false,
+    isViewed = false,
     lastViewedAt = null
 }) => {
     // Estado local para controlar el like
