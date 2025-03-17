@@ -15,8 +15,16 @@ export const formatAvatarUrl = (url: string | null | undefined): string | null =
   // If it already starts with http, it's a complete URL
   if (url.startsWith('http')) return url;
   
-  // Otherwise add the API base URL
-  return `${API_BASE_URL}${url}`;
+  // Ensure url starts with a slash
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  
+  // Make sure API_BASE_URL doesn't end with a slash
+  const baseUrl = API_BASE_URL.endsWith('/') 
+    ? API_BASE_URL.slice(0, -1) 
+    : API_BASE_URL;
+  
+  // Combine base URL with the path
+  return `${baseUrl}${cleanUrl}`;
 };
 
 /**

@@ -1,14 +1,21 @@
 // Base URL para API
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.futurprive.com/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.futurprive.com';
 
 // Función para retornar la URL de la API
 const getApiUrl = () => {
   // En desarrollo, sustituir localhost por 127.0.0.1 para evitar problemas con IPv6
   // En producción, usar la URL tal cual
-  if (API_URL.includes('localhost')) {
-    return API_URL.replace('localhost', '127.0.0.1');
+  let baseUrl = API_URL;
+  if (baseUrl.includes('localhost')) {
+    baseUrl = baseUrl.replace('localhost', '127.0.0.1');
   }
-  return API_URL;
+  
+  // Asegurarse de que la URL base termina sin /
+  if (baseUrl.endsWith('/')) {
+    baseUrl = baseUrl.slice(0, -1);
+  }
+  
+  return baseUrl;
 };
 
 // Función para manejar errores
@@ -50,10 +57,21 @@ const getHeaders = (includeContentType = true) => {
   return headers;
 };
 
+// Función para construir la URL completa del endpoint
+const buildEndpointUrl = (endpoint: string) => {
+  // Asegurarse de que endpoint no empieza con barra
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+  
+  // Añadir prefijo /api/ si no está presente
+  const apiEndpoint = cleanEndpoint.startsWith('api/') ? cleanEndpoint : `api/${cleanEndpoint}`;
+  
+  return `${getApiUrl()}/${apiEndpoint}`;
+};
+
 // API general con funciones para peticiones HTTP
 export const api = {
   get: async (endpoint: string) => {
-    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
+    const response = await fetch(buildEndpointUrl(endpoint), {
       method: 'GET',
       headers: getHeaders(),
     });
@@ -61,7 +79,7 @@ export const api = {
   },
 
   post: async <T>(endpoint: string, data: T) => {
-    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
+    const response = await fetch(buildEndpointUrl(endpoint), {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -70,7 +88,7 @@ export const api = {
   },
 
   put: async <T>(endpoint: string, data: T) => {
-    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
+    const response = await fetch(buildEndpointUrl(endpoint), {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -79,7 +97,7 @@ export const api = {
   },
 
   patch: async <T>(endpoint: string, data: T) => {
-    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
+    const response = await fetch(buildEndpointUrl(endpoint), {
       method: 'PATCH',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -88,7 +106,7 @@ export const api = {
   },
 
   delete: async (endpoint: string) => {
-    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
+    const response = await fetch(buildEndpointUrl(endpoint), {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -110,7 +128,7 @@ export const api = {
     }
     
     // Hacer la solicitud
-    const response = await fetch(`${getApiUrl()}/${endpoint}`, {
+    const response = await fetch(buildEndpointUrl(endpoint), {
       method: 'POST',
       headers, // No incluir Content-Type para que el navegador maneje el boundary
       body: formData,
