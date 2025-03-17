@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'corsheaders',
     
-    # Aplicaciones base
+    # Aplicaciones de seguridad
+    'axes',  # Protección contra fuerza bruta
+    'csp',   # Content Security Policy
 ]
 
 MIDDLEWARE = [
@@ -58,7 +60,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
-    # Middleware base
+    # Middleware de seguridad
+    'axes.middleware.AxesMiddleware',  # Debe ir después de AuthenticationMiddleware
+    'csp.middleware.CSPMiddleware',  # Content Security Policy
+    'django_ratelimit.middleware.RatelimitMiddleware',  # Rate limiting
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -121,6 +126,7 @@ AUTH_USER_MODEL = 'api.User'
 
 # Configuración de la autenticación
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',  # Primero para bloquear después de demasiados intentos
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -232,6 +238,8 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
 }
 
-# DEBUG en producción debe ser False
-if not DEBUG and os.environ.get('DJANGO_ENV') == 'production':
-    DEBUG = False
+# Importar configuraciones de seguridad
+try:
+    from .security_settings import *
+except ImportError:
+    pass

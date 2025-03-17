@@ -15,11 +15,13 @@ class APISecurityMiddleware:
         self.get_response = get_response
         # Patrones de URL que no requieren autenticación
         self.public_url_patterns = [
-            r'^/admin/',          # Panel de administración
+            r'^/admin/',          # Panel de administración (honeypot)
+            r'^/backend-admin/',   # Panel de administración real
             r'^/api/token/',      # Obtención de tokens
             r'^/api/auth/register/',  # Registro de nuevos usuarios
             r'^/api/newsletter/', # Suscripción al newsletter
-            r'^/api/',            # Todas las rutas API temporalmente públicas
+            r'^/ratelimited/',    # Página de rate limiting
+            r'^/accounts/locked/', # Página de bloqueo
             # Añade aquí otras rutas públicas que necesites
         ]
 
@@ -35,11 +37,11 @@ class APISecurityMiddleware:
             if is_api_route and not is_public_route and not request.user.is_authenticated:
                 # Si es una solicitud a la raíz de la API, redirigir al admin
                 if path == '/api/' or path == '/api':
-                    return redirect('/admin/')
+                    return redirect('/backend-admin/')
             
             # Si es la raíz del sitio y el usuario no está autenticado, redirigir al admin
             if path == '/' and not request.user.is_authenticated:
-                return redirect('/admin/')
+                return redirect('/backend-admin/')
 
         # Continuar con el flujo normal para rutas autenticadas o exentas
         response = self.get_response(request)
