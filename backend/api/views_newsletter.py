@@ -83,16 +83,20 @@ def subscribe(request):
         try:
             send_confirmation_email(subscriber)
             
-            # Registrar el suscriptor en Beehiiv en segundo plano
-            # Para evitar que el timeout afecte la respuesta al usuario
+            # Obtener la IP del cliente si está disponible para mejor tracking
+            ip_address = request.META.get('REMOTE_ADDR') or request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            
+            # Registrar el suscriptor en Beehiiv en segundo plano con información ampliada
             def register_in_beehiiv_background():
                 try:
                     print("\n[BEEHIIV] Registrando en Beehiiv (antes de confirmación)")
                     success, message = add_subscriber_to_beehiiv(
                         email=subscriber.email,
                         name=subscriber.name,
-                        source="FuturPrive Website Direct",
-                        is_confirmed=False
+                        source="FuturPrive Website - Newsletter Form",
+                        is_confirmed=False,
+                        ip_address=ip_address,
+                        max_retries=3  # Más reintentos para asegurar el registro
                     )
                     if success:
                         print(f"[BEEHIIV] ÉXITO: Usuario registrado en Beehiiv: {message}")
@@ -217,11 +221,16 @@ def confirm_subscription(request, token):
                 # Usar un hilo para evitar timeouts
                 def update_beehiiv_status():
                     try:
+                        # Obtener la IP del cliente si está disponible
+                        ip_address = request.META.get('REMOTE_ADDR') or request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+                        
                         success, message = add_subscriber_to_beehiiv(
                             email=subscriber.email,
                             name=subscriber.name,
-                            source="FuturPrive Newsletter Confirmed",
-                            is_confirmed=True
+                            source="FuturPrive Newsletter - Email Confirmed",
+                            is_confirmed=True,
+                            ip_address=ip_address,
+                            max_retries=3  # Más reintentos para asegurar el registro
                         )
                         if success:
                             print(f"[BEEHIIV] ÉXITO: Usuario confirmado en Beehiiv. {message}")

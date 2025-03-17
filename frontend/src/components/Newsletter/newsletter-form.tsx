@@ -15,17 +15,33 @@ export function NewsletterForm() {
     setIsLoading(true);
     setError("");
     
+    // Validación básica de email
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setError("Por favor, introduce un email válido.");
+      setIsLoading(false);
+      return;
+    }
+    
     try {
+      // Construir la URL de la API usando la configuración de entorno
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.futurprive.com';
+      const endpoint = `${apiUrl}/api/newsletter/subscribe/`;
+      
+      console.log(`Enviando solicitud a: ${endpoint}`);
+      
       // Usar URL absoluta para evitar problemas CORS
-      const response = await fetch("https://api.futurprive.com/api/newsletter/subscribe/", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Origin": "https://futurprive.com",
+          "Origin": window.location.origin,
         },
         mode: "cors",
         credentials: "omit",
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ 
+          email, 
+          name: name.trim() || undefined  // Solo enviar el nombre si no está vacío
+        }),
       });
       
       console.log("Response status:", response.status);
