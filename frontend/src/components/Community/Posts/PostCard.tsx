@@ -1,11 +1,13 @@
 import { ThumbsUp, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
-import React from 'react';
+import React, { useState } from 'react';
+
 
 import { CommentAvatars } from '@/components/Community/Comments/CommentAvatars';
-import { UserBadge } from '@/components/Community/UserBadge';
-import { commentsByPostId } from '@/mockData/mockComments';
+import { PostAuthor } from '@/components/Community/Posts/PostAuthor';
+import { communityService } from '@/services/community';
 import { Comment } from '@/types/Comment';
+import { formatRelativeTime, isNewComment, parseDjangoTimestamp } from '@/utils/dateUtils';
 
 interface PostCardProps {
     id: string;
@@ -13,32 +15,39 @@ interface PostCardProps {
         username: string;
         level?: number;
         avatarUrl?: string;
+        avatar_url?: string;
     };
     timestamp: string;
     category?: string;
     categoryColor?: string;
+    title?: string;
     content: string;
     likes: number;
     comments: number;
     isPinned?: boolean;
     imageUrl?: string;
+    isLiked?: boolean;
     onPostClick: (id: string) => void;
+    postComments?: Comment[];
+    isViewed?: boolean;
+    lastViewedAt?: string | null;
 }
 
 interface Commenter {
     username: string;
     avatarUrl?: string;
+    avatar_url?: string;
 }
 
 // Tipo para comentarios con anidación
-interface CommentWithReplies {
-    author: {
-        username: string;
-        avatarUrl?: string;
-    };
-    timestamp: string;
-    replies?: CommentWithReplies[];
-}
+// interface CommentWithReplies {
+//     author: { 
+//         username: string; 
+//         avatarUrl?: string;
+//     };
+//     timestamp: string;
+//     replies?: CommentWithReplies[];
+// }
 
 export const PostCard: React.FC<PostCardProps> = ({
     id,
@@ -46,41 +55,48 @@ export const PostCard: React.FC<PostCardProps> = ({
     timestamp,
     category,
     categoryColor,
+    title,
     content,
     likes,
     comments,
     isPinned = false,
     imageUrl,
-    onPostClick
+    isLiked = false,
+    onPostClick,
+    postComments = [],
+    _isViewed = false,
+    lastViewedAt = null
 }) => {
-    // Verificar si el contenido comienza con "Re:" para formato especial
-    const isReply = content.startsWith('Re:');
+    // Estado local para controlar el like
+    const [isPostLiked, setIsPostLiked] = useState(isLiked);
+    const [likesCount, setLikesCount] = useState(likes);
+
+    // Si no se proporciona un título explícito, extraerlo de la primera línea del contenido
     const contentLines = content.split('\n');
-    const title = contentLines[0];
-    const body = contentLines.slice(1).join('\n');
+    const displayTitle = title || contentLines[0];
+    const body = title ? content : contentLines.slice(1).join('\n');
 
-    // Obtener datos de comentarios para este post
-    const postComments = commentsByPostId[id] || [];
-
-    // Extraer los comentadores únicos
+    // Extraer los comentadores únicos de los comentarios reales
     const uniqueCommenters: Commenter[] = [];
     const commenterSet = new Set<string>();
 
     // Función recursiva para extraer comentadores de comentarios y respuestas
-    const extractCommenters = (comments: CommentWithReplies[]) => {
+    const extractCommenters = (comments: Comment[]) => {
         comments.forEach(comment => {
-            const username = comment.author.username;
-            if (!commenterSet.has(username)) {
-                commenterSet.add(username);
-                uniqueCommenters.push({
-                    username: username,
-                    avatarUrl: comment.author.avatarUrl
-                });
-            }
+            if (comment.author) {
+                const username = comment.author.username;
+                if (!commenterSet.has(username)) {
+                    commenterSet.add(username);
+                    uniqueCommenters.push({
+                        username: username,
+                        avatarUrl: comment.author.avatarUrl || comment.author.avatar_url
+                    });
+                }
 
-            // Procesar respuestas si existen
-            if (comment.replies && comment.replies.length > 0) {
-                extractCommenters(comment.replies);
+                // Procesar respuestas si existen
+                if (comment.replies && comment.replies.length > 0) {
+                    extractCommenters(comment.replies as Comment[]);
+                }
             }
         });
     };
@@ -89,20 +105,66 @@ export const PostCard: React.FC<PostCardProps> = ({
     extractCommenters(postComments);
 
     // Obtener la timestamp del comentario más reciente
-    let lastCommentTime = null;
+    let lastCommentTime = '';
+    let isNewestComment = false;
+
     if (postComments.length > 0) {
         // Buscar el comentario más reciente (asumiendo que están ordenados por tiempo)
-        lastCommentTime = postComments[postComments.length - 1].timestamp;
+        const lastComment = postComments[postComments.length - 1];
+
+        // Usar timestamp o created_at, dependiendo de cuál esté disponible
+        const commentTime = lastComment?.timestamp || lastComment?.created_at || '';
+        if (commentTime) {
+            lastCommentTime = commentTime;
+
+            // Verificar que el formato de fecha es válido
+            try {
+                const date = parseDjangoTimestamp(commentTime);
+                if (isNaN(date.getTime())) {
+                    // Formato de fecha inválido
+                }
+            } catch {
+                // Silenciamos el error
+                // Error al analizar la fecha
+            }
+        }
 
         // También revisar en las respuestas
         postComments.forEach(comment => {
             if (comment.replies && comment.replies.length > 0) {
                 const lastReply = comment.replies[comment.replies.length - 1];
-                // Aquí se podría implementar una lógica para comparar fechas
-                // Por ahora, simplemente usamos el último
-                lastCommentTime = lastReply.timestamp;
+                const replyTime = lastReply?.timestamp || lastReply?.created_at || '';
+
+                if (replyTime) {
+                    try {
+                        const replyDate = parseDjangoTimestamp(replyTime);
+                        const currentLastDate = parseDjangoTimestamp(lastCommentTime);
+
+                        if (!isNaN(replyDate.getTime()) && !isNaN(currentLastDate.getTime()) &&
+                            replyDate > currentLastDate) {
+                            lastCommentTime = replyTime;
+                        }
+                    } catch {
+                        // Silenciamos el error
+                        // Error al comparar fechas
+                    }
+                }
             }
         });
+
+        // Depurar el timestamp y el formato resultante
+        if (lastCommentTime) {
+            // console.log('Post:', id, 'Last comment time:', lastCommentTime);
+            // console.log('Formatted as:', formatRelativeTime(lastCommentTime));
+
+            if (lastViewedAt) {
+                // console.log('Last viewed at:', lastViewedAt);
+                // console.log('Is newest comment:', isNewComment(lastViewedAt, lastCommentTime));
+            }
+        }
+
+        // Determinar si el comentario es nuevo (no visto por el usuario)
+        isNewestComment = isNewComment(lastViewedAt, lastCommentTime);
     }
 
     const handleClick = () => {
@@ -125,7 +187,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             role="button"
             aria-label={`Post: ${title}`}
         >
-            <UserBadge
+            <PostAuthor
                 username={author.username}
                 level={author.level}
                 avatarUrl={author.avatarUrl}
@@ -135,13 +197,8 @@ export const PostCard: React.FC<PostCardProps> = ({
             />
 
             {/* Título del post */}
-            {isReply ? (
-                <div className="mt-2 mb-1 font-medium flex items-center">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                    <h3 className="text-white">{title}</h3>
-                </div>
-            ) : (
-                <h3 className="mt-3 mb-2 font-medium text-white">{title}</h3>
+            {displayTitle && (
+                <h3 className="mt-3 mb-2 font-medium text-white">{displayTitle}</h3>
             )}
 
             {/* Contenido del post */}
@@ -152,15 +209,17 @@ export const PostCard: React.FC<PostCardProps> = ({
             {/* Imagen adjunta */}
             {imageUrl && (
                 <div className="mt-2 mb-3">
-                    <Image
-                        src={imageUrl.startsWith('http') ? imageUrl : `http://127.0.0.1:8000${imageUrl}`}
-                        alt={`Contenido de ${title}`}
-                        width={500}
-                        height={300}
-                        className="rounded-lg max-h-28 object-cover border border-white/10"
-                        priority={true}
-                        unoptimized={process.env.NODE_ENV === 'development'}
-                    />
+                    <div className="cursor-pointer hover:opacity-95 transition-all">
+                        <Image
+                            src={imageUrl.startsWith('http') ? imageUrl : `http://127.0.0.1:8000${imageUrl}`}
+                            alt={`Contenido de ${title}`}
+                            width={500}
+                            height={300}
+                            className="rounded-lg max-h-28 object-cover border border-white/10"
+                            priority={true}
+                            unoptimized={true}
+                        />
+                    </div>
                 </div>
             )}
 
@@ -169,16 +228,24 @@ export const PostCard: React.FC<PostCardProps> = ({
                 <div className="flex items-center gap-4 text-zinc-300">
                     <div className="flex items-center gap-1">
                         <button
-                            className="p-1 hover:bg-[#444442] rounded-full"
+                            className={`p-1 hover:bg-[#444442] rounded-full ${isPostLiked ? 'text-blue-400' : ''}`}
                             onClick={(e) => {
                                 e.stopPropagation(); // Evitar que se abra el modal al dar like
-                                // Aquí iría la lógica para dar like
+                                // Llamar a la API para dar/quitar like
+                                communityService.likePost(id)
+                                    .then(response => {
+                                        setIsPostLiked(response.status === 'liked');
+                                        setLikesCount(response.likes);
+                                    })
+                                    .catch(() => {
+                                        // Capturamos el error
+                                        console.error('Error al dar/quitar like');
+                                    });
                             }}
-                            aria-label="Like this post"
                         >
                             <ThumbsUp size={16} />
                         </button>
-                        <span className="text-sm">{likes}</span>
+                        <span className="text-sm">{likesCount}</span>
                     </div>
                     <div className="flex items-center gap-1">
                         <button
@@ -195,13 +262,18 @@ export const PostCard: React.FC<PostCardProps> = ({
                     </div>
                 </div>
 
-                {/* Avatares de comentadores */}
-                {uniqueCommenters.length > 0 && (
-                    <CommentAvatars
-                        commenters={uniqueCommenters}
-                        lastCommentTime={lastCommentTime}
-                    />
-                )}
+                {/* Avatares de comentadores y tiempo del último comentario */}
+                <div className="flex items-center">
+                    {uniqueCommenters.length > 0 && (
+                        <CommentAvatars commenters={uniqueCommenters} />
+                    )}
+                    {/* Siempre mostrar el tiempo de comentario si hay comentarios */}
+                    {Number(comments) > 0 && (
+                        <span className="text-xs ml-2" style={{ color: isNewestComment ? '#3b82f6' : '#9ca3af' }}>
+                            {isNewestComment ? 'New' : 'Last'} comment {formatRelativeTime(lastCommentTime)}
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -16,6 +16,17 @@ python manage.py migrate
 echo "🔵 Configurando superusuario..."
 python create_superuser.py
 
+# Configurar sistema de gamificación
+echo "Configurando sistema de gamificación..."
+
+# Comprobar si debemos forzar la recreación completa
+if [ "$FORCE_GAMIFICATION_SETUP" = "true" ]; then
+  echo "Forzando recreación del sistema de gamificación..."
+  python manage.py setup_gamification --force || echo "No se pudo configurar el sistema de gamificación, continuando..."
+else
+  python manage.py setup_gamification || echo "No se pudo configurar el sistema de gamificación, continuando..."
+fi
+
 # Recopilar archivos estáticos
 echo "🔵 Recopilando archivos estáticos..."
 python manage.py collectstatic --noinput

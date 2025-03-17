@@ -10,17 +10,20 @@ interface Category {
 
 interface CategoryFilterProps {
     activeCategory: string;
+    activeSortType: string;
     onCategoryChange: (category: string) => void;
+    onSortTypeChange: (sortType: string) => void;
     categories?: Category[];
 }
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     activeCategory,
+    activeSortType,
     onCategoryChange,
+    onSortTypeChange,
     categories = []
 }) => {
     const [showDropdown, setShowDropdown] = useState(false);
-    const [activeSortType, setActiveSortType] = useState("default");
     const [showSortDropdown, setShowSortDropdown] = useState(false);
 
     // Referencias para detectar clics fuera de los dropdowns
@@ -152,7 +155,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                                         : 'text-zinc-200 hover:bg-[#444442]'
                                         }`}
                                     onClick={() => {
-                                        setActiveSortType(sort.id);
+                                        onSortTypeChange(sort.id);
                                         setShowSortDropdown(false);
                                     }}
                                     role="menuitem"
@@ -208,7 +211,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                                         : 'text-zinc-200 hover:bg-[#444442] hover:text-white'
                                         }`}
                                     onClick={() => {
-                                        setActiveSortType(sort.id);
+                                        onSortTypeChange(sort.id);
                                         setShowSortDropdown(false);
                                     }}
                                     role="menuitem"

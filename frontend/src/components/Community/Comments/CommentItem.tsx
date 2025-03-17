@@ -38,6 +38,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply }) =>
                                 width={32}
                                 height={32}
                                 className="w-full h-full object-cover"
+                                unoptimized={comment.author.avatarUrl.includes('127.0.0.1') || comment.author.avatarUrl.includes('localhost')}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-zinc-400">

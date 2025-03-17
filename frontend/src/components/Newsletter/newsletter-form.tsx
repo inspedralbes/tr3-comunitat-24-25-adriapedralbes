@@ -1,71 +1,57 @@
 "use client";
 
 import { useState } from "react";
+
+import { AuthModal as _AuthModal, AuthModalType as _AuthModalType } from "@/components/Auth";
 import { Button } from "@/components/ui/button";
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
+  const [_showAuthModal, _setShowAuthModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
-    
-    // Validación básica de email
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      setError("Por favor, introduce un email válido.");
-      setIsLoading(false);
+    setErrorMessage(null);
+
+    if (!email) {
+      setErrorMessage("Por favor, introduce tu email");
       return;
     }
-    
+
+    setSubmitting(true);
+
     try {
-      // Construir la URL de la API usando la configuración de entorno
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.futurprive.com';
-      const endpoint = `${apiUrl}/api/newsletter/subscribe/`;
-      
-      console.log(`Enviando solicitud a: ${endpoint}`);
-      
-      // Usar URL absoluta para evitar problemas CORS
-      const response = await fetch(endpoint, {
-        method: "POST",
+      // Realizar solicitud directa al backend sin requerir autenticación
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+
+      const response = await fetch(`${apiUrl}/newsletter/subscribe/`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "Origin": window.location.origin,
+          'Content-Type': 'application/json',
         },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify({ 
-          email, 
-          name: name.trim() || undefined  // Solo enviar el nombre si no está vacío
+        body: JSON.stringify({
+          name: "", // Podemos dejar el nombre vacío o usar un valor por defecto
+          email,
         }),
       });
-      
-      console.log("Response status:", response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Success:", data);
-        setSubmitted(true);
-      } else {
-        // Intentar obtener mensaje de error
-        try {
-          const errorData = await response.json();
-          setError(errorData.message || "Error al suscribirse. Por favor, intenta de nuevo.");
-          console.error("Error data:", errorData);
-        } catch (jsonError) {
-          setError("Error al suscribirse. Por favor, intenta de nuevo.");
-          console.error("Error parsing response:", jsonError);
-        }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Ha ocurrido un error al procesar la suscripción');
       }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      setError("Error de conexión. Por favor, intenta de nuevo más tarde.");
+
+      setSubmitted(true);
+      setEmail("");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      console.error("Error:", error);
+      setErrorMessage(errorMessage || "Ha ocurrido un error. Por favor, inténtalo de nuevo.");
     } finally {
-      setIsLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -139,6 +125,12 @@ export function NewsletterForm() {
         </p>
       </div>
 
+      {errorMessage && (
+        <div className="p-4 mb-4 bg-red-500/20 rounded-lg">
+          <p className="text-red-400 font-medium">{errorMessage}</p>
+        </div>
+      )}
+
       {submitted ? (
         <div className="p-4 bg-green-500/20 rounded-lg">
           <p className="text-green-400 font-medium">¡Gracias por suscribirte! Pronto recibirás nuestras novedades.</p>
@@ -150,7 +142,7 @@ export function NewsletterForm() {
               <p className="text-red-400 font-medium">{error}</p>
             </div>
           )}
-          
+
           <input
             type="text"
             placeholder="Tu nombre (opcional)"
@@ -158,7 +150,7 @@ export function NewsletterForm() {
             onChange={(e) => setName(e.target.value)}
             className="flex-1 px-4 py-3 bg-[#1c1c1c] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
-          
+
           <input
             type="email"
             placeholder="Tu correo electrónico"
@@ -167,16 +159,19 @@ export function NewsletterForm() {
             required
             className="flex-1 px-4 py-3 bg-[#1c1c1c] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
-          
+
           <Button
             type="submit"
             className="bg-white text-black hover:bg-gray-200 px-8 py-3 font-medium"
-            disabled={isLoading}
+            disabled={submitting}
           >
-            {isLoading ? "Enviando..." : "Suscribirse"}
+            {submitting ? "Enviando..." : "Subscribe"}
           </Button>
         </form>
       )}
+
+      {/* Modal de autenticación ya no es necesario */}
+      {/* Mantenemos el componente por si en el futuro se quiere usar para otras funcionalidades */}
     </div>
   );
 }

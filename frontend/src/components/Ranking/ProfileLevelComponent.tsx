@@ -1,6 +1,9 @@
-import { LockIcon } from 'lucide-react';
-import Image from 'next/image';
-import React from 'react';
+import { LockIcon, Loader2Icon } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+
+import { LevelDistribution, rankingService } from '@/services/ranking';
+
+import { UserLargeAvatar } from './UserLargeAvatar';
 
 interface ProfileLevelComponentProps {
     username: string;
@@ -15,24 +18,32 @@ export const ProfileLevelComponent: React.FC<ProfileLevelComponentProps> = ({
     avatarUrl,
     pointsToNextLevel,
 }) => {
+    const [levelDistribution, setLevelDistribution] = useState<LevelDistribution[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchLevelDistribution = async () => {
+            try {
+                setLoading(true);
+                const data = await rankingService.getLevelDistribution();
+                setLevelDistribution(data);
+            } catch (error) {
+                console.error('Error al obtener distribución de niveles:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLevelDistribution();
+    }, []);
     return (
         <div className="bg-[#323230]/90 rounded-lg border border-white/10 p-8">
             <div className="flex flex-col items-center md:flex-row md:items-start gap-6">
-                {/* Avatar con nivel */}
-                <div className="relative">
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-600">
-                        <Image
-                            src={avatarUrl}
-                            alt={username}
-                            width={128}
-                            height={128}
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
-                    <div className="absolute -bottom-2 right-0 w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-xl font-bold text-white border-4 border-[#1F1F1E]">
-                        {level}
-                    </div>
-                </div>
+                <UserLargeAvatar
+                    username={username}
+                    avatarUrl={avatarUrl}
+                    level={level}
+                />
 
                 {/* Información del usuario */}
                 <div className="flex flex-col items-center md:items-start">
@@ -46,32 +57,35 @@ export const ProfileLevelComponent: React.FC<ProfileLevelComponentProps> = ({
 
             {/* Grid de niveles */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
-                {/* Nivel 1 - Activo */}
-                <LevelBlock level={1} isUnlocked={true} percentage={93} isActive={level === 1} />
-
-                {/* Nivel 2 - Bloqueado */}
-                <LevelBlock level={2} isUnlocked={false} percentage={6} isActive={level === 2} />
-
-                {/* Nivel 3 - Bloqueado */}
-                <LevelBlock level={3} isUnlocked={false} percentage={0} isActive={level === 3} />
-
-                {/* Nivel 4 - Bloqueado */}
-                <LevelBlock level={4} isUnlocked={false} percentage={1} isActive={level === 4} />
-
-                {/* Nivel 5 - Bloqueado */}
-                <LevelBlock level={5} isUnlocked={false} percentage={0} isActive={level === 5} />
-
-                {/* Nivel 6 - Bloqueado */}
-                <LevelBlock level={6} isUnlocked={false} percentage={0} isActive={level === 6} />
-
-                {/* Nivel 7 - Bloqueado */}
-                <LevelBlock level={7} isUnlocked={false} percentage={0} isActive={level === 7} />
-
-                {/* Nivel 8 - Bloqueado */}
-                <LevelBlock level={8} isUnlocked={false} percentage={0} isActive={level === 8} />
-
-                {/* Nivel 9 - Bloqueado */}
-                <LevelBlock level={9} isUnlocked={false} percentage={0} isActive={level === 9} />
+                {loading ? (
+                    <div className="col-span-5 flex justify-center items-center py-8">
+                        <Loader2Icon className="animate-spin h-8 w-8 text-blue-500" />
+                    </div>
+                ) : (
+                    levelDistribution.length > 0 ? (
+                        // Mostrar niveles con datos reales
+                        levelDistribution.map((levelData) => (
+                            <LevelBlock
+                                key={levelData.level}
+                                level={levelData.level}
+                                isUnlocked={level >= levelData.level}
+                                percentage={levelData.percentage}
+                                isActive={level === levelData.level}
+                            />
+                        ))
+                    ) : (
+                        // Fallback por si no hay datos
+                        Array.from({ length: 9 }, (_, i) => i + 1).map((levelNum) => (
+                            <LevelBlock
+                                key={levelNum}
+                                level={levelNum}
+                                isUnlocked={level >= levelNum}
+                                percentage={0}
+                                isActive={level === levelNum}
+                            />
+                        ))
+                    )
+                )}
             </div>
         </div>
     );
@@ -85,11 +99,48 @@ interface LevelBlockProps {
 }
 
 const LevelBlock: React.FC<LevelBlockProps> = ({ level, isUnlocked, isActive, percentage }) => {
+    // Obtener el color del badge según el nivel
+    const getBadgeColor = (level: number) => {
+        const colors: Record<number, string> = {
+            1: 'bg-gray-500',
+            2: 'bg-green-500',
+            3: 'bg-blue-500',
+            4: 'bg-indigo-500',
+            5: 'bg-purple-500',
+            6: 'bg-pink-500',
+            7: 'bg-red-500',
+            8: 'bg-yellow-500',
+            9: 'bg-amber-500',
+            10: 'bg-orange-500',
+        };
+        return colors[level] || 'bg-blue-500';
+    };
+
+    // Determinar el color de texto según el nivel
+    const textColorClass = level === 8 || level === 9 ? 'text-black' : 'text-white';
+
+    // Color de fondo actual para niveles activos
+    const getActiveBgColor = (level: number) => {
+        const colors: Record<number, string> = {
+            1: 'bg-gray-900/20',
+            2: 'bg-green-900/20',
+            3: 'bg-blue-900/20',
+            4: 'bg-indigo-900/20',
+            5: 'bg-purple-900/20',
+            6: 'bg-pink-900/20',
+            7: 'bg-red-900/20',
+            8: 'bg-yellow-900/20',
+            9: 'bg-amber-900/20',
+            10: 'bg-orange-900/20',
+        };
+        return colors[level] || 'bg-blue-900/20';
+    };
+
     return (
-        <div className={`relative flex items-center p-3 rounded-lg ${isActive ? 'bg-blue-900/20' : 'bg-[#2A2A28]'}`}>
+        <div className={`relative flex items-center p-3 rounded-lg ${isActive ? getActiveBgColor(level) : 'bg-[#2A2A28]'}`}>
             {isUnlocked ? (
                 <div className="flex items-center w-full">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${isActive ? 'bg-blue-600' : 'bg-blue-700'} text-white font-bold mr-3`}>
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${getBadgeColor(level)} ${textColorClass} font-bold mr-3`}>
                         {level}
                     </div>
                     <div className="flex-1">

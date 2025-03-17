@@ -16,6 +16,7 @@ interface MemberCardProps {
         lastActive: string | null;
         joinedDate: string;
         location: string | null;
+        isAdmin?: boolean;
     };
 }
 
@@ -37,7 +38,14 @@ export function MemberCard({ member }: MemberCardProps) {
                 <div className="flex-1">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h3 className="font-semibold text-white text-lg">{member.username}</h3>
+                            <h3 className="font-semibold text-white text-lg flex items-center">
+                                {member.username}
+                                {member.isAdmin && (
+                                    <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                                        ADMIN
+                                    </span>
+                                )}
+                            </h3>
                             <p className="text-gray-400 text-sm">{member.handle}</p>
                             <p className="text-white mt-2">{member.description}</p>
                         </div>
@@ -64,7 +72,7 @@ export function MemberCard({ member }: MemberCardProps) {
 
                         <div className="flex items-center">
                             <Calendar size={14} className="mr-2" />
-                            <span>Joined {member.joinedDate}</span>
+                            <span>Joined: {member.joinedDate !== 'Desconocido' ? member.joinedDate : 'Unknown'}</span>
                         </div>
 
                         {member.location && (

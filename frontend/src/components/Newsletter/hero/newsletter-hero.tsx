@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
+import { AuthModal as _AuthModal, AuthModalType as _AuthModalType } from "@/components/Auth";
 import { NewsletterAvatarCircles } from "@/components/Newsletter/newsletter-avatar-circles";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ export function NewsletterHero() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [_showAuthModal, _setShowAuthModal] = useState(false);
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -33,10 +35,13 @@ export function NewsletterHero() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("https://api.futurprive.com/api/newsletter/subscribe/", {
-        method: "POST",
+      // Realizar solicitud directa al backend sin requerir autenticación
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+
+      const response = await fetch(`${apiUrl}/newsletter/subscribe/`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name,
@@ -46,17 +51,18 @@ export function NewsletterHero() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        setIsSuccess(true);
-        setName("");
-        setEmail("");
-        setAccepted(false);
-      } else {
-        setErrorMessage(data.message || "Ha ocurrido un error. Por favor, inténtalo de nuevo.");
+      if (!response.ok) {
+        throw new Error(data.message || 'Ha ocurrido un error al procesar la suscripción');
       }
-    } catch (error) {
+
+      setIsSuccess(true);
+      setName("");
+      setEmail("");
+      setAccepted(false);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       console.error("Error:", error);
-      setErrorMessage("Ha ocurrido un error. Por favor, inténtalo de nuevo.");
+      setErrorMessage(errorMessage || "Ha ocurrido un error. Por favor, inténtalo de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -146,6 +152,9 @@ export function NewsletterHero() {
           </div>
         </div>
       </div>
+
+      {/* Modal de autenticación ya no es necesario */}
+      {/* Mantenemos el componente por si en el futuro se quiere usar para otras funcionalidades */}
     </section>
   );
 }

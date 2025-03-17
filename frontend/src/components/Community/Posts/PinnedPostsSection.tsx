@@ -1,7 +1,9 @@
 import { Trophy } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
+import { Comment } from '@/types/Comment';
 import { Post } from '@/types/Post';
+import { PostViewRecord } from '@/types/PostView';
 
 import { PostCard } from './PostCard';
 
@@ -9,10 +11,31 @@ interface PinnedPostsSectionProps {
     pinnedPosts: Post[];
     onPostClick: (postId: string) => void;
     isLoading?: boolean;
+    postComments?: Record<string, Comment[]>;
+    viewedPosts?: Set<string>;
+    postViewsRecord?: PostViewRecord;
 }
 
-export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ pinnedPosts, onPostClick, isLoading = false }) => {
+export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({
+    pinnedPosts,
+    onPostClick,
+    isLoading = false,
+    postComments = {},
+    viewedPosts = new Set(),
+    postViewsRecord = {}
+}) => {
     const [isVisible, setIsVisible] = useState(true);
+    const [visiblePosts, setVisiblePosts] = useState<Post[]>([]);
+
+    // Efecto para actualizar los posts con transición suave
+    useEffect(() => {
+        // Si no estamos cargando y tenemos posts, actualizar inmediatamente
+        if (!isLoading) {
+            // Si la longitud es la misma, probablemente solo estamos actualizando datos
+            // después de cerrar un modal, así que no se necesita ninguna transición
+            setVisiblePosts(pinnedPosts);
+        }
+    }, [pinnedPosts, isLoading]);
 
     if (!isVisible || (pinnedPosts.length === 0 && !isLoading)) {
         return null;
@@ -47,11 +70,11 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ pinnedPo
                         </div>
                     </div>
                 ) : (
-                    pinnedPosts.map((post) => {
+                    visiblePosts.map((post) => {
                         // Extracción segura del nombre de la categoría de la respuesta de la API
                         let categoryName = '';
                         let categoryColor = 'bg-[#444442] border border-white/5';
-                        
+
                         if (post.category) {
                             // Si category es un objeto con la propiedad name
                             if (typeof post.category === 'object' && post.category !== null && 'name' in post.category) {
@@ -59,33 +82,43 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ pinnedPo
                                 if ('color' in post.category && post.category.color) {
                                     categoryColor = post.category.color;
                                 }
-                            } 
+                            }
                             // Si category es un string
                             else if (typeof post.category === 'string') {
                                 categoryName = post.category;
                             }
                         }
-                        
+
                         // Extraer timestamp del created_at de la API
                         const timestamp = post.timestamp || post.created_at || 'hace un momento';
-                        
+
                         // Extraer URL de imagen si existe
                         const imageUrl = post.imageUrl || post.image || undefined;
-                        
+
+                        // Normalizar la URL del avatar - asegurarse de que author.avatarUrl siempre exista
+                        const author = {
+                            ...post.author,
+                            avatarUrl: post.author.avatarUrl || post.author.avatar_url || undefined
+                        };
+
                         return (
                             <PostCard
                                 key={post.id}
                                 id={post.id}
-                                author={post.author}
+                                author={author}
                                 timestamp={timestamp}
                                 category={categoryName}
                                 categoryColor={categoryColor}
+                                title={post.title}
                                 content={post.content}
                                 likes={post.likes || 0}
                                 comments={post.comments_count || 0}
                                 isPinned={true}
                                 imageUrl={imageUrl}
                                 onPostClick={onPostClick}
+                                postComments={postComments[post.id] || []}
+                                isViewed={viewedPosts.has(post.id)}
+                                lastViewedAt={postViewsRecord[post.id] || null}
                             />
                         );
                     })

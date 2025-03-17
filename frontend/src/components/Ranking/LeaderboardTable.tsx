@@ -1,11 +1,14 @@
-import Image from 'next/image';
+import { default as _Image } from 'next/image';
 import React from 'react';
+
+import { UserAvatar } from '@/components/Members/UserAvatar';
 
 export interface LeaderboardUser {
     position: number;
     username: string;
-    avatarUrl: string;
+    avatarUrl: string | null;
     points: number;
+    level?: number;
 }
 
 interface LeaderboardTableProps {
@@ -34,19 +37,16 @@ export const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ title, users
 
             <div className="space-y-4">
                 {users.map((user) => (
-                    <div key={`${title}-${user.username}`} className="flex items-center gap-3">
+                    <div key={`${title}-${user.username}`} className="flex items-center gap-3 mb-4 last:mb-0">
                         <div className={`w-8 h-8 ${getPositionBadgeColor(user.position)} rounded-full flex items-center justify-center text-sm font-bold border`}>
                             {user.position}
                         </div>
-                        <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20">
-                            <Image
-                                src={user.avatarUrl}
-                                alt={user.username}
-                                width={40}
-                                height={40}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
+                        <UserAvatar 
+                            username={user.username} 
+                            avatarUrl={user.avatarUrl} 
+                            level={user.level || 1}
+                            size="sm"
+                        />
                         <span className="text-sm font-medium flex-1 text-white">{user.username}</span>
                         <span className={`text-sm ${user.position <= 3 ? 'text-blue-300' : 'text-blue-400'}`}>
                             {user.position <= 3 ? '+' : ''}

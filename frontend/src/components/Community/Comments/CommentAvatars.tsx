@@ -9,13 +9,11 @@ interface Commenter {
 interface CommentAvatarsProps {
     commenters: Commenter[];
     maxAvatars?: number;
-    lastCommentTime?: string | null;
 }
 
 export const CommentAvatars: React.FC<CommentAvatarsProps> = ({
     commenters,
-    maxAvatars = 4,
-    lastCommentTime
+    maxAvatars = 4
 }) => {
     // Si no hay comentarios, no mostramos nada
     if (!commenters || commenters.length === 0) return null;
@@ -27,7 +25,7 @@ export const CommentAvatars: React.FC<CommentAvatarsProps> = ({
     return (
         <div className="flex items-center">
             {/* Avatares de comentadores */}
-            <div className="flex -space-x-2 mr-2">
+            <div className="flex -space-x-2">
                 {displayCommenters.map((commenter, index) => (
                     <div
                         key={`${commenter.username}-${index}`}
@@ -40,6 +38,7 @@ export const CommentAvatars: React.FC<CommentAvatarsProps> = ({
                                 width={24}
                                 height={24}
                                 className="w-full h-full object-cover"
+                                unoptimized={commenter.avatarUrl.includes('127.0.0.1') || commenter.avatarUrl.includes('localhost')}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-zinc-400">
@@ -56,13 +55,6 @@ export const CommentAvatars: React.FC<CommentAvatarsProps> = ({
                     </div>
                 )}
             </div>
-
-            {/* Tiempo del último comentario */}
-            {lastCommentTime && (
-                <span className="text-xs text-zinc-500">
-                    Last comment {lastCommentTime}
-                </span>
-            )}
         </div>
     );
 };

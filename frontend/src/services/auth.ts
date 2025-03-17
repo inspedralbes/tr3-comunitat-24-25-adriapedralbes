@@ -30,6 +30,9 @@ export interface UserProfile {
   is_premium: boolean;
   created_at: string;
   updated_at: string;
+  posts_count?: number;
+  likes_received?: number;
+  comments_count?: number;
 }
 
 export interface TokenResponse {
@@ -57,8 +60,11 @@ export const authService = {
     return api.post('auth/register/', userData);
   },
   
+
+  
   // Obtener perfil del usuario actual
   getProfile: async (): Promise<UserProfile> => {
+    // La respuesta de auth/me/ ya debe incluir los contadores gracias a nuestras modificaciones en el backend
     return api.get('auth/me/');
   },
   
@@ -71,7 +77,7 @@ export const authService = {
   updateAvatar: async (file: File): Promise<UserProfile> => {
     const formData = new FormData();
     formData.append('avatar_url', file);
-    return api.upload('auth/me/avatar/', formData);
+    return api.upload('auth/me/', formData);
   },
   
   // Logout

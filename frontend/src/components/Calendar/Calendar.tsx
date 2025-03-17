@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-import { CalendarEvent, HeaderViewMode, MonthData, ViewMode } from '@/types/Calendar';
+import { CalendarEvent, MonthData } from '@/types/Calendar';
 import { getMonthData } from '@/utils/calendarUtils';
 
 import { CalendarHeader } from './CalendarHeader';
@@ -17,7 +17,7 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onEventClick }) => {
     // Estado para la fecha actual del calendario
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthData, setMonthData] = useState<MonthData | null>(null);
-    const [viewMode, setViewMode] = useState<HeaderViewMode>('month');
+    const [viewMode, setViewMode] = useState<'month' | 'list'>('month');
 
     useEffect(() => {
         // Generar los datos del mes actual
@@ -49,7 +49,7 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onEventClick }) => {
         setCurrentDate(new Date());
     };
 
-    const handleViewChange = (view: HeaderViewMode) => {
+    const handleViewChange = (view: 'month' | 'list') => {
         setViewMode(view);
     };
 

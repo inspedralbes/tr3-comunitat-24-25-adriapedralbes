@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
-from .views_newsletter import subscribe, confirm_subscription, unsubscribe
+from api.gamification import urls as gamification_urls
 
 # Configurar router para las vistas viewset
 router = DefaultRouter()
@@ -33,4 +33,7 @@ urlpatterns = [
     path('pinned-posts/', views.PinnedPostsView.as_view(), name='pinned-posts'),
     path('posts/<uuid:post_id>/like/', views.PostLikeView.as_view(), name='post-like'),
     path('comments/<uuid:comment_id>/like/', views.CommentLikeView.as_view(), name='comment-like'),
+    
+    # Rutas de gamificación
+    path('gamification/', include(gamification_urls)),
 ]

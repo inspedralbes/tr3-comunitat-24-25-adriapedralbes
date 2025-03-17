@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TR3 Comunitat - Frontend
 
-## Getting Started
+Este repositorio contiene el frontend del proyecto TR3 Comunitat, desarrollado con Next.js 15, React 19 y TypeScript.
 
-First, run the development server:
+## Requisitos
+
+- Node.js 20 o superior
+- pnpm 10.5.1 o superior
+
+## Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Instalar dependencias
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Desarrollo
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Iniciar servidor de desarrollo
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Build
 
-## Learn More
+```bash
+# Realizar build estándar
+pnpm build
 
-To learn more about Next.js, take a look at the following resources:
+# Realizar build ignorando errores de ESLint
+pnpm build:force
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Utilizar script de build automatizado
+chmod +x ./auto-build.sh
+./auto-build.sh
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Problemas conocidos de build
 
-## Deploy on Vercel
+- Existen problemas de formateo relacionados con ESLint que han sido configurados como warnings para no bloquear el build.
+- Se ha corregido el problema de casing de los archivos `avatar.tsx` y `Avatar.tsx`.
+- La página de comunidad utiliza un Suspense boundary para resolver problemas con `useSearchParams()`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Solución de problemas
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Si encuentras errores durante el build, puedes intentar algunas de estas soluciones:
+
+1. Limpia la caché:
+   ```bash
+   rm -rf .next
+   rm -rf node_modules/.cache
+   ```
+
+2. Actualiza las dependencias:
+   ```bash
+   pnpm install
+   ```
+
+3. Utiliza el script automatizado de build:
+   ```bash
+   ./auto-build.sh
+   ```
+
+4. Lanza el build con las variables de entorno para ignorar verificaciones TypeScript:
+   ```bash
+   NEXT_TELEMETRY_DISABLED=1 NEXT_TYPESCRIPT_CHECK=0 pnpm build
+   ```

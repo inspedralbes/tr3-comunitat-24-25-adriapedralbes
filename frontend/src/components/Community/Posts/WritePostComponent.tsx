@@ -2,6 +2,9 @@ import { User, Paperclip, Link2, Video, BarChart2, Smile } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
 
+import UserLevelBadge from '@/components/ui/UserLevelBadge';
+
+import { AuthModal, AuthModalType } from '@/components/Auth';
 import { authService } from '@/services/auth';
 
 interface Category {
@@ -12,7 +15,7 @@ interface Category {
 }
 
 interface WritePostComponentProps {
-    onSubmit?: (content: string, categoryId?: number) => Promise<boolean>;
+    onSubmit?: (content: string, title?: string, categoryId?: number) => Promise<boolean>;
     categories?: Category[];
 }
 
@@ -20,6 +23,8 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     onSubmit,
     categories = []
 }) => {
+    // Estas funciones ya no son necesarias, se utilizará el componente UserLevelBadge
+
     const [isExpanded, setIsExpanded] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [postTitle, setPostTitle] = useState('');
@@ -28,6 +33,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [error, setError] = useState('');
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [user, setUser] = useState<{
         avatar_url?: string | null;
         username?: string;
@@ -69,7 +75,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         };
 
         fetchUserProfile();
-    }, []);
+    }, [isAuthModalOpen]); // Refetch cuando el modal se cierra
 
     // Cerrar dropdown de categorías al hacer clic fuera
     useEffect(() => {
@@ -92,10 +98,16 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const handleExpand = () => {
         // Verificar si el usuario está autenticado
         if (!authService.isAuthenticated()) {
-            alert('Debes iniciar sesión para publicar en la comunidad');
+            setIsAuthModalOpen(true);
             return;
         }
 
+        setIsExpanded(true);
+    };
+
+    const handleAuthSuccess = () => {
+        setIsAuthModalOpen(false);
+        // Refrescar info de usuario y expandir el editor
         setIsExpanded(true);
     };
 
@@ -161,7 +173,9 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
         try {
             if (onSubmit) {
-                const success = await onSubmit(postContent, selectedCategory);
+                // Si hay título, enviarlo; de lo contrario, usar el contenido como título también
+                const title = postTitle.trim() || postContent.split('\n')[0]; // Usar la primera línea como título si no hay título
+                const success = await onSubmit(postContent, title, selectedCategory);
 
                 if (success) {
                     // Limpiar el formulario y cerrar
@@ -199,6 +213,14 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
     return (
         <>
+            {/* Modal de autenticación */}
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                type={AuthModalType.LOGIN}
+                onClose={() => setIsAuthModalOpen(false)}
+                onSuccess={handleAuthSuccess}
+            />
+
             {/* Overlay que cubre todo menos el navbar */}
             {isExpanded && (
                 <button
@@ -229,14 +251,15 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                         width={32}
                                         height={32}
                                         className="w-full h-full object-cover"
+                                        unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
                                     />
                                 ) : (
                                     <User className="text-zinc-300" size={18} />
                                 )}
                             </div>
                             {user?.level && (
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
-                                    {user.level}
+                                <div className="absolute -bottom-1 -right-1 z-10">
+                                    <UserLevelBadge level={user.level} size="sm" showTooltip={false} />
                                 </div>
                             )}
                         </div>
@@ -266,19 +289,20 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                             width={32}
                                             height={32}
                                             className="w-full h-full object-cover"
+                                            unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
                                         />
                                     ) : (
                                         <User className="text-zinc-300" size={18} />
                                     )}
                                 </div>
                                 {user?.level && (
-                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
-                                        {user.level}
+                                    <div className="absolute -bottom-1 -right-1 z-10">
+                                        <UserLevelBadge level={user.level} size="sm" showTooltip={true} />
                                     </div>
                                 )}
                             </div>
                             <div className="text-sm text-zinc-300">
-                                {user?.username || 'Usuario'} publicando en <span className="text-white">DevAccelerator</span>
+                                {user?.username || 'Usuario'} publicando en <span className="text-white">FuturPrive</span>
                             </div>
                         </div>
 
