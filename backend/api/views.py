@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.reverse import reverse
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Count, Q
@@ -30,6 +31,26 @@ from datetime import timedelta
 import datetime
 import uuid
 import os
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    """
+    Punto de entrada principal a la API. Muestra los endpoints disponibles.
+    """
+    return Response({
+        'users': reverse('user-list', request=request, format=format),
+        'categories': reverse('category-list', request=request, format=format),
+        'posts': reverse('post-list', request=request, format=format),
+        'comments': reverse('comment-list', request=request, format=format),
+        'auth': {
+            'register': reverse('register', request=request, format=format),
+            'me': reverse('me', request=request, format=format),
+            'token': reverse('token_obtain_pair', request=request, format=format),
+            'token_refresh': reverse('token_refresh', request=request, format=format),
+        },
+        'leaderboard': reverse('leaderboard', request=request, format=format),
+        'pinned-posts': reverse('pinned-posts', request=request, format=format),
+    })
 
 @api_view(['POST'])
 def test_beehiiv(request):

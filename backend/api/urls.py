@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 from api.gamification import urls as gamification_urls
+from .views import subscribe, confirm_subscription, unsubscribe
 
 # Configurar router para las vistas viewset
 router = DefaultRouter()
