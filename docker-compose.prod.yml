@@ -123,6 +123,7 @@ services:
 
 networks:
   web:
+    name: web
 
 volumes:
   postgres_data:
