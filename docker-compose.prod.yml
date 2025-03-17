@@ -17,6 +17,9 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedByDefault=false"
       - "--providers.docker.network=web"
+      # Configuración global de CORS
+      - "--entrypoints.web.http.middlewares=cors-headers@docker"
+      - "--entrypoints.websecure.http.middlewares=cors-headers@docker"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
@@ -25,6 +28,12 @@ services:
       - "--certificatesresolvers.leresolver.acme.storage=/acme.json"
       - "--certificatesresolvers.leresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+    labels:
+      # Definición del middleware CORS
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE,PATCH"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolmaxage=86400"
 
   nextjs:
     build:
@@ -89,7 +98,9 @@ services:
       - "traefik.http.middlewares.django-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.django-http.entrypoints=web"
       - "traefik.http.routers.django-http.rule=Host(`api.futurprive.com`)"
-      - "traefik.http.routers.django-http.middlewares=django-https-redirect"
+      - "traefik.http.routers.django.middlewares=cors-headers@docker"
+      - "traefik.http.routers.django-http.middlewares=cors-headers@docker,django-https-redirect"
+      - "traefik.http.routers.django-static.middlewares=cors-headers@docker"
       
       # Ruta específica para archivos estáticos
       - "traefik.http.routers.django-static.rule=Host(`api.futurprive.com`) && PathPrefix(`/static/`, `/media/`)"

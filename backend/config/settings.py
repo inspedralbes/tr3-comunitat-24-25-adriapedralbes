@@ -143,6 +143,12 @@ AUTHENTICATION_BACKENDS = [
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = [
+    'https://futurprive.com',
+    'http://futurprive.com',
+    'https://api.futurprive.com',
+    'http://api.futurprive.com',
+]
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -162,7 +168,6 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
-CORS_EXPOSE_HEADERS = ['content-type', 'content-disposition']
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
 
 # Configuración de CSRF

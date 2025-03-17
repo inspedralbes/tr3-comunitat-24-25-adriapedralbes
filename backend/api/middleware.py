@@ -3,11 +3,25 @@ class CorsMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
-        # Temporalmente usamos wildcard para facilitar la depuración
-        response["Access-Control-Allow-Origin"] = "*"
-        response["Access-Control-Allow-Credentials"] = "true"
+        # Manejar solicitudes OPTIONS de preflight directamente
+        if request.method == "OPTIONS":
+            response = self.handle_preflight(request)
+            return response
             
-        response["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type, Authorization, X-CSRFToken"
+        response = self.get_response(request)
+        # Siempre permitir todas las solicitudes CORS
+        response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, Accept"
+        response["Access-Control-Max-Age"] = "86400"
+        return response
+        
+    def handle_preflight(self, request):
+        # Crear una respuesta directa para solicitudes preflight OPTIONS
+        from django.http import HttpResponse
+        response = HttpResponse()
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, Accept"
+        response["Access-Control-Max-Age"] = "86400"
         return response

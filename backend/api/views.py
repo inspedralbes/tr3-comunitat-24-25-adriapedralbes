@@ -138,7 +138,7 @@ def test_beehiiv(request):
             'message': error_message
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(['POST'])
+@api_view(['POST', 'OPTIONS'])
 @permission_classes([AllowAny])
 def subscribe(request):
     """
