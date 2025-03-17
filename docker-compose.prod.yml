@@ -69,7 +69,7 @@ services:
              python manage.py makemigrations &&
              python manage.py migrate &&
              python create_superuser.py && 
-             gunicorn --workers=2 --log-level=debug --timeout=120 --reload --bind 0.0.0.0:8000 config.wsgi:application"
+             gunicorn --workers=3 --timeout=120 --bind 0.0.0.0:8000 config.wsgi:application"
     env_file:
       - ./backend/.env
     environment:
@@ -93,8 +93,10 @@ services:
       - "traefik.http.routers.django-http.entrypoints=web"
       - "traefik.http.routers.django-http.rule=Host(`api.futurprive.com`)"
       - "traefik.http.routers.django-http.middlewares=django-https-redirect"
-      - "traefik.http.middlewares.django-compress.compress.mimetypes=text/html,text/plain,text/css,application/javascript,application/json"
-      - "traefik.http.routers.django.middlewares=django-compress@docker"
+      - "traefik.http.middlewares.django-compress.compress=true"
+      - "traefik.http.routers.django.middlewares=django-compress"
+      - "traefik.http.middlewares.django-static.stripprefix.prefixes=/static"
+      - "traefik.http.middlewares.django-static.stripprefix.forceSlash=false"
 
   adminer:
     image: adminer:latest

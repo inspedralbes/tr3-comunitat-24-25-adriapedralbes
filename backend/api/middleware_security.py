@@ -20,11 +20,27 @@ class APISecurityMiddleware:
             r'^/api/auth/register/',  # Registro de nuevos usuarios
             r'^/api/newsletter/', # Suscripción al newsletter
             r'^/api/',            # Todas las rutas API temporalmente públicas
-            r'^/static/',         # Archivos estáticos
             # Añade aquí otras rutas públicas que necesites
         ]
 
     def __call__(self, request):
-        # Continuar con el flujo normal para todas las rutas
+        # Solo aplicar middleware si no estamos en modo depuración
+        if not settings.DEBUG:
+            # Verificar si la ruta es de la API y no es una excepción
+            path = request.path
+            is_api_route = path.startswith('/api/')
+            is_public_route = any(re.match(pattern, path) for pattern in self.public_url_patterns)
+            
+            # Si es una ruta de API, no es pública, y el usuario no está autenticado
+            if is_api_route and not is_public_route and not request.user.is_authenticated:
+                # Si es una solicitud a la raíz de la API, redirigir al admin
+                if path == '/api/' or path == '/api':
+                    return redirect('/admin/')
+            
+            # Si es la raíz del sitio y el usuario no está autenticado, redirigir al admin
+            if path == '/' and not request.user.is_authenticated:
+                return redirect('/admin/')
+
+        # Continuar con el flujo normal para rutas autenticadas o exentas
         response = self.get_response(request)
         return response
