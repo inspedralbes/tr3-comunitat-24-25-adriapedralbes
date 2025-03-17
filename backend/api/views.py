@@ -6,6 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 from functools import wraps
 
 from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
@@ -144,12 +145,13 @@ def subscribe(request):
     """
     API endpoint para suscribirse a la newsletter.
     """
-    # Asegurarnos de que tenemos encabezados CORS para esta vista
+    # Manejar solicitudes OPTIONS directamente
     if request.method == 'OPTIONS':
-        response = Response({})
+        response = HttpResponse()
         response["Access-Control-Allow-Origin"] = "*"
-        response["Access-Control-Allow-Headers"] = "*"
-        response["Access-Control-Allow-Methods"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response["Access-Control-Max-Age"] = "86400"
         return response
         
     serializer = SubscriberSerializer(data=request.data)
