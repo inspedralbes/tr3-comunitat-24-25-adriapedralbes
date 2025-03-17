@@ -1,5 +1,4 @@
-# Agregar al final del archivo
-requests==2.31.0asgiref==3.8.1
+asgiref==3.8.1
 Django==5.1.6
 sqlparse==0.5.3
 psycopg2-binary==2.9.9
@@ -23,3 +22,4 @@ stripe==8.0.0
 django-filter==23.5
 pyyaml==6.0.1
 requests==2.31.0
+whitenoise==6.5.0
