@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
+from .views_newsletter import subscribe, confirm_subscription, unsubscribe
 
 # Configurar router para las vistas viewset
 router = DefaultRouter()
@@ -19,9 +20,9 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # Rutas de la API de newsletter
-    path('newsletter/subscribe/', views.subscribe, name='subscribe'),
-    path('newsletter/confirm/<uuid:token>/', views.confirm_subscription, name='confirm'),
-    path('newsletter/unsubscribe/<uuid:token>/', views.unsubscribe, name='unsubscribe'),
+    path('newsletter/subscribe/', subscribe, name='subscribe'),
+    path('newsletter/confirm/<uuid:token>/', confirm_subscription, name='confirm'),
+    path('newsletter/unsubscribe/<uuid:token>/', unsubscribe, name='unsubscribe'),
     path('test/beehiiv/', views.test_beehiiv, name='test_beehiiv'),
     
     # Rutas de la API de usuarios y comunidad

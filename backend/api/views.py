@@ -181,26 +181,26 @@ def subscribe(request):
         
         # Enviar email de confirmación
         try:
-            send_confirmation_email(subscriber)
-            
-            # También registramos en Beehiiv (con confirmed=false)
-            try:
-                print("\n[BEEHIIV-PRE] Registrando preliminarmente en Beehiiv (antes de confirmación)")
-                success, message = add_subscriber_to_beehiiv(
-                    email=subscriber.email,
-                    name=subscriber.name,
-                    source="FuturPrive-PreConfirmation",
-                    is_confirmed=False
-                )
-                if success:
-                    print(f"[BEEHIIV-PRE] ÉXITO en registro preliminar: {message}")
-                else:
-                    print(f"[BEEHIIV-PRE] ERROR en registro preliminar: {message}")
-            except Exception as e:
-                print(f"[BEEHIIV-PRE] EXCEPCIÓN en registro preliminar: {str(e)}")
-                # No bloqueamos el flujo principal
-            
-            return Response({
+        send_confirmation_email(subscriber)
+        
+        # Registrar en Beehiiv independientemente de la confirmación
+        # Esto garantiza que el suscriptor esté en Beehiiv aunque no confirme
+        try:
+        print("\n[BEEHIIV] Registrando en Beehiiv (previo a confirmación)")
+        success, message = add_subscriber_to_beehiiv(
+        email=subscriber.email,
+        name=subscriber.name,
+        source="FuturPrive Newsletter (Web Direct)",
+            is_confirmed=False
+        )
+        if success:
+            print(f"[BEEHIIV] ÉXITO: Usuario registrado en Beehiiv: {message}")
+        else:
+                print(f"[BEEHIIV] ERROR: {message}")
+        except Exception as e:
+        print(f"[BEEHIIV] EXCEPCIÓN: {str(e)}")
+        
+        return Response({
                 'success': True,
                 'message': 'Te hemos enviado un correo para confirmar tu suscripción.'
             }, status=status.HTTP_201_CREATED)
