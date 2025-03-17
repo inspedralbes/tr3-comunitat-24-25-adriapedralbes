@@ -16,7 +16,7 @@ services:
       - "--accesslog=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedByDefault=false"
-      - "--providers.docker.network=web"
+      - "--providers.docker.network=tr3-comunitat-24-25-adriapedralbes_web"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
@@ -123,7 +123,6 @@ services:
 
 networks:
   web:
-    name: web
 
 volumes:
   postgres_data:

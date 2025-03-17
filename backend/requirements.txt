@@ -1,4 +1,5 @@
-asgiref==3.8.1
+# Agregar al final del archivo
+requests==2.31.0asgiref==3.8.1
 Django==5.1.6
 sqlparse==0.5.3
 psycopg2-binary==2.9.9
