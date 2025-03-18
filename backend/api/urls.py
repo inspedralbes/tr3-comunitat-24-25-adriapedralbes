@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
+from .debug_post import debug_posts
 from api.gamification import urls as gamification_urls
 from .views import subscribe, confirm_subscription, unsubscribe
 
@@ -25,6 +26,10 @@ urlpatterns = [
     path('newsletter/confirm/<uuid:token>/', confirm_subscription, name='confirm'),
     path('newsletter/unsubscribe/<uuid:token>/', unsubscribe, name='unsubscribe'),
     path('test/beehiiv/', views.test_beehiiv, name='test_beehiiv'),
+    
+    # Rutas para diagnóstico
+    path('check-gamification/', views.check_gamification_config, name='check-gamification'),
+    path('debug/posts/', debug_posts, name='debug_posts'),
     
     # Rutas de la API de usuarios y comunidad
     path('', include(router.urls)),

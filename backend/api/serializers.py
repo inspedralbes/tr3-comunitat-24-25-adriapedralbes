@@ -154,6 +154,17 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ['id', 'author', 'category', 'title', 'content', 'image', 'likes', 'is_pinned', 
                 'created_at', 'updated_at', 'comments_count', 'category_id', 'is_liked']
         read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'likes', 'is_pinned', 'is_liked']
+    
+    def create(self, validated_data):
+        # Log para debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"PostSerializer.create: datos validados = {validated_data}")
+        
+        # Crear el post
+        post = Post.objects.create(**validated_data)
+        logger.info(f"Post creado con ID: {post.id}")
+        return post
 
     def get_comments_count(self, obj):
         return obj.comments.count()

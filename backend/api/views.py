@@ -1,9 +1,65 @@
-from rest_framework import status, viewsets, permissions, generics, filters
+@api_view(['GET'])
+def test_post_creation(request):
+    """
+    Endpoint para probar la creación de un post directamente.
+    """
+    if not request.user.is_authenticated:
+        return Response({'success': False, 'message': 'Usuario no autenticado'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    try:
+        # Crear un post de prueba directamente en la base de datos
+        test_post = Post.objects.create(
+            author=request.user,
+            title="Post de prueba",
+            content="Este es un post de prueba creado directamente."
+        )
+        
+        # Verificar que el post se creó correctamente
+        post_exists = Post.objects.filter(id=test_post.id).exists()
+        
+        # Contar el total de posts del usuario
+        user_posts_count = Post.objects.filter(author=request.user).count()
+        
+        # Obtener el post más reciente para verificar que tiene los datos correctos
+        latest_post = Post.objects.filter(author=request.user).order_by('-created_at').first()
+        
+        return Response({
+            'success': True,
+            'message': 'Post de prueba creado exitosamente.',
+            'post_id': str(test_post.id),
+            'post_exists': post_exists,
+            'user_posts_count': user_posts_count,
+            'latest_post': {
+                'id': str(latest_post.id),
+                'title': latest_post.title,
+                'content': latest_post.content,
+                'created_at': latest_post.created_at
+            } if latest_post else None
+        })
+    except Exception as e:
+        import traceback
+        logger.error(f"Error al crear post de prueba: {str(e)}")
+        logger.error(traceback.format_exc())
+        return Response({
+            'success': False,
+            'message': f'Error al crear post de prueba: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)from rest_framework import status, viewsets, permissions, generics, filters
 from api.gamification.services import award_points
 import logging
 
 # Configurar logger
 logger = logging.getLogger(__name__)
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.reverse import reverse
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.conf import settings
+from functools import wraps
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -32,6 +88,55 @@ from datetime import timedelta
 import datetime
 import uuid
 import os
+
+@api_view(['GET'])
+def check_gamification_config(request):
+    """
+    Endpoint para verificar la configuración del sistema de gamificación.
+    """
+    from api.gamification.models import UserAction
+    
+    # Verificar si existe la acción create_post
+    try:
+        create_post_action = UserAction.objects.filter(action_type='create_post').first()
+        if create_post_action:
+            return Response({
+                'success': True,
+                'message': f'La acción create_post existe y otorga {create_post_action.points} puntos.',
+                'action': {
+                    'id': create_post_action.id,
+                    'action_type': create_post_action.action_type,
+                    'points': create_post_action.points,
+                    'description': create_post_action.description,
+                    'is_active': create_post_action.is_active
+                }
+            })
+        else:
+            # Crear la acción si no existe
+            UserAction.objects.create(
+                action_type='create_post',
+                points=10,
+                description='Crear un post',
+                is_active=True
+            )
+            return Response({
+                'success': True,
+                'message': 'Acción create_post creada exitosamente.',
+                'action': {
+                    'action_type': 'create_post',
+                    'points': 10,
+                    'description': 'Crear un post',
+                    'is_active': True
+                }
+            })
+    except Exception as e:
+        import traceback
+        logger.error(f"Error al verificar configuración de gamificación: {str(e)}")
+        logger.error(traceback.format_exc())
+        return Response({
+            'success': False,
+            'message': f'Error al verificar configuración: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -736,21 +841,45 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # Guardar el autor como el usuario autenticado
-        post = serializer.save(author=self.request.user)
+        logger.info(f"Creando post con datos: {serializer.validated_data}")
+        logger.info(f"Usuario autenticado: {self.request.user.username}")
         
-        # Otorgar puntos por crear un post
         try:
-            award_points(self.request.user, 'create_post', reference_id=str(post.id))
+            post = serializer.save(author=self.request.user)
+            logger.info(f"Post creado exitosamente con ID: {post.id}")
+            
+            # Otorgar puntos por crear un post
+            try:
+                award_points(self.request.user, 'create_post', reference_id=str(post.id))
+                logger.info(f"Puntos otorgados por crear post")
+            except Exception as e:
+                # Loggear el error pero permitir que la creación del post continúe
+                logger.error(f"Error al otorgar puntos: {str(e)}")
+                # No bloqueamos la creación del post si hay error en la gamificación
         except Exception as e:
-            # Loggear el error pero permitir que la creación del post continúe
-            logger.error(f"Error al otorgar puntos: {str(e)}")
-            # No bloqueamos la creación del post si hay error en la gamificación
+            logger.error(f"Error al crear post: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
 
     def get_queryset(self):
         queryset = Post.objects.all()
+        
+        # Agregar logs para depurar
+        post_count = queryset.count()
+        logger.info(f"Total de posts en la base de datos: {post_count}")
+        if post_count > 0:
+            latest_post = queryset.latest('created_at')
+            logger.info(f"Post más reciente: ID={latest_post.id}, autor={latest_post.author.username}, título={latest_post.title}")
+        
+        # Aplicar filtros si existen
         category = self.request.query_params.get('category', None)
         if category and category != 'all':
             queryset = queryset.filter(category__slug=category)
+            logger.info(f"Filtrando por categoría: {category}, posts resultantes: {queryset.count()}")
+        
+        # Log del queryset final
+        logger.info(f"Devolviendo {queryset.count()} posts")
+        
         return queryset
         
     def get_serializer_context(self):

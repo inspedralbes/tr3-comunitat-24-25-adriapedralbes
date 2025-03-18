@@ -42,7 +42,28 @@ export const communityService = {
         break;
     }
     
-    return api.get(endpoint);
+    console.log(`Solicitando posts con endpoint: ${endpoint}`);
+    const response = await api.get(endpoint);
+    console.log(`Respuesta de posts recibida:`, response);
+    
+    // Verificar si el resultado es un array o un objeto con resultados
+    if (Array.isArray(response)) {
+      return { results: response, count: response.length };
+    } else if (response && typeof response === 'object') {
+      // Si la respuesta tiene 'results', devolver la estructura completa
+      if (Array.isArray(response.results)) {
+        return response;
+      } 
+      // Si la respuesta no tiene el formato esperado, convertirla
+      const results = Object.values(response).filter(item => 
+        item && typeof item === 'object' && 'id' in item
+      );
+      return { results, count: results.length };
+    }
+    
+    // Formato no reconocido, devolver array vacío
+    console.warn("Formato de respuesta no reconocido:", response);
+    return { results: [], count: 0 };
   },
 
   getPinnedPosts: async () => {
@@ -65,15 +86,24 @@ export const communityService = {
         formData.append('category_id', data.category_id.toString());
       }
       formData.append('image', data.image);
-      return api.upload('posts', formData);
+      const response = await api.upload('posts', formData);
+      console.log("Respuesta de creación de post con imagen:", response);
+      return response;
     }
     
     // Si no hay imagen, usamos JSON normal
-    return api.post('posts', {
+    console.log("Enviando datos para crear post:", {
       title: data.title || '',
       content: data.content,
       category_id: data.category_id || null
     });
+    const response = await api.post('posts', {
+      title: data.title || '',
+      content: data.content,
+      category_id: data.category_id || null
+    });
+    console.log("Respuesta de creación de post:", response);
+    return response;
   },
 
   updatePost: async (id: string, data: Partial<CreatePostData>) => {
