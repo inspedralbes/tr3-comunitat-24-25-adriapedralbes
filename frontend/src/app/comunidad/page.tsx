@@ -340,6 +340,14 @@ function CommunityContent() {
     fetchFilteredPosts();
   }, [activeCategory, isLoadingInitial, pinnedPosts, activeSortType, fetchCommentsForPosts]);
 
+  // Añadir console.log para depurar los posts regulares cada vez que cambian
+  useEffect(() => {
+    console.log('Posts regulares actualizados:', regularPosts.length, 'posts');
+    if (regularPosts.length > 0) {
+      console.log('Ejemplo primer post:', regularPosts[0]);
+    }
+  }, [regularPosts]);
+
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
   };
@@ -460,11 +468,14 @@ function CommunityContent() {
         category_id: categoryId || null
       });
       
-      await communityService.createPost({
+      // Crear el post y obtener la respuesta
+      const newPostResponse = await communityService.createPost({
         title: trimmedTitle,
         content: trimmedContent,
         category_id: categoryId
       });
+      
+      console.log('Respuesta de creación de post:', newPostResponse);
       
       // Recargar posts después de crear uno nuevo
       const postsData = await communityService.getAllPosts(
@@ -472,13 +483,31 @@ function CommunityContent() {
         1, 
         activeSortType
       );
+      
+      console.log('Datos de posts después de crear:', postsData);
+      
       const newPostsArray = postsData.results || postsData;
       
       // Filtrar los posts fijados para evitar duplicados (excepto en vista 'pinned')
       if (activeSortType !== 'pinned') {
         const pinnedIds = pinnedPosts.map((post: Post) => post.id);
         const filteredNewPosts = newPostsArray.filter((post: Post) => !pinnedIds.includes(post.id));
+        console.log('Posts filtrados para mostrar:', filteredNewPosts.length);
         setRegularPosts(filteredNewPosts);
+        
+        // Forzar actualización después de un breve retraso para asegurar que los cambios se apliquen
+        setTimeout(async () => {
+          const refreshData = await communityService.getAllPosts(
+            activeCategory !== 'all' ? activeCategory : undefined, 
+            1, 
+            activeSortType
+          );
+          const refreshPostsArray = refreshData.results || refreshData;
+          const refreshFilteredPosts = refreshPostsArray.filter(
+            (post: Post) => !pinnedIds.includes(post.id)
+          );
+          setRegularPosts(refreshFilteredPosts);
+        }, 1000);
       } else {
         setRegularPosts(newPostsArray);
       }

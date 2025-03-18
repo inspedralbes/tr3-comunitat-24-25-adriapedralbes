@@ -22,8 +22,8 @@ interface PostCardProps {
     categoryColor?: string;
     title?: string;
     content: string;
-    likes: number;
-    comments: number;
+    likes?: number;
+    comments?: number;
     isPinned?: boolean;
     imageUrl?: string;
     isLiked?: boolean;
@@ -57,8 +57,8 @@ export const PostCard: React.FC<PostCardProps> = ({
     categoryColor,
     title,
     content,
-    likes,
-    comments,
+    likes = 0,
+    comments = 0,
     isPinned = false,
     imageUrl,
     isLiked = false,
@@ -69,7 +69,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 }) => {
     // Estado local para controlar el like
     const [isPostLiked, setIsPostLiked] = useState(isLiked);
-    const [likesCount, setLikesCount] = useState(likes);
+    const [likesCount, setLikesCount] = useState(likes || 0);
 
     // Si no se proporciona un título explícito, extraerlo de la primera línea del contenido
     const contentLines = content.split('\n');

@@ -78,6 +78,11 @@ export const PostFeed: React.FC<PostFeedProps> = ({
             if (typeof post.category === 'string') {
                 return post.category === filter;
             }
+            // Si no hay categoría, permitir mostrar el post independientemente del filtro
+            if (!post.category && !post.categoryId) {
+                console.log('Post sin categoría mostrado en filtro:', filter, post);
+                return true;
+            }
             return false;
         });
     }
