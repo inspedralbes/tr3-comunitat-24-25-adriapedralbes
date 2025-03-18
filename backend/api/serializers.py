@@ -146,6 +146,7 @@ class PostSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         write_only=True,
         required=False,
+        allow_null=True,
         source='category'
     )
 
