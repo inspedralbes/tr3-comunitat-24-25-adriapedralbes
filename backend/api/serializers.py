@@ -22,8 +22,15 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
             request = self.context.get('request')
             if request is not None:
+                # Asegurar que la URL es absoluta
                 return request.build_absolute_uri(obj.avatar_url.url)
-            return obj.avatar_url.url
+            # Si no hay request en el contexto, construir la URL manualmente
+            from django.conf import settings
+            if settings.DEBUG:
+                base_url = 'http://127.0.0.1:8000'
+            else:
+                base_url = 'https://api.futurprive.com'
+            return f"{base_url}{obj.avatar_url.url}"
         return None
         
     def get_is_admin(self, obj):
@@ -71,8 +78,15 @@ class UserShortSerializer(serializers.ModelSerializer):
         if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
             request = self.context.get('request')
             if request is not None:
+                # Asegurar que la URL es absoluta
                 return request.build_absolute_uri(obj.avatar_url.url)
-            return obj.avatar_url.url
+            # Si no hay request en el contexto, construir la URL manualmente
+            from django.conf import settings
+            if settings.DEBUG:
+                base_url = 'http://127.0.0.1:8000'
+            else:
+                base_url = 'https://api.futurprive.com'
+            return f"{base_url}{obj.avatar_url.url}"
         return None
         
     def get_is_admin(self, obj):

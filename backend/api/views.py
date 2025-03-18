@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
+from django.conf import settings
 from functools import wraps
 
 from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
@@ -410,29 +411,92 @@ class UserMeView(APIView):
     
     def post(self, request):
         """Actualizar avatar del usuario"""
-        if 'avatar_url' not in request.FILES:
-            return Response({"error": "No se ha proporcionado una imagen"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Eliminar avatar anterior si existe
-        if request.user.avatar_url and hasattr(request.user.avatar_url, 'path') and os.path.isfile(request.user.avatar_url.path):
+        try:
+            # Importar utilidades de debug
+            from .debug_utils import log_request_details, log_exception, check_media_permissions
+            
+            # Registrar detalles de la solicitud para diagnosticar problemas
+            log_request_details(request, prefix="AVATAR")
+            
+            # Verificar permisos de carpetas media
+            check_media_permissions()
+            
+            if 'avatar_url' not in request.FILES:
+                return Response({"error": "No se ha proporcionado una imagen"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            logger.info(f"Procesando avatar: {request.FILES['avatar_url'].name}, tamaño: {request.FILES['avatar_url'].size} bytes")
+            
+            # Eliminar avatar anterior si existe
+            if request.user.avatar_url and hasattr(request.user.avatar_url, 'path') and os.path.isfile(request.user.avatar_url.path):
+                try:
+                    old_path = request.user.avatar_url.path
+                    logger.info(f"Eliminando avatar anterior: {old_path}")
+                    os.remove(old_path)
+                    logger.info(f"Avatar anterior eliminado exitosamente")
+                except Exception as e:
+                    logger.error(f"Error al eliminar avatar anterior: {e}")
+            
+            # Verificar que la carpeta destino exista
+            avatar_dir = os.path.join(settings.MEDIA_ROOT, 'avatars')
+            if not os.path.exists(avatar_dir):
+                logger.info(f"Creando carpeta de avatares: {avatar_dir}")
+                os.makedirs(avatar_dir, exist_ok=True)
+                logger.info(f"Carpeta de avatares creada exitosamente")
+                
+            # Asegurar permisos correctos
             try:
-                os.remove(request.user.avatar_url.path)
+                logger.info(f"Configurando permisos 775 para {avatar_dir}")
+                os.chmod(avatar_dir, 0o775)  # Permisos de escritura para el grupo
+                logger.info("Permisos configurados exitosamente")
             except Exception as e:
-                print(f"Error al eliminar avatar anterior: {e}")
-        
-        # Guardar nuevo avatar
-        request.user.avatar_url = request.FILES['avatar_url']
-        request.user.save()
-        
-        # Serializar la respuesta con datos completos
-        serializer = UserSerializer(request.user, context={'request': request})
-        user_data = serializer.data
-        
-        # Calcular la posición en el ranking
-        higher_ranked_users = User.objects.filter(points__gt=request.user.points).count()
-        user_data['position'] = higher_ranked_users + 1
-        
-        return Response(user_data)
+                logger.warning(f"No se pudieron cambiar permisos de carpeta avatars: {e}")
+            
+            # Guardar nuevo avatar
+            logger.info("Guardando nuevo avatar...")
+            request.user.avatar_url = request.FILES['avatar_url']
+            request.user.save()
+            
+            if hasattr(request.user.avatar_url, 'path'):
+                logger.info(f"Avatar guardado en: {request.user.avatar_url.path}")
+                
+                # Verificar que el archivo se haya creado correctamente
+                if os.path.exists(request.user.avatar_url.path):
+                    logger.info("El archivo existe en el sistema de archivos")
+                    # Asegurar permisos del archivo
+                    try:
+                        os.chmod(request.user.avatar_url.path, 0o664)  # rw-rw-r--
+                        logger.info("Permisos del archivo configurados correctamente")
+                    except Exception as e:
+                        logger.warning(f"No se pudieron cambiar permisos del archivo: {e}")
+                else:
+                    logger.error(f"El archivo {request.user.avatar_url.path} no existe después de guardar")
+            
+            # Serializar la respuesta con datos completos
+            serializer = UserSerializer(request.user, context={'request': request})
+            user_data = serializer.data
+            
+            # Calcular la posición en el ranking
+            higher_ranked_users = User.objects.filter(points__gt=request.user.points).count()
+            user_data['position'] = higher_ranked_users + 1
+            
+            # Verificar que la URL del avatar está presente
+            if 'avatar_url' in user_data and user_data['avatar_url']:
+                logger.info(f"URL del avatar generada: {user_data['avatar_url']}")
+            else:
+                logger.warning("No se generó URL para el avatar")
+            
+            return Response(user_data)
+        except Exception as e:
+            # Importar utilidades de debug (por si no se importaron antes)
+            try:
+                from .debug_utils import log_exception
+                log_exception(e, prefix="AVATAR")
+            except ImportError:
+                import traceback
+                logger.error(f"Error al actualizar avatar: {e}")
+                logger.error(traceback.format_exc())
+            
+            return Response({"error": f"Error interno: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
