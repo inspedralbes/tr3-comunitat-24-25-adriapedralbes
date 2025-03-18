@@ -1,3 +1,38 @@
+from rest_framework import status, viewsets, permissions, generics, filters
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.reverse import reverse
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.conf import settings
+from functools import wraps
+
+from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
+from .serializers import (
+    SubscriberSerializer, UserSerializer, UserRegistrationSerializer, CategorySerializer,
+    PostSerializer, PostDetailSerializer, CommentSerializer, PostLikeSerializer, CommentLikeSerializer, UserShortSerializer
+)
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.urls import reverse
+from .welcome_email import send_welcome_email
+from .beehiiv import add_subscriber_to_beehiiv
+from api.gamification.services import award_points
+from datetime import timedelta
+import datetime
+import uuid
+import os
+import logging
+
+# Configurar logger
+logger = logging.getLogger(__name__)
+
 @api_view(['GET'])
 def test_post_creation(request):
     """
@@ -46,51 +81,7 @@ def test_post_creation(request):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-from rest_framework import status, viewsets, permissions, generics, filters
-from api.gamification.services import award_points
-import logging
 
-# Configurar logger
-logger = logging.getLogger(__name__)
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.reverse import reverse
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
-from django.conf import settings
-from functools import wraps
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.reverse import reverse
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
-from django.conf import settings
-from functools import wraps
-
-from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
-from .serializers import (
-    SubscriberSerializer, UserSerializer, UserRegistrationSerializer, CategorySerializer,
-    PostSerializer, PostDetailSerializer, CommentSerializer, PostLikeSerializer, CommentLikeSerializer, UserShortSerializer
-)
-from django.conf import settings
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from django.urls import reverse
-from .welcome_email import send_welcome_email
-from .beehiiv import add_subscriber_to_beehiiv
-from datetime import timedelta
-import datetime
-import uuid
-import os
 
 @api_view(['GET'])
 def check_gamification_config(request):
