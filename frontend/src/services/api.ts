@@ -85,14 +85,21 @@ const getHeaders = (includeContentType = true) => {
 };
 
 // Función para construir la URL completa del endpoint
-const buildEndpointUrl = (endpoint: string) => {
+const buildEndpointUrl = (endpoint: string, ensureTrailingSlash = false) => {
   // Asegurarse de que endpoint no empieza con barra
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
   
   // Añadir prefijo /api/ si no está presente
   const apiEndpoint = cleanEndpoint.startsWith('api/') ? cleanEndpoint : `api/${cleanEndpoint}`;
   
-  return `${getApiUrl()}/${apiEndpoint}`;
+  // Asegurarse de que la URL termine con / si se requiere
+  // (para evitar redirecciones 301 que convierten POSTs en GETs)
+  let finalEndpoint = apiEndpoint;
+  if (ensureTrailingSlash && !finalEndpoint.endsWith('/')) {
+    finalEndpoint += '/';
+  }
+  
+  return `${getApiUrl()}/${finalEndpoint}`;
 };
 
 // API general con funciones para peticiones HTTP
@@ -109,7 +116,8 @@ export const api = {
   },
 
   post: async <T>(endpoint: string, data: T) => {
-    const url = buildEndpointUrl(endpoint);
+    // Asegurarse de que la URL termine con / para evitar redirecciones 301
+    const url = buildEndpointUrl(endpoint, true);
     console.log(`[API] POST request to ${url}`, data);
     
     const response = await fetch(url, {
@@ -121,7 +129,8 @@ export const api = {
   },
 
   put: async <T>(endpoint: string, data: T) => {
-    const url = buildEndpointUrl(endpoint);
+    // Asegurarse de que la URL termine con / para evitar redirecciones 301
+    const url = buildEndpointUrl(endpoint, true);
     console.log(`[API] PUT request to ${url}`, data);
     
     const response = await fetch(url, {
@@ -133,7 +142,8 @@ export const api = {
   },
 
   patch: async <T>(endpoint: string, data: T) => {
-    const url = buildEndpointUrl(endpoint);
+    // Asegurarse de que la URL termine con / para evitar redirecciones 301
+    const url = buildEndpointUrl(endpoint, true);
     console.log(`[API] PATCH request to ${url}`, data);
     
     const response = await fetch(url, {
@@ -170,7 +180,8 @@ export const api = {
     }
     
     // Hacer la solicitud usando la URL construida correctamente
-    const url = buildEndpointUrl(endpoint);
+    // Asegurarse de que la URL termine con / para evitar redirecciones 301
+    const url = buildEndpointUrl(endpoint, true);
     console.log(`[API] Upload request to ${url}`);
     
     const response = await fetch(url, {
