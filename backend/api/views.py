@@ -43,7 +43,10 @@ def test_post_creation(request):
         return Response({
             'success': False,
             'message': f'Error al crear post de prueba: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)from rest_framework import status, viewsets, permissions, generics, filters
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+from rest_framework import status, viewsets, permissions, generics, filters
 from api.gamification.services import award_points
 import logging
 
