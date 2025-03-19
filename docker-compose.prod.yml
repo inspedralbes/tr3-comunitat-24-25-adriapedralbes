@@ -25,7 +25,6 @@ services:
       - "--certificatesresolvers.leresolver.acme.storage=/acme.json"
       - "--certificatesresolvers.leresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-
   nextjs:
     build:
       context: ./frontend
@@ -43,7 +42,6 @@ services:
       - "traefik.http.routers.nextjs.entrypoints=websecure"
       - "traefik.http.routers.nextjs.tls.certresolver=leresolver"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
-
   postgres:
     image: postgres:14-alpine
     container_name: postgres-db
@@ -54,7 +52,6 @@ services:
       - ./.env.prod
     networks:
       - web
-
   django:
     build:
       context: ./backend
@@ -66,6 +63,7 @@ services:
              python manage.py makemigrations &&
              python manage.py migrate &&
              python create_superuser.py && 
+             python check_media_dirs.py &&
              gunicorn --bind 0.0.0.0:8000 --timeout 120 --workers 3 config.wsgi:application"
     env_file:
       - ./backend/.env
@@ -84,6 +82,8 @@ services:
       - postgres
     labels:
       - "traefik.enable=true"
+      
+      # API principal
       - "traefik.http.routers.django.rule=Host(`api.futurprive.com`)"
       - "traefik.http.routers.django.entrypoints=websecure"
       - "traefik.http.routers.django.tls.certresolver=leresolver"
@@ -93,18 +93,20 @@ services:
       - "traefik.http.routers.django-http.rule=Host(`api.futurprive.com`)"
       - "traefik.http.routers.django-http.middlewares=django-https-redirect"
       
-      # Ruta específica para archivos estáticos
-      - "traefik.http.routers.django-static.rule=Host(`api.futurprive.com`) && PathPrefix(`/static`)"
-      - "traefik.http.routers.django-static.entrypoints=websecure"
-      - "traefik.http.routers.django-static.tls.certresolver=leresolver"
-      - "traefik.http.routers.django-static.service=django"
-      
-      # Ruta específica para archivos media
-      - "traefik.http.routers.django-media.rule=Host(`api.futurprive.com`) && PathPrefix(`/media`)"
+      # Media files - configuración mejorada
+      - "traefik.http.routers.django-media.rule=Host(`api.futurprive.com`) && PathPrefix(`/media/`)"
       - "traefik.http.routers.django-media.entrypoints=websecure"
       - "traefik.http.routers.django-media.tls.certresolver=leresolver"
-      - "traefik.http.routers.django-media.service=django"
-
+      - "traefik.http.routers.django-media.service=django-media"
+      - "traefik.http.services.django-media.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.django-media-add-header.headers.customResponseHeaders.Cache-Control=public, max-age=86400"
+      - "traefik.http.routers.django-media.middlewares=django-media-add-header"
+      
+      # Static files
+      - "traefik.http.routers.django-static.rule=Host(`api.futurprive.com`) && PathPrefix(`/static/`)"
+      - "traefik.http.routers.django-static.entrypoints=websecure"
+      - "traefik.http.routers.django-static.tls.certresolver=leresolver"
+      - "traefik.http.services.django-static.loadbalancer.server.port=8000"
   adminer:
     image: adminer:latest
     container_name: adminer-prod
@@ -122,10 +124,8 @@ services:
     environment:
       - ADMINER_DEFAULT_SERVER=postgres
       - ADMINER_DESIGN=pepa-linha
-
 networks:
   web:
-
 volumes:
   postgres_data:
   static_data:
