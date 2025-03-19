@@ -94,16 +94,21 @@ El flux d'informació segueix aquests patrons:
 1.  Clona el repositori:
 
     ```bash
-    git clone [https://github.com/your-username/futurprive.git](https://github.com/your-username/futurprive.git)
-    cd futurprive
+    git clone [https://github.com/inspedralbes/tr3-comunitat-24-25-adriapedralbes]
+    cd tr3-comunitat-24-25-adriapedralbes
     ```
 
 2.  Crea un fitxer `.env` a l'arrel del projecte:
 
     ```
-    DATABASE_NAME=futurprive
-    DATABASE_USER=usuario
-    DATABASE_PASSWORD=contraseña
+    DATABASE_NAME=
+    DATABASE_USER=
+    DATABASE_PASSWORD=
+    DATABASE_ENGINE=
+    DATABASE_PORT=
+    DEBUG=
+    SECRET_KEY=
+    ALLOWED_HOSTS=
     ```
 
 3.  Inicia els contenidors:
@@ -155,24 +160,39 @@ El flux d'informació segueix aquests patrons:
     * `backend/.env`:
 
         ```
+        # Email configuration
         EMAIL_HOST=mail.privateemail.com
-        EMAIL_PORT=587
-        EMAIL_USE_TLS=True
-        EMAIL_USE_SSL=False
-        EMAIL_HOST_USER=correo
-        EMAIL_HOST_PASSWORD=tu_contraseña_email
-        DEFAULT_FROM_EMAIL=correo
-        EMAIL_TIMEOUT=30
-        SERVER_EMAIL=correo
-        SITE_URL=[https://futurprive.com](https://futurprive.com)
-        SECRET_KEY=tu_clave_secreta
-        DEBUG=False
-        ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,futurprive.com,api.futurprive.com,django
+        EMAIL_PORT=465
+        EMAIL_USE_TLS=False
+        EMAIL_USE_SSL=True
+        EMAIL_HOST_USER=your_email@domain.com
+        EMAIL_HOST_PASSWORD=your_password
+        DEFAULT_FROM_EMAIL=your_email@domain.com
+        EMAIL_TIMEOUT=120
+        SERVER_EMAIL=your_email@domain.com
+
+        # Site configuration
+        SITE_URL=http://localhost:3000
+        SECRET_KEY=django-insecure-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        DEBUG=True
+        ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,django
+
+        # Database configuration
         DATABASE_ENGINE=django.db.backends.postgresql
-        DATABASE_NAME=tu_dbname
-        DATABASE_USER=tu_user
-        DATABASE_PASSWORD=password
+        DATABASE_NAME=your_database_name
+        DATABASE_USER=your_database_user
+        DATABASE_PASSWORD=your_database_password
+        DATABASE_HOST=postgres
         DATABASE_PORT=5432
+
+        # Beehiiv API configuration
+        BEEHIIV_API_KEY=your_beehiiv_api_key
+        BEEHIIV_PUBLICATION_ID=your_beehiiv_publication_id
+
+        # Admin user configuration
+        DJANGO_SUPERUSER_USERNAME=admin
+        DJANGO_SUPERUSER_EMAIL=admin@example.com
+        DJANGO_SUPERUSER_PASSWORD=secure_password_here
         ```
 
 3.  Configura Traefik per a HTTPS:
