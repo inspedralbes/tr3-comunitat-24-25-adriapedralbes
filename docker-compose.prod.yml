@@ -127,6 +127,8 @@ services:
     image: n8nio/n8n:latest
     container_name: n8n
     restart: always
+    env_file:
+      - ./.env.prod
     environment:
       - N8N_HOST=n8n.futurprive.com
       - N8N_PORT=5678
@@ -134,7 +136,8 @@ services:
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       - NODE_ENV=production
       - WEBHOOK_URL=https://n8n.futurprive.com
-      # Conexión a PostgreSQL (recomendado para producción)
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      # Conexión a PostgreSQL
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
       - DB_POSTGRESDB_PORT=5432
