@@ -1,0 +1,46 @@
+# Etapa de construcción
+FROM node:18-alpine AS builder
+
+# Instalar pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de configuración
+COPY package.json pnpm-lock.yaml* ./
+
+# Instalar dependencias
+RUN pnpm install
+
+# Copiar código fuente
+COPY . .
+
+# Construir la aplicación
+RUN pnpm build
+
+# Etapa de producción
+FROM node:18-alpine
+
+# Instalar pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de configuración
+COPY package.json pnpm-lock.yaml* ./
+
+# Instalar solo dependencias de producción
+RUN pnpm install --prod
+
+# Copiar la aplicación construida desde la etapa de builder
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.ts ./
+
+# Exponer puerto
+EXPOSE 3000
+
+# Comando para iniciar la aplicación en modo producción
+CMD ["pnpm", "start"]
