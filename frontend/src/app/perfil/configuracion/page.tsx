@@ -5,15 +5,23 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
+import { SubscriptionStatus } from '@/services/subscription';
+import subscriptionService from '@/services/subscription';
+
 import MainLayout from '@/components/layouts/MainLayout';
 import { ProfileSettings } from '@/components/Profile/ProfileSettings';
+import { RequiredSubscriptionModal } from '@/components/Subscription';
 import { UserProfile, authService } from '@/services/auth';
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+
+  const [isSubscriptionRequired, setIsSubscriptionRequired] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -26,10 +34,34 @@ export default function ProfileSettingsPage() {
           router.push('/comunidad');
           return;
         }
+        
+        // Verificar si la suscripción es obligatoria desde los parámetros
+        const isRequired = new URLSearchParams(window.location.search).get('required') === 'true';
+        setIsSubscriptionRequired(isRequired);
 
-        // Obtener el perfil del usuario
-        const profile = await authService.getProfile();
-        setUserProfile(profile);
+        // Obtener el perfil del usuario y el estado de suscripción
+        const [profile, subscriptionStatus] = await Promise.all([
+          authService.getProfile(),
+          subscriptionService.getSubscriptionStatus()
+        ]);
+        
+        // Verificar si el state de suscripción y el perfil no coinciden
+        if (profile.has_active_subscription !== subscriptionStatus.has_subscription) {
+          console.log('Discrepancia en estado de suscripción, actualizando perfil...');
+          // Si hay discrepancia, forzar actualizar el perfil
+          const updatedProfile = await authService.getProfile();
+          setUserProfile(updatedProfile);
+        } else {
+          setUserProfile(profile);
+        }
+        
+        setSubscriptionStatus(subscriptionStatus);
+        
+        // Si el usuario viene de registrarse o no tiene suscripción, mostrar modal
+        const isNewUser = new URLSearchParams(window.location.search).get('new') === 'true';
+        if (isNewUser || !subscriptionStatus.has_subscription) {
+          setShowSubscriptionModal(true);
+        }
       } catch (err) {
         console.error('Error fetching user profile:', err);
         setError('No se pudo cargar el perfil del usuario.');
@@ -63,18 +95,140 @@ export default function ProfileSettingsPage() {
       </MainLayout>
     );
   }
+  
+  // Iniciar proceso de suscripción
+  const handleStartSubscription = async () => {
+    try {
+      // URLs para Stripe
+      const successUrl = `${window.location.origin}/comunidad`;
+      const cancelUrl = `${window.location.origin}/perfil/configuracion`;
+      
+      // Crear sesión de checkout
+      const session = await subscriptionService.createCheckoutSession(successUrl, cancelUrl);
+      
+      // Redirigir a la página de Stripe
+      window.location.href = session.checkout_url;
+    } catch (err) {
+      console.error('Error creating checkout session:', err);
+      setError('No se pudo iniciar el proceso de suscripción.');
+    }
+  };
+  
+  // Cancelar suscripción
+  const handleCancelSubscription = async () => {
+    if (!confirm('¿Estás seguro de que quieres cancelar tu suscripción?')) {
+      return;
+    }
+    
+    try {
+      await subscriptionService.cancelSubscription();
+      
+      // Recargar estado de suscripción
+      const subscription = await subscriptionService.getSubscriptionStatus();
+      setSubscriptionStatus(subscription);
+    } catch (err) {
+      console.error('Error canceling subscription:', err);
+      setError('No se pudo cancelar la suscripción.');
+    }
+  };
 
   return (
     <MainLayout activeTab="members">
+      {/* Modal de suscripción obligatoria */}
+      {isSubscriptionRequired && !subscriptionStatus?.has_subscription && (
+        <RequiredSubscriptionModal
+          isOpen={true}
+          onSuccess={() => router.push('/comunidad')}
+        />
+      )}
+
       <div className="container mx-auto px-4 max-w-5xl pt-6 pb-12">
-        <div className="mb-6">
-          <Link
-            href={userProfile ? `/perfil/${userProfile.username}` : '/comunidad'}
-            className="inline-flex items-center text-zinc-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft size={16} className="mr-2" />
-            Volver al perfil
-          </Link>
+        {!isSubscriptionRequired && (
+          <div className="mb-6">
+            <Link
+              href={userProfile ? `/perfil/${userProfile.username}` : '/comunidad'}
+              className="inline-flex items-center text-zinc-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Volver al perfil
+            </Link>
+          </div>
+        )}
+        {isSubscriptionRequired && !subscriptionStatus?.has_subscription && (
+          <div className="mb-6 bg-amber-900/30 border border-amber-500/50 text-amber-200 p-4 rounded-md">
+            <p className="font-medium">Debes completar tu suscripción para continuar</p>
+            <p className="text-sm mt-1">Para acceder a la plataforma necesitas una suscripción activa.</p>
+          </div>
+        )}
+
+        {/* Estado de suscripción */}
+        <div className="bg-[#323230] rounded-lg border border-white/10 p-6 max-w-2xl mx-auto mb-8">
+          <h2 className="text-2xl font-bold text-white mb-6">Estado de suscripción</h2>
+          
+          {subscriptionStatus?.has_subscription ? (
+            <div className="bg-[#252524] rounded-lg p-4 mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <span className="text-xl font-bold text-white">Suscripción Activa</span>
+                </div>
+                <span className="text-green-400 text-sm font-medium px-3 py-1 bg-green-400/10 rounded-full">
+                  {subscriptionStatus.subscription_status}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-sm text-zinc-400">Fecha de inicio:</p>
+                  <p className="text-zinc-300">
+                    {subscriptionStatus.start_date ? new Date(subscriptionStatus.start_date).toLocaleDateString() : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-zinc-400">Próxima factura:</p>
+                  <p className="text-zinc-300">
+                    {subscriptionStatus.end_date ? new Date(subscriptionStatus.end_date).toLocaleDateString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  onClick={handleCancelSubscription}
+                  className="px-4 py-2 bg-red-600/20 text-red-300 hover:bg-red-600/30 rounded-md transition-colors"
+                >
+                  Cancelar suscripción
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-[#252524] rounded-lg p-6 mb-4">
+              <div className="text-center mb-4">
+                <span className="text-xl font-bold text-white">No tienes una suscripción activa</span>
+                <p className="text-zinc-400 mt-2">
+                  Para acceder a nuestra comunidad y recursos exclusivos, necesitas activar tu suscripción.
+                </p>
+              </div>
+              
+              <div className="bg-[#323230] rounded-lg p-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-2xl font-bold text-white">20€</span>
+                    <span className="text-zinc-400 ml-1">/ mes</span>
+                  </div>
+                  <span className="text-green-400 text-sm font-medium">Cancela cuando quieras</span>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <button
+                  onClick={handleStartSubscription}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors w-full"
+                >
+                  Suscribirme ahora
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <ProfileSettings userProfile={userProfile} />

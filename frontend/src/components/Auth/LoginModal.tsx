@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { authService } from '@/services/auth';
@@ -21,6 +22,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -31,6 +33,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     try {
       await authService.login({ username, password });
       onSuccess();
+      
+      // Redirigir a la comunidad después del login
+      router.push('/comunidad');
     } catch (err: unknown) {
       const error = err as Error;
       setError(error.message || 'Credenciales inválidas. Por favor, intenta de nuevo.');
@@ -48,13 +53,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         role="dialog"
         aria-labelledby="login-dialog-title"
       >
-        <button 
-          onClick={onClose} 
-          className="absolute top-4 right-4 text-zinc-400 hover:text-white"
-          aria-label="Cerrar"
-        >
-          <X size={20} />
-        </button>
+        {/* Botón de cierre eliminado para forzar la autenticación */}
 
         <h2 id="login-dialog-title" className="text-2xl font-bold text-white mb-6">Iniciar sesión</h2>
         

@@ -33,6 +33,14 @@ export interface UserProfile {
   posts_count?: number;
   likes_received?: number;
   comments_count?: number;
+  
+  // Campos adicionales de suscripción
+  has_active_subscription: boolean;
+  stripe_customer_id: string | null;
+  subscription_id: string | null;
+  subscription_status: string | null;
+  subscription_start_date: string | null;
+  subscription_end_date: string | null;
 }
 
 export interface TokenResponse {
@@ -64,8 +72,16 @@ export const authService = {
   
   // Obtener perfil del usuario actual
   getProfile: async (): Promise<UserProfile> => {
-    // La respuesta de auth/me/ ya debe incluir los contadores gracias a nuestras modificaciones en el backend
-    return api.get('auth/me/');
+    try {
+      console.log('Obteniendo perfil del usuario...');
+      // La respuesta de auth/me/ ya debe incluir los contadores gracias a nuestras modificaciones en el backend
+      const profile = await api.get('auth/me/');
+      console.log('Perfil obtenido:', profile);
+      return profile;
+    } catch (error) {
+      console.error('Error obteniendo perfil:', error);
+      throw error;
+    }
   },
   
   // Actualizar perfil del usuario

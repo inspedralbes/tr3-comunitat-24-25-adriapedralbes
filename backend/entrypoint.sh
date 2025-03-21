@@ -1,8 +1,25 @@
 #!/bin/bash
 
+# Función para esperar a que la base de datos esté disponible
+wait_for_db() {
+  echo "Esperando por la base de datos..."
+  
+  # Comprobar si estamos usando PostgreSQL
+  if [ "$DATABASE_ENGINE" = "django.db.backends.postgresql" ]; then
+    # Esperar a que PostgreSQL esté disponible
+    until pg_isready -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER"; do
+      echo "PostgreSQL no está listo todavía - durmiendo"
+      sleep 1
+    done
+    echo "PostgreSQL está listo!"
+  else
+    # Para SQLite no necesitamos esperar
+    echo "Usando SQLite, no es necesario esperar por la base de datos"
+  fi
+}
+
 # Esperar a que la base de datos esté disponible
-echo "Esperando por la base de datos..."
-sleep 5
+wait_for_db
 
 echo "Realizando migraciones..."
 # Eliminar cualquier migración existente (solo en desarrollo)
@@ -16,6 +33,10 @@ python manage.py migrate
 # Crear superusuario si no existe
 echo "Creando superusuario..."
 python create_superuser.py
+
+# Configurar Stripe (crear producto y precio si no existen)
+echo "Configurando Stripe..."
+python initialize_stripe.py || echo "No se pudo inicializar Stripe, continuando..."
 
 # Configurar sistema de gamificación
 echo "Configurando sistema de gamificación..."

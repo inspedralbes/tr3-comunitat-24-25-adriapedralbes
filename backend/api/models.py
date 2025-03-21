@@ -41,6 +41,14 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Campos para Stripe
+    stripe_customer_id = models.CharField(max_length=100, blank=True, null=True)
+    has_active_subscription = models.BooleanField(default=False)
+    subscription_id = models.CharField(max_length=100, blank=True, null=True)
+    subscription_status = models.CharField(max_length=50, blank=True, null=True)  # 'active', 'canceled', 'past_due', etc.
+    subscription_start_date = models.DateTimeField(blank=True, null=True)
+    subscription_end_date = models.DateTimeField(blank=True, null=True)
+    
     objects = CustomUserManager()
     
     class Meta:

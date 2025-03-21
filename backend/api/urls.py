@@ -2,6 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
+from . import subscription_views
+from . import webhook_views
 from api.gamification import urls as gamification_urls
 
 # Configurar router para las vistas viewset
@@ -33,4 +35,12 @@ urlpatterns = [
     
     # Rutas de gamificación
     path('gamification/', include(gamification_urls)),
+    
+    # Rutas de suscripciones
+    path('subscription/create-checkout-session/', subscription_views.CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
+    path('subscription/status/', subscription_views.SubscriptionStatusView.as_view(), name='subscription-status'),
+    path('subscription/cancel/', subscription_views.CancelSubscriptionView.as_view(), name='cancel-subscription'),
+    
+    # Webhooks de Stripe
+    path('webhooks/stripe/', webhook_views.stripe_webhook, name='stripe-webhook'),
 ]

@@ -3,7 +3,8 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 
-import { AuthModal, AuthModalType } from "@/components/Auth";
+import { AuthModalType } from "@/components/Auth";
+import { RequiredAuthModal } from "@/components/Auth/RequiredAuthModal";
 import { CategoryFilter } from "@/components/Community/CategoryFilter";
 import { LeaderboardWidget } from "@/components/Community/LeaderboardWidget";
 import { PinnedPostsSection } from "@/components/Community/Posts/PinnedPostsSection";
@@ -13,12 +14,13 @@ import { WritePostComponent } from "@/components/Community/Posts/WritePostCompon
 import MainLayout from '@/components/layouts/MainLayout';
 import { authService } from '@/services/auth';
 import { communityService } from '@/services/community';
+import subscriptionService from '@/services/subscription';
 import { Comment } from "@/types/Comment";
 import { Post } from "@/types/Post";
 import { getPostViewsRecord, recordPostView } from "@/utils/postViewStorage";
 
 function CommunityContent() {
-  const _router = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeSortType, setActiveSortType] = useState('default');
@@ -38,6 +40,44 @@ function CommunityContent() {
   const [_isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [skipLoadingIndicator, setSkipLoadingIndicator] = useState(false);
+
+  // Verificar autenticación y suscripción
+  useEffect(() => {
+    // Función para verificar autenticación y suscripción al cargar la página
+    const checkAuth = async () => {
+      setIsLoadingInitial(true);
+      
+      // Verificar si está autenticado
+      if (!authService.isAuthenticated()) {
+        setIsAuthModalOpen(true);
+        setIsLoadingInitial(false);
+        return;
+      }
+      
+      try {
+        // Verificar suscripción
+        const subscriptionStatus = await subscriptionService.getSubscriptionStatus().catch(error => {
+          console.error('Error al verificar suscripción:', error);
+          // En caso de error, permitimos acceso temporal
+          return { has_subscription: true, subscription_status: 'temp_access', start_date: null, end_date: null };
+        });
+        
+        console.log('Estado de suscripción:', subscriptionStatus);
+        
+        // Si no tiene suscripción, redirigir a la página de configuración
+        if (!subscriptionStatus.has_subscription) {
+          console.log('Usuario sin suscripción, redirigiendo a configuración');
+          router.push('/perfil/configuracion');
+          return;
+        }
+      } catch (error) {
+        console.error('Error general al verificar acceso:', error);
+      }
+      // No establecemos isLoadingInitial en false aquí, lo hará el efecto de carga de datos
+    };
+    
+    checkAuth();
+  }, [router]);
 
   // Comprobar si el usuario está autenticado
   useEffect(() => {
@@ -482,6 +522,11 @@ function CommunityContent() {
 
   return (
     <MainLayout activeTab="community">
+      {/* Overlay difuminado cuando el usuario no está autenticado */}
+      {isAuthModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 pointer-events-none" />
+      )}
+      
       {/* Contenido principal con dos columnas */}
       <div className="container mx-auto px-4 max-w-6xl pt-6 sm:pt-8">
         {error && (
@@ -544,11 +589,9 @@ function CommunityContent() {
         onClose={closeModal}
       />
       
-      {/* Modal de autenticación */}
-      <AuthModal 
+      {/* Modal de autenticación requerida */}
+      <RequiredAuthModal 
         isOpen={isAuthModalOpen}
-        type={AuthModalType.LOGIN}
-        onClose={() => setIsAuthModalOpen(false)}
         onSuccess={handleAuthSuccess}
       />
     </MainLayout>

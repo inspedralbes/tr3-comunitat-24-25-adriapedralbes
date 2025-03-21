@@ -29,13 +29,13 @@ services:
       - DEBUG=${DEBUG}
       - SECRET_KEY=${SECRET_KEY}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      # Configuración de PostgreSQL
-      - DATABASE_ENGINE=${DATABASE_ENGINE}
-      - DATABASE_NAME=${DATABASE_NAME}
+      # Configuración de la base de datos
+      - DATABASE_ENGINE=${DATABASE_ENGINE:-django.db.backends.sqlite3}
+      - DATABASE_NAME=${DATABASE_NAME:-db.sqlite3}
       - DATABASE_USER=${DATABASE_USER}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_HOST=${DATABASE_HOST:-postgres}
+      - DATABASE_PORT=${DATABASE_PORT:-5432}
       # Configuración de gamificación
       - FORCE_GAMIFICATION_SETUP=false
     restart: on-failure
