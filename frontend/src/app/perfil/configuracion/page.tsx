@@ -34,7 +34,7 @@ export default function ProfileSettingsPage() {
           router.push('/comunidad');
           return;
         }
-        
+
         // Verificar si la suscripción es obligatoria desde los parámetros
         const isRequired = new URLSearchParams(window.location.search).get('required') === 'true';
         setIsSubscriptionRequired(isRequired);
@@ -44,7 +44,7 @@ export default function ProfileSettingsPage() {
           authService.getProfile(),
           subscriptionService.getSubscriptionStatus()
         ]);
-        
+
         // Verificar si el state de suscripción y el perfil no coinciden
         if (profile.has_active_subscription !== subscriptionStatus.has_subscription) {
           console.log('Discrepancia en estado de suscripción, actualizando perfil...');
@@ -54,9 +54,9 @@ export default function ProfileSettingsPage() {
         } else {
           setUserProfile(profile);
         }
-        
+
         setSubscriptionStatus(subscriptionStatus);
-        
+
         // Si el usuario viene de registrarse o no tiene suscripción, mostrar modal
         const isNewUser = new URLSearchParams(window.location.search).get('new') === 'true';
         if (isNewUser || !subscriptionStatus.has_subscription) {
@@ -95,17 +95,17 @@ export default function ProfileSettingsPage() {
       </MainLayout>
     );
   }
-  
+
   // Iniciar proceso de suscripción
   const handleStartSubscription = async () => {
     try {
       // URLs para Stripe
       const successUrl = `${window.location.origin}/comunidad`;
       const cancelUrl = `${window.location.origin}/perfil/configuracion`;
-      
+
       // Crear sesión de checkout
       const session = await subscriptionService.createCheckoutSession(successUrl, cancelUrl);
-      
+
       // Redirigir a la página de Stripe
       window.location.href = session.checkout_url;
     } catch (err) {
@@ -113,16 +113,22 @@ export default function ProfileSettingsPage() {
       setError('No se pudo iniciar el proceso de suscripción.');
     }
   };
-  
+
   // Cancelar suscripción
   const handleCancelSubscription = async () => {
-    if (!confirm('¿Estás seguro de que quieres cancelar tu suscripción?')) {
+    // Primera confirmación más suave
+    if (!confirm('Al cancelar tu membresía perderás acceso a contenido exclusivo y funcionalidades premium. ¿Quieres continuar con la gestión de tu suscripción?')) {
       return;
     }
-    
+
+    // Segunda confirmación más directa
+    if (!confirm('¿Estás completamente seguro de que deseas cancelar tu membresía? Tus beneficios permanecerán activos hasta el final del período facturado.')) {
+      return;
+    }
+
     try {
       await subscriptionService.cancelSubscription();
-      
+
       // Recargar estado de suscripción
       const subscription = await subscriptionService.getSubscriptionStatus();
       setSubscriptionStatus(subscription);
@@ -161,77 +167,94 @@ export default function ProfileSettingsPage() {
           </div>
         )}
 
-        {/* Estado de suscripción */}
-        <div className="bg-[#323230] rounded-lg border border-white/10 p-6 max-w-2xl mx-auto mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Estado de suscripción</h2>
-          
-          {subscriptionStatus?.has_subscription ? (
-            <div className="bg-[#252524] rounded-lg p-4 mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <div>
-                  <span className="text-xl font-bold text-white">Suscripción Activa</span>
-                </div>
-                <span className="text-green-400 text-sm font-medium px-3 py-1 bg-green-400/10 rounded-full">
-                  {subscriptionStatus.subscription_status}
-                </span>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="text-sm text-zinc-400">Fecha de inicio:</p>
-                  <p className="text-zinc-300">
-                    {subscriptionStatus.start_date ? new Date(subscriptionStatus.start_date).toLocaleDateString() : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-zinc-400">Próxima factura:</p>
-                  <p className="text-zinc-300">
-                    {subscriptionStatus.end_date ? new Date(subscriptionStatus.end_date).toLocaleDateString() : 'N/A'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex justify-end">
-                <button
-                  onClick={handleCancelSubscription}
-                  className="px-4 py-2 bg-red-600/20 text-red-300 hover:bg-red-600/30 rounded-md transition-colors"
-                >
-                  Cancelar suscripción
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-[#252524] rounded-lg p-6 mb-4">
-              <div className="text-center mb-4">
-                <span className="text-xl font-bold text-white">No tienes una suscripción activa</span>
-                <p className="text-zinc-400 mt-2">
-                  Para acceder a nuestra comunidad y recursos exclusivos, necesitas activar tu suscripción.
-                </p>
-              </div>
-              
-              <div className="bg-[#323230] rounded-lg p-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-2xl font-bold text-white">20€</span>
-                    <span className="text-zinc-400 ml-1">/ mes</span>
-                  </div>
-                  <span className="text-green-400 text-sm font-medium">Cancela cuando quieras</span>
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <button
-                  onClick={handleStartSubscription}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors w-full"
-                >
-                  Suscribirme ahora
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
         <ProfileSettings userProfile={userProfile} />
+
+        {/* Información y Detalles de Cuenta - Colapsado por defecto */}
+        <div className="bg-[#323230] rounded-lg border border-white/10 p-6 max-w-2xl mx-auto mt-8 opacity-90 hover:opacity-100 transition-opacity">
+          <details className="group" open={false}>
+            <summary className="cursor-pointer list-none flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Información de cuenta</h2>
+              <svg className="h-5 w-5 text-zinc-400 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+
+            <div className="mt-4">
+              {subscriptionStatus?.has_subscription ? (
+                <div className="bg-[#252524] rounded-lg p-4 mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <div>
+                      <span className="text-xl font-medium text-white">Membresía Premium</span>
+                    </div>
+                    <span className="text-green-400 text-sm font-medium px-3 py-1 bg-green-400/10 rounded-full">
+                      Activa
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm text-zinc-400">Fecha de inicio:</p>
+                      <p className="text-zinc-300">
+                        {subscriptionStatus.start_date ? new Date(subscriptionStatus.start_date).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-zinc-400">Próxima factura:</p>
+                      <p className="text-zinc-300">
+                        {subscriptionStatus.end_date ? new Date(subscriptionStatus.end_date).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <details className="mt-4">
+                    <summary className="cursor-pointer list-none text-sm text-zinc-400 hover:text-zinc-300 transition-colors inline-flex items-center">
+                      <span>Opciones avanzadas</span>
+                      <svg className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </summary>
+                    <div className="pt-4 pb-2">
+                      <button
+                        onClick={handleCancelSubscription}
+                        className="px-4 py-2 text-zinc-400 hover:text-zinc-300 text-sm rounded-md transition-colors flex items-center"
+                      >
+                        <span>Cancelar membresía</span>
+                      </button>
+                    </div>
+                  </details>
+                </div>
+              ) : (
+                <div className="bg-[#252524] rounded-lg p-6 mb-4">
+                  <div className="text-center mb-4">
+                    <span className="text-xl font-bold text-white">No tienes una suscripción activa</span>
+                    <p className="text-zinc-400 mt-2">
+                      Para acceder a nuestra comunidad y recursos exclusivos, necesitas activar tu suscripción.
+                    </p>
+                  </div>
+
+                  <div className="bg-[#323230] rounded-lg p-4 mb-6">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="text-2xl font-bold text-white">20€</span>
+                        <span className="text-zinc-400 ml-1">/ mes</span>
+                      </div>
+                      <span className="text-green-400 text-sm font-medium">Acceso completo</span>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <button
+                      onClick={handleStartSubscription}
+                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors w-full"
+                    >
+                      Activar membresía
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </details>
+        </div>
       </div>
     </MainLayout>
   );

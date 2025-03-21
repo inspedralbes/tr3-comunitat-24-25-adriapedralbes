@@ -56,6 +56,18 @@ export const subscriptionService = {
     }
     
     try {
+      // Primero verificar si el usuario es superusuario
+      const profile = await authService.getProfile();
+      if (profile && profile.is_superuser) {
+        console.log('Usuario es superadmin - acceso garantizado');
+        return {
+          has_subscription: true,
+          subscription_status: 'active',
+          start_date: profile.subscription_start_date || null,
+          end_date: profile.subscription_end_date || null
+        };
+      }
+      
       const result = await api.get('subscription/status/');
       return result;
     } catch (error) {

@@ -161,6 +161,16 @@ class SubscriptionStatusView(views.APIView):
     def get(self, request, *args, **kwargs):
         user = request.user
         
+        # Si el usuario es superadmin, siempre dar acceso premium independientemente de stripe_customer_id
+        if user.is_superuser:
+            logger.info(f"Superusuario {user.username} accediendo a API de suscripción - acceso garantizado")
+            return Response({
+                "has_subscription": True,
+                "subscription_status": "active",
+                "start_date": user.subscription_start_date or "2025-03-21",
+                "end_date": user.subscription_end_date or "2026-03-21"
+            })
+        
         if not user.subscription_id:
             return Response({
                 "has_subscription": False,

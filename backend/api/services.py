@@ -198,6 +198,23 @@ class StripeService:
         """
         Verifica el estado de la suscripción de un usuario y actualiza la base de datos
         """
+        # Si el usuario es superadmin, siempre tiene suscripción activa
+        if user.is_superuser:
+            logger.info(f"Verificación de suscripción para superusuario {user.username} - acceso garantizado")
+            # Asegurar que el superusuario tenga los campos correctamente configurados
+            user.has_active_subscription = True
+            user.is_premium = True
+            user.subscription_status = 'active'
+            
+            # Si no tiene fechas establecidas, establecerlas
+            if not user.subscription_start_date:
+                user.subscription_start_date = timezone.now()
+            if not user.subscription_end_date:
+                user.subscription_end_date = timezone.now() + timedelta(days=365)
+                
+            user.save()
+            return True
+            
         if not user.subscription_id:
             return False
             
