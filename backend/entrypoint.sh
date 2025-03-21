@@ -49,6 +49,10 @@ else
   python manage.py setup_gamification || echo "No se pudo configurar el sistema de gamificación, continuando..."
 fi
 
+# Configurar datos iniciales
+echo "Configurando datos iniciales (categorías)..."
+python manage.py setup_initial_data || echo "No se pudo configurar los datos iniciales, continuando..."
+
 # Recopilar archivos estáticos
 echo "Recopilando archivos estáticos..."
 python manage.py collectstatic --noinput --clear --verbosity 0
