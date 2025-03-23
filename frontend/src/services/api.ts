@@ -41,6 +41,19 @@ const handleResponse = async (response: Response) => {
           errorMessage = errorData.detail;
         } else if (errorData.message) {
           errorMessage = errorData.message;
+        } else if (typeof errorData === 'object') {
+          // Intentar obtener cualquier mensaje de error
+          const errorKeys = Object.keys(errorData);
+          if (errorKeys.length > 0) {
+            const firstError = errorData[errorKeys[0]];
+            if (Array.isArray(firstError) && firstError.length > 0) {
+              errorMessage = `${errorKeys[0]}: ${firstError[0]}`;
+            } else if (typeof firstError === 'string') {
+              errorMessage = `${errorKeys[0]}: ${firstError}`;
+            } else {
+              errorMessage = JSON.stringify(errorData);
+            }
+          }
         }
       } else {
         // Si no es JSON, obtener texto

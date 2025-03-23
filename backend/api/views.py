@@ -12,10 +12,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 
-from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
+from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike, Course, Lesson
 from .serializers import (
     SubscriberSerializer, UserSerializer, UserRegistrationSerializer, CategorySerializer,
-    PostSerializer, PostDetailSerializer, CommentSerializer, PostLikeSerializer, CommentLikeSerializer, UserShortSerializer
+    PostSerializer, PostDetailSerializer, CommentSerializer, PostLikeSerializer, CommentLikeSerializer, UserShortSerializer,
+    CourseSerializer, CourseDetailSerializer, LessonSerializer, LessonDetailSerializer
 )
 from django.conf import settings
 from django.core.mail import send_mail
@@ -817,3 +818,113 @@ class CommentLikeView(APIView):
             # Nota: No restamos puntos al quitar likes para mantener la integridad del sistema
             
             return Response({'status': 'unliked', 'likes': comment.likes})
+
+
+class CourseViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint para Cursos.
+    """
+    queryset = Course.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def create(self, request, *args, **kwargs):
+        """
+        Crear un nuevo curso con mejor manejo de errores.
+        """
+        try:
+            # Añadir log para depuración
+            logger.info(f"Creating course with data: {request.data}")
+            
+            # Eliminar campo progress_percentage si está presente
+            data = request.data.copy()
+            if 'progress_percentage' in data:
+                logger.info("Removing progress_percentage field from request data")
+                data.pop('progress_percentage')
+            
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                self.perform_create(serializer)
+                headers = self.get_success_headers(serializer.data)
+                return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+            else:
+                logger.error(f"Validation error when creating course: {serializer.errors}")
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            logger.error(f"Error creating course: {str(e)}")
+            return Response(
+                {"error": f"Error al crear el curso: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return CourseDetailSerializer
+        return CourseSerializer
+        
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+        
+    @action(detail=True, methods=['get'])
+    def lessons(self, request, pk=None):
+        """
+        Obtener las lecciones de un curso específico.
+        """
+        course = self.get_object()
+        lessons = Lesson.objects.filter(course=course).order_by('order')
+        serializer = LessonSerializer(lessons, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def upload_thumbnail(self, request, pk=None):
+        """
+        Subir imagen de portada para un curso.
+        """
+        try:
+            course = self.get_object()
+            
+            # Eliminar thumbnail anterior si existe
+            if course.thumbnail and hasattr(course.thumbnail, 'path') and os.path.isfile(course.thumbnail.path):
+                try:
+                    os.remove(course.thumbnail.path)
+                except Exception as e:
+                    print(f"Error al eliminar thumbnail anterior: {e}")
+            
+            # Verificar si hay un archivo en la solicitud
+            if 'thumbnail' not in request.FILES:
+                return Response({"error": "No se ha proporcionado una imagen"}, status=status.HTTP_400_BAD_REQUEST)
+                
+            # Guardar nuevo thumbnail
+            course.thumbnail = request.FILES['thumbnail']
+            course.save()
+            
+            # Serializar respuesta
+            serializer = self.get_serializer(course)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"Error al subir thumbnail: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class LessonViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint para Lecciones.
+    """
+    queryset = Lesson.objects.all()
+    serializer_class = LessonSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        queryset = Lesson.objects.all()
+        course_id = self.request.query_params.get('course_id', None)
+        if course_id:
+            queryset = queryset.filter(course_id=course_id)
+        return queryset.order_by('order')
+        
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context

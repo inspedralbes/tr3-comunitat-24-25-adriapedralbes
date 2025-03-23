@@ -3,7 +3,7 @@
 import { Check, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { CourseWithLessons, Lesson } from '@/types/Lesson';
 
@@ -164,33 +164,42 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                     </div>
                 )}
 
+                {/* Contenido HTML si existe */}
+                {activeLesson.content.html && (
+                    <div className="lesson-content text-white/80 prose prose-invert max-w-none"
+                         dangerouslySetInnerHTML={{ __html: activeLesson.content.html }}
+                    ></div>
+                )}
+
                 {/* Texto descriptivo */}
-                <div className="space-y-4 text-white/80">
-                    {activeLesson.content.paragraphs.map((paragraph, index) => (
-                        <p key={index}>{paragraph}</p>
-                    ))}
+                {activeLesson.content.paragraphs && activeLesson.content.paragraphs.length > 0 && (
+                    <div className="space-y-4 text-white/80">
+                        {activeLesson.content.paragraphs.map((paragraph, index) => (
+                            <p key={index}>{paragraph}</p>
+                        ))}
+                    </div>
+                )}
 
-                    {/* Call to action si existe */}
-                    {activeLesson.content.callToAction && (
-                        <div className="pt-6">
-                            <Link
-                                href={activeLesson.content.callToAction.url}
-                                className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
-                            >
-                                {activeLesson.content.callToAction.text}
-                            </Link>
-                        </div>
-                    )}
+                {/* Call to action si existe */}
+                {activeLesson.content.callToAction && (
+                    <div className="pt-6">
+                        <Link
+                            href={activeLesson.content.callToAction.url}
+                            className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
+                        >
+                            {activeLesson.content.callToAction.text}
+                        </Link>
+                    </div>
+                )}
 
-                    {/* URL si existe */}
-                    {activeLesson.content.callToAction?.url && (
-                        <p className="text-blue-400 hover:underline pt-4">
-                            <Link href={activeLesson.content.callToAction.url}>
-                                {activeLesson.content.callToAction.url}
-                            </Link>
-                        </p>
-                    )}
-                </div>
+                {/* URL si existe */}
+                {activeLesson.content.callToAction?.url && (
+                    <p className="text-blue-400 hover:underline pt-4">
+                        <Link href={activeLesson.content.callToAction.url}>
+                            {activeLesson.content.callToAction.url}
+                        </Link>
+                    </p>
+                )}
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 import uuid
+from django.core.serializers.json import DjangoJSONEncoder
 
 class Subscriber(models.Model):
     """
@@ -157,3 +158,45 @@ class CommentLike(models.Model):
     
     def __str__(self):
         return f"{self.user.username} liked comment {self.comment.id}"
+
+
+class Course(models.Model):
+    """
+    Cursos de la plataforma.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True)
+    progress_percentage = models.IntegerField(default=0)  # Para seguimiento de progreso
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Curso'
+        verbose_name_plural = 'Cursos'
+    
+    def __str__(self):
+        return self.title
+
+
+class Lesson(models.Model):
+    """
+    Lecciones de los cursos.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    content = models.JSONField(default=dict, encoder=DjangoJSONEncoder)  # Para contenido enriquecido
+    order = models.PositiveIntegerField(default=0)  # Para ordenar lecciones dentro de un curso
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Lección'
+        verbose_name_plural = 'Lecciones'
+    
+    def __str__(self):
+        return self.title

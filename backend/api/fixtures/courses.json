@@ -1,0 +1,74 @@
+[
+  {
+    "model": "api.course",
+    "pk": "cc4dcc3c-7a3a-4d51-b390-36e9b6340b3a",
+    "fields": {
+      "title": "Comunidad DevAccelerator™",
+      "description": "¡Te doy la bienvenida oficial a la comunidad DevAccelerator™!",
+      "thumbnail": "",
+      "progress_percentage": 25,
+      "created_at": "2024-09-20T12:00:00Z",
+      "updated_at": "2024-09-20T12:00:00Z"
+    }
+  },
+  {
+    "model": "api.course",
+    "pk": "d48fedb2-b5de-4e6e-9a80-8e03bb0a6478",
+    "fields": {
+      "title": "Modelo DevAccelerator™",
+      "description": "Este es un Mini Curso de 6 partes mostrándote exactamente cómo conseguir...",
+      "thumbnail": "",
+      "progress_percentage": 0,
+      "created_at": "2024-09-21T12:00:00Z",
+      "updated_at": "2024-09-21T12:00:00Z"
+    }
+  },
+  {
+    "model": "api.course",
+    "pk": "f7a0b9dd-9c9a-4a5a-8f0e-0876c0eae4b5",
+    "fields": {
+      "title": "The LinkedIn Blueprint™",
+      "description": "¡Obtén un perfil competitivo y comienza a recibir tus ofertas soñadas! Deja de gastar...",
+      "thumbnail": "",
+      "progress_percentage": 0,
+      "created_at": "2024-09-22T12:00:00Z",
+      "updated_at": "2024-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "api.course",
+    "pk": "5c6e3b9d-32b8-4b33-91d0-aa78a8e2ecb5",
+    "fields": {
+      "title": "English Lessons (Materials)",
+      "description": "Materiales y recursos para mejorar tu inglés",
+      "thumbnail": "",
+      "progress_percentage": 0,
+      "created_at": "2024-09-23T12:00:00Z",
+      "updated_at": "2024-09-23T12:00:00Z"
+    }
+  },
+  {
+    "model": "api.course",
+    "pk": "a1c2e5f7-9b0c-4d8e-a6f3-2c1d9b8e7a5c",
+    "fields": {
+      "title": "Masterclasses",
+      "description": "Masterclasses exclusivas para miembros",
+      "thumbnail": "",
+      "progress_percentage": 0,
+      "created_at": "2024-09-24T12:00:00Z",
+      "updated_at": "2024-09-24T12:00:00Z"
+    }
+  },
+  {
+    "model": "api.course",
+    "pk": "b2d4f6h8-1j3k-5l7m-9n0p-2q4r6s8t0u2",
+    "fields": {
+      "title": "DevAcc. TM - Nivel 0 - Empieza aquí",
+      "description": "Primeros pasos para comenzar tu viaje con DevAccelerator",
+      "thumbnail": "",
+      "progress_percentage": 0,
+      "created_at": "2024-09-25T12:00:00Z",
+      "updated_at": "2024-09-25T12:00:00Z"
+    }
+  }
+]

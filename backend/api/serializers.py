@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
+from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike, Course, Lesson
 
 class SubscriberSerializer(serializers.ModelSerializer):
     class Meta:
@@ -175,3 +175,57 @@ class CommentLikeSerializer(serializers.ModelSerializer):
         model = CommentLike
         fields = ['id', 'user', 'comment', 'created_at']
         read_only_fields = ['id', 'user', 'created_at']
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ['id', 'title', 'content', 'order', 'created_at', 'updated_at', 'course']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class LessonDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ['id', 'title', 'content', 'order', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class CourseSerializer(serializers.ModelSerializer):
+    lessons_count = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+    progress_percentage = serializers.IntegerField(required=False, default=0, write_only=True)
+    
+    class Meta:
+        model = Course
+        fields = ['id', 'title', 'description', 'thumbnail_url', 'progress_percentage', 'created_at', 'updated_at', 'lessons_count']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_lessons_count(self, obj):
+        return obj.lessons.count()
+        
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail and hasattr(obj.thumbnail, 'url'):
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url
+        return None
+        
+    def validate(self, attrs):
+        # Asegurarse de que los campos requeridos están presentes
+        if 'title' not in attrs or not attrs['title']:
+            raise serializers.ValidationError({"title": "El título es obligatorio."})
+            
+        # Asegurar que el progreso está entre 0 y 100
+        if 'progress_percentage' in attrs and (attrs['progress_percentage'] < 0 or attrs['progress_percentage'] > 100):
+            raise serializers.ValidationError({"progress_percentage": "El progreso debe estar entre 0 y 100."})
+            
+        return attrs
+
+
+class CourseDetailSerializer(CourseSerializer):
+    lessons = LessonDetailSerializer(many=True, read_only=True)
+    
+    class Meta(CourseSerializer.Meta):
+        fields = CourseSerializer.Meta.fields + ['lessons']

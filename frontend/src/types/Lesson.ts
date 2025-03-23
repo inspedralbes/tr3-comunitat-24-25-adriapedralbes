@@ -10,8 +10,12 @@ export interface Lesson {
             text: string;
             url: string;
         };
+        html?: string;
     };
     isCompleted: boolean;
+    order?: number;
+    created_at?: string;
+    updated_at?: string;
 }
 
 // Actualizar interfaz Course para incluir lecciones

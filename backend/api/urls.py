@@ -12,6 +12,8 @@ router.register(r'users', views.UserViewSet)
 router.register(r'categories', views.CategoryViewSet)
 router.register(r'posts', views.PostViewSet)
 router.register(r'comments', views.CommentViewSet)
+router.register(r'courses', views.CourseViewSet)
+router.register(r'lessons', views.LessonViewSet)
 
 urlpatterns = [
     # Rutas de autenticación JWT
