@@ -25,6 +25,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
             {courses.map((course) => (
                 <CourseCard
                     key={course.id}
+                    id={typeof course.id === 'string' ? course.id : course.id.toString()}
                     title={course.title}
                     description={course.description}
                     imageUrl={course.imageUrl}

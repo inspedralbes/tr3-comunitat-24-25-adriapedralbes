@@ -2,19 +2,20 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
 /* config options here */
 images: {
-remotePatterns: [
- {
-protocol: 'http',
-hostname: 'localhost',
-port: '8000',
-pathname: '/media/**',
- },
- {
-protocol: 'http',
-hostname: '127.0.0.1',
-port: '8000',
-pathname: '/media/**',
- },
+  // Configuración para manejo de imágenes externas
+  remotePatterns: [
+    {
+      protocol: 'http',
+      hostname: 'localhost',
+      port: '8000',
+      pathname: '/media/**',
+    },
+    {
+      protocol: 'http',
+      hostname: '127.0.0.1',
+      port: '8000',
+      pathname: '/media/**',
+    },
  {
 protocol: 'https',
 hostname: 'ui-avatars.com',

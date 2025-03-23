@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 from . import subscription_views
 from . import webhook_views
+from . import progress_views
 from api.gamification import urls as gamification_urls
 
 # Configurar router para las vistas viewset
@@ -14,6 +15,8 @@ router.register(r'posts', views.PostViewSet)
 router.register(r'comments', views.CommentViewSet)
 router.register(r'courses', views.CourseViewSet)
 router.register(r'lessons', views.LessonViewSet)
+router.register(r'user/lessons/progress', progress_views.UserLessonProgressViewSet, basename='lesson-progress')
+router.register(r'user/courses/progress', progress_views.UserCourseProgressViewSet, basename='course-progress')
 
 urlpatterns = [
     # Rutas de autenticación JWT

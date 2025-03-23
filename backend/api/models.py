@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 import uuid
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
 
 class Subscriber(models.Model):
     """
@@ -200,3 +201,67 @@ class Lesson(models.Model):
     
     def __str__(self):
         return self.title
+
+# Nuevos modelos para el progreso del usuario
+
+class UserLessonProgress(models.Model):
+    """
+    Modelo para rastrear el progreso del usuario en lecciones individuales.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson_progress')
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='user_progress')
+    completed = models.BooleanField(default=False)
+    completion_date = models.DateTimeField(null=True, blank=True)
+    time_spent_seconds = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user', 'lesson')
+        verbose_name = 'Progreso de Lección'
+        verbose_name_plural = 'Progresos de Lecciones'
+    
+    def __str__(self):
+        status = "Completada" if self.completed else "En progreso"
+        return f"{self.user.username} - {self.lesson.title[:30]} - {status}"
+        
+    def save(self, *args, **kwargs):
+        # Si se marca como completada y no tiene fecha de completado, asignarla
+        if self.completed and not self.completion_date:
+            self.completion_date = timezone.now()
+        # Si se marca como no completada, eliminar la fecha de completado
+        elif not self.completed and self.completion_date:
+            self.completion_date = None
+            
+        super().save(*args, **kwargs)
+
+
+class UserCourseProgress(models.Model):
+    """
+    Modelo para rastrear el progreso global del usuario en un curso.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_progress')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='user_progress')
+    progress_percentage = models.FloatField(default=0.0)
+    last_accessed_at = models.DateTimeField(default=timezone.now)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user', 'course')
+        verbose_name = 'Progreso de Curso'
+        verbose_name_plural = 'Progresos de Cursos'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.course.title[:30]} - {self.progress_percentage:.1f}%"
+        
+    def save(self, *args, **kwargs):
+        # Si el progreso llega al 100% y no tiene fecha de completado, asignarla
+        if self.progress_percentage >= 100 and not self.completed_at:
+            self.completed_at = timezone.now()
+        # Si el progreso es menor al 100%, eliminar la fecha de completado
+        elif self.progress_percentage < 100 and self.completed_at:
+            self.completed_at = None
+            
+        super().save(*args, **kwargs)

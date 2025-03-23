@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike, Course, Lesson
+from .models import (
+    Subscriber, User, Category, Post, Comment, PostLike, CommentLike, 
+    Course, Lesson, UserLessonProgress, UserCourseProgress
+)
 
 class SubscriberSerializer(serializers.ModelSerializer):
     class Meta:
@@ -132,6 +135,7 @@ class PostSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         write_only=True,
         required=False,
+        allow_null=True,
         source='category'
     )
 
@@ -229,3 +233,54 @@ class CourseDetailSerializer(CourseSerializer):
     
     class Meta(CourseSerializer.Meta):
         fields = CourseSerializer.Meta.fields + ['lessons']
+
+
+# Nuevos serializadores para el progreso del usuario
+
+class UserLessonProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserLessonProgress
+        fields = ['id', 'user', 'lesson', 'completed', 'completion_date', 'time_spent_seconds', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'completion_date']
+        
+    def validate(self, attrs):
+        # Asegurarse de que el campo lesson está presente
+        if 'lesson' not in attrs:
+            raise serializers.ValidationError({"lesson": "El ID de la lección es obligatorio."})
+            
+        return attrs
+
+
+class LessonProgressSerializer(serializers.ModelSerializer):
+    """Serializador simplificado para usarse en UserCourseProgressSerializer"""
+    lesson_id = serializers.CharField(source='lesson.id')
+    lesson_title = serializers.CharField(source='lesson.title')
+    
+    class Meta:
+        model = UserLessonProgress
+        fields = ['lesson_id', 'lesson_title', 'completed', 'completion_date', 'time_spent_seconds']
+
+
+class UserCourseProgressSerializer(serializers.ModelSerializer):
+    completed_lessons = serializers.SerializerMethodField()
+    course_title = serializers.CharField(source='course.title', read_only=True)
+    total_lessons = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = UserCourseProgress
+        fields = ['id', 'user', 'course', 'course_title', 'progress_percentage', 
+                  'last_accessed_at', 'completed_at', 'created_at', 'updated_at',
+                  'completed_lessons', 'total_lessons']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'completed_at']
+    
+    def get_completed_lessons(self, obj):
+        """Obtener todas las lecciones completadas por el usuario en este curso"""
+        lesson_progress = UserLessonProgress.objects.filter(
+            user=obj.user,
+            lesson__course=obj.course
+        )
+        return LessonProgressSerializer(lesson_progress, many=True).data
+    
+    def get_total_lessons(self, obj):
+        """Obtener el número total de lecciones en el curso"""
+        return Lesson.objects.filter(course=obj.course).count()

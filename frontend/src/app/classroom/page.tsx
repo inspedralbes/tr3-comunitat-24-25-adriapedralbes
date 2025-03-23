@@ -7,15 +7,83 @@ import { CourseGrid } from '@/components/Classroom/CourseGrid';
 import { CourseDetail } from '@/components/Classroom/Courses/CourseDetail';
 import MainLayout from '@/components/layouts/MainLayout';
 import courseService from '@/services/courses';
+import authService from '@/services/auth';
+import userProgressService from '@/services/userProgress';
 import { Course } from '@/types/Course';
 import { CourseWithLessons, Lesson } from '@/types/Lesson';
+import { UserProfile } from '@/services/auth';
 
 export default function ClassroomPage() {
+    // Estado para el usuario
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     // Estado para los cursos
     const [courses, setCourses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
     // Estado para manejar el curso seleccionado
     const [selectedCourse, setSelectedCourse] = useState<CourseWithLessons | null>(null);
+
+    // Obtener datos del usuario e inicializar la página
+    useEffect(() => {
+        const initPage = async () => {
+            try {
+                // Verificar si el usuario está autenticado
+                if (authService.isAuthenticated()) {
+                    // Obtener perfil del usuario
+                    const profile = await authService.getProfile();
+                    setUserProfile(profile);
+                    setIsAdmin(profile.is_staff || profile.is_superuser || false);
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+            }
+        };
+
+        initPage();
+    }, []);
+    
+    // Cargar progreso del usuario para todos los cursos
+    useEffect(() => {
+        const fetchUserProgress = async () => {
+            if (!userProfile) return;
+            
+            try {
+                // Solo intentar obtener el progreso si el usuario está autenticado
+                if (authService.isAuthenticated()) {
+                    const userProgressData = await userProgressService.getUserProgress();
+                    // Procesamos y asociamos el progreso a los cursos
+                    if (Array.isArray(userProgressData) && userProgressData.length > 0) {
+                        setCourses(prevCourses => {
+                            // Crear un mapa para acceso rápido
+                            const progressMap = new Map(
+                                userProgressData.map(progress => [progress.course_id, progress])
+                            );
+                            
+                            // Actualizar el progreso de cada curso
+                            return prevCourses.map(course => {
+                                const courseProgress = progressMap.get(course.id);
+                                if (courseProgress) {
+                                    return {
+                                        ...course,
+                                        progress: courseProgress.progress_percentage || 0
+                                    };
+                                }
+                                return course;
+                            });
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user progress:', error);
+                // No mostrar error al usuario para no interrumpir la UX
+            }
+        };
+
+        // Esperar a que se carguen los cursos antes de intentar actualizar el progreso
+        if (courses.length > 0) {
+            fetchUserProgress();
+        }
+    }, [userProfile, courses.length]);
 
     // Cargar cursos al inicializar la página
     useEffect(() => {
@@ -38,6 +106,7 @@ export default function ClassroomPage() {
                     description: course.description || '',
                     imageUrl: course.thumbnail_url || '/api/placeholder/600/400',
                     progress: course.progress_percentage,
+                    lessonsCount: course.lessons_count || 0,
                     isPrivate: false // Todos los cursos son públicos según el requerimiento
                 }));
                 
@@ -117,15 +186,17 @@ export default function ClassroomPage() {
         <MainLayout activeTab="classroom">
             {/* Contenido principal */}
             <div className="container mx-auto px-4 max-w-6xl pt-6 sm:pt-8 pb-10">
-                {/* Enlace a administración de cursos */}
-                <div className="flex justify-end mb-4">
-                    <Link 
-                        href="/classroom/admin" 
-                        className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1"
-                    >
-                        Administrar cursos
-                    </Link>
-                </div>
+                {/* Enlace a administración de cursos (solo para administradores) */}
+                {isAdmin && (
+                    <div className="flex justify-end mb-4">
+                        <Link 
+                            href="/classroom/admin" 
+                            className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1"
+                        >
+                            Administrar cursos
+                        </Link>
+                    </div>
+                )}
 
                 {selectedCourse ? (
                     // Vista detallada del curso

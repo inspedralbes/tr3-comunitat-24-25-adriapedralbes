@@ -23,9 +23,18 @@ const buildEndpointUrl = (endpoint: string, ensureTrailingSlash = false) => {
 
 // Función para manejar errores
 const handleResponse = async (response: Response) => {
-  console.log(`API Response: ${response.status} ${response.statusText} from ${response.url}`);
+  // Log reducido solo para errores que no sean 404
+  if (!response.ok && response.status !== 404) {
+    console.log(`API Response: ${response.status} ${response.statusText} from ${response.url}`);
+  }
   
   if (!response.ok) {
+    // Para errores 404, simplemente devolvemos un objeto/array vacío sin registrar errores ruidosos
+    if (response.status === 404) {
+      console.log(`Endpoint no implementado: ${response.url}`);
+      return response.url.includes('progress') ? [] : {};
+    }
+    
     let errorMessage = `Error ${response.status}: ${response.statusText}`;
     
     try {

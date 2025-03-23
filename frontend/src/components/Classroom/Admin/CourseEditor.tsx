@@ -53,13 +53,12 @@ export default function CourseEditor({ courseId, initialData }: CourseEditorProp
       setErrorMessage('');
       
       // Log de depuración
-      console.log('Enviando datos del curso:', { title, description, progress_percentage: progress });
+      console.log('Enviando datos del curso:', { title, description });
       
       let courseData: any = {
         title,
         description
-        // Omitimos progress_percentage temporalmente debido a problemas en la base de datos
-        // progress_percentage: progress
+        // El progreso no se envía ya que se calcula automáticamente
       };
 
       let newCourseId = courseId;
@@ -164,18 +163,22 @@ export default function CourseEditor({ courseId, initialData }: CourseEditorProp
             
             <div>
               <label htmlFor="progress" className="block text-white/70 mb-1">
-                Progreso (%)
+                Progreso (%) - Calculado automáticamente
               </label>
-              <input
-                id="progress"
-                type="number"
-                value={progress}
-                onChange={(e) => setProgress(Number(e.target.value))}
-                className="w-full bg-[#1F1F1E] border border-white/10 rounded-md px-4 py-2 text-white"
-                placeholder="Porcentaje de progreso"
-                min="0"
-                max="100"
-              />
+              <p className="text-sm text-white/60 italic mb-2">
+                Este valor se calcula automáticamente según el avance del usuario en el curso
+              </p>
+              <div className="w-full bg-[#1F1F1E] border border-white/10 rounded-md px-4 py-2 text-white">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-[#2D2D2C] rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-zinc-400">{progress}%</span>
+                </div>
+              </div>
             </div>
             
             <div>

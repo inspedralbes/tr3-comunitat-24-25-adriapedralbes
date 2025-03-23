@@ -34,6 +34,10 @@ export interface UserProfile {
   likes_received?: number;
   comments_count?: number;
   
+  // Campos relacionados con permisos
+  is_staff?: boolean;
+  is_superuser?: boolean;
+  
   // Campos adicionales de suscripción
   has_active_subscription: boolean;
   stripe_customer_id: string | null;
