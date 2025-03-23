@@ -18,6 +18,7 @@ export interface Lesson {
   title: string;
   content: {
     html: string;
+    video_url?: string;
   };
   order: number;
   created_at: string;
@@ -30,6 +31,7 @@ export interface LessonDetail {
   title: string;
   content: {
     html: string;
+    video_url?: string;
   };
   order: number;
   created_at: string;

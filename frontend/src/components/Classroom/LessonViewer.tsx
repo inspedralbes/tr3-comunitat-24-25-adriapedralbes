@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import { useEffect, useRef } from 'react';
 import { Lesson } from '@/types/Course';
 
 interface LessonViewerProps {
@@ -8,6 +9,7 @@ interface LessonViewerProps {
 }
 
 export default function LessonViewer({ lesson }: LessonViewerProps) {
+  const videoRef = useRef<HTMLDivElement>(null);
   // Función para aplicar estilos adicionales a los elementos HTML
   const enhanceHtml = (html: string): string => {
     // Añadir clases CSS para mejorar la visualización
@@ -26,6 +28,29 @@ export default function LessonViewer({ lesson }: LessonViewerProps) {
       .replace(/<a /g, '<a class="text-blue-400 hover:underline" ');
   };
 
+  // Renderizar el video si existe
+  const renderVideo = () => {
+    if (!lesson?.content?.video_url) {
+      return null;
+    }
+
+    return (
+      <div className="mb-8" ref={videoRef}>
+        <h2 className="text-xl font-bold mb-3 text-white">Video explicativo</h2>
+        <div className="relative aspect-video w-full bg-zinc-900 rounded-lg overflow-hidden">
+          <iframe 
+            src={lesson.content.video_url} 
+            className="absolute inset-0 w-full h-full" 
+            title="Video explicativo"
+            frameBorder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowFullScreen
+          ></iframe>
+        </div>
+      </div>
+    );
+  };
+
   // Renderizar el contenido HTML de la lección
   const renderContent = () => {
     if (!lesson?.content?.html) {
@@ -40,6 +65,7 @@ export default function LessonViewer({ lesson }: LessonViewerProps) {
     <div className="lesson-content">
       <h1 className="text-2xl font-bold mb-6 text-white">{lesson.title}</h1>
       <div className="prose prose-invert max-w-none">
+        {renderVideo()}
         {renderContent()}
       </div>
     </div>
