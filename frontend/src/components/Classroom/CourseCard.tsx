@@ -22,7 +22,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     description,
     imageUrl,
     progress,
-    lessonsCount = 4, // Valor por defecto
+    lessonsCount = 0, // Cambiar valor por defecto a 0
     isPrivate,
     onClick,
     id
