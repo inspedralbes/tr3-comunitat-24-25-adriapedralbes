@@ -11,7 +11,6 @@ export function NavBarCommunity() {
     { name: "Calendario", url: "/calendar", icon: Calendar },
     { name: "Miembros", url: "/members", icon: User },
     { name: "Ranking", url: "/leaderboards", icon: Trophy },
-    { name: "Acerca", url: "/about", icon: Info },
   ];
 
   return <NavBar items={navItems} />;
