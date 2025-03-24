@@ -12,11 +12,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 
-from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike, Course, Lesson
+from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike, Course, Lesson, Event
 from .serializers import (
     SubscriberSerializer, UserSerializer, UserRegistrationSerializer, CategorySerializer,
     PostSerializer, PostDetailSerializer, CommentSerializer, PostLikeSerializer, CommentLikeSerializer, UserShortSerializer,
-    CourseSerializer, CourseDetailSerializer, LessonSerializer, LessonDetailSerializer
+    CourseSerializer, CourseDetailSerializer, LessonSerializer, LessonDetailSerializer, EventSerializer
 )
 from django.conf import settings
 from django.core.mail import send_mail
@@ -928,3 +928,33 @@ class LessonViewSet(viewsets.ModelViewSet):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
+
+
+class EventListView(APIView):
+    """
+    Vista para listar eventos
+    """
+    permission_classes = [AllowAny]
+    
+    def get(self, request, format=None):
+        """
+        Obtener todos los eventos 
+        """
+        # Opcionalmente filtrar por fecha
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        event_type = request.query_params.get('type')
+        
+        events = Event.objects.all()
+        
+        if start_date:
+            events = events.filter(start_date__gte=start_date)
+        
+        if end_date:
+            events = events.filter(start_date__lte=end_date)
+            
+        if event_type:
+            events = events.filter(type=event_type)
+            
+        serializer = EventSerializer(events, many=True)
+        return Response(serializer.data)

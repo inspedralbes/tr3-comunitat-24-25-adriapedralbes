@@ -265,3 +265,37 @@ class UserCourseProgress(models.Model):
             self.completed_at = None
             
         super().save(*args, **kwargs)
+
+
+class Event(models.Model):
+    """
+    Modelo para eventos del calendario.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField(null=True, blank=True)
+    type = models.CharField(
+        max_length=20, 
+        choices=[
+            ('english', 'English'),
+            ('masterclass', 'Masterclass'),
+            ('workshop', 'Workshop'),
+            ('mockinterview', 'Mock Interview'),
+            ('other', 'Other')
+        ],
+        default='other'
+    )
+    description = models.TextField(blank=True, null=True)
+    meeting_url = models.URLField(max_length=500, blank=True, null=True, help_text="URL para unirse a la reunión o evento online")
+    all_day = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['start_date']
+        verbose_name = 'Evento'
+        verbose_name_plural = 'Eventos'
+    
+    def __str__(self):
+        return self.title

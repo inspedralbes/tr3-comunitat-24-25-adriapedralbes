@@ -6,6 +6,7 @@ from . import subscription_views
 from . import webhook_views
 from . import progress_views
 from api.gamification import urls as gamification_urls
+from .views import EventListView
 
 # Configurar router para las vistas viewset
 router = DefaultRouter()
@@ -48,4 +49,5 @@ urlpatterns = [
     
     # Webhooks de Stripe
     path('webhooks/stripe/', webhook_views.stripe_webhook, name='stripe-webhook'),
+    path('events/', EventListView.as_view(), name='event-list'),
 ]

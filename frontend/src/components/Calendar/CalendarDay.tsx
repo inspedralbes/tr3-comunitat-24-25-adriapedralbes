@@ -23,7 +23,7 @@ export const CalendarDay: React.FC<CalendarDayProps> = ({ day, onEventClick }) =
                 >
                     {date.getDate()}
                 </span>
-                {isToday && <span className="text-xs text-blue-400">Today</span>}
+                {isToday && <span className="text-xs text-blue-400">Hoy</span>}
             </div>
 
             <div className="space-y-1">

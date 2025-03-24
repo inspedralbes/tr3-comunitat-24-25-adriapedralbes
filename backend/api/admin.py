@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
+from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike, Event
 
 # Admin personalizado para Subscriber
 @admin.register(Subscriber)
@@ -145,3 +145,24 @@ class CommentLikeAdmin(admin.ModelAdmin):
         url = reverse('admin:api_comment_change', args=[obj.comment.id])
         return format_html('<a href="{}">{}</a>', url, obj.comment.content[:30] + "..." if len(obj.comment.content) > 30 else obj.comment.content)
     comment_link.short_description = 'Comentario'
+
+
+# Admin personalizado para Event
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('title', 'type', 'start_date', 'end_date', 'all_day')
+    list_filter = ('type', 'all_day', 'start_date')
+    search_fields = ('title', 'description')
+    readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'type', 'description', 'meeting_url')
+        }),
+        ('Fecha y Hora', {
+            'fields': ('start_date', 'end_date', 'all_day')
+        }),
+        ('Metadatos', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )

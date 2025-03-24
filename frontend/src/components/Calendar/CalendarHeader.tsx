@@ -39,7 +39,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                     className="px-3 py-1 bg-[#444] hover:bg-[#555] text-white text-sm rounded transition-colors"
                     onClick={onTodayClick}
                 >
-                    Today
+                    Hoy
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -79,7 +79,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             </div>
 
             <div className="text-sm text-gray-400">
-                {currentTime} {cityName} time
+                {currentTime} hora {cityName}
             </div>
         </div>
     );

@@ -1,11 +1,13 @@
 export interface CalendarEvent {
-    id: string;
+    id: number;
     title: string;
     start: Date;
     end?: Date;
     type: 'english' | 'masterclass' | 'workshop' | 'mockinterview' | 'other';
     color?: string;
     allDay?: boolean;
+    description?: string;
+    meetingUrl?: string;
 }
 
 export type ViewMode = 'month' | 'week' | 'day' | 'list';

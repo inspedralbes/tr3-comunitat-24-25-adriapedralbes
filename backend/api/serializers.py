@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import (
     Subscriber, User, Category, Post, Comment, PostLike, CommentLike, 
-    Course, Lesson, UserLessonProgress, UserCourseProgress
+    Course, Lesson, UserLessonProgress, UserCourseProgress, Event
 )
 
 class SubscriberSerializer(serializers.ModelSerializer):
@@ -284,3 +284,13 @@ class UserCourseProgressSerializer(serializers.ModelSerializer):
     def get_total_lessons(self, obj):
         """Obtener el número total de lecciones en el curso"""
         return Lesson.objects.filter(course=obj.course).count()
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = [
+            'id', 'title', 'start_date', 'end_date', 'type',
+            'description', 'meeting_url', 'all_day',
+            'created_at', 'updated_at'
+        ]
