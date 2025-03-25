@@ -3,6 +3,8 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from . import views
+from . import subscription_views
+from . import community_views
 
 # Crear router para API
 router = DefaultRouter()
@@ -23,6 +25,13 @@ urlpatterns = [
     
     # Búsqueda de usuarios (para mensajería)
     path('users/search/', views.search_users, name='search_users'),
+    
+    # Rutas de suscripción
+    path('subscription/status/', subscription_views.subscription_status, name='subscription_status'),
+    
+    # Rutas de comunidad
+    path('pinned-posts/', community_views.pinned_posts, name='pinned_posts'),
+    path('leaderboard/', community_views.leaderboard, name='leaderboard'),
     
     # Incluir todas las rutas del router
     path('', include(router.urls)),

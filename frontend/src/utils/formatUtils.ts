@@ -18,6 +18,26 @@ export const formatAvatarUrl = (url: string | null): string | null => {
 };
 
 /**
+ * Formatea correctamente las URLs de imágenes añadiendo URL base si es necesario
+ * Sigue el mismo patrón que formatAvatarUrl
+ * @param url URL de la imagen (puede ser absoluta o relativa)
+ * @returns URL formateada o null si no hay URL
+ */
+export const formatImageUrl = (url: string | null): string | null => {
+  if (!url) return null;
+  
+  // Si ya es una URL completa, usarla tal cual
+  if (url.startsWith('http')) return url;
+  
+  // Si es una ruta relativa, añadir la URL base del servidor
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const baseUrl = apiUrl.replace('/api', '');
+  
+  // Asegurarnos de que la URL tenga el formato correcto
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+/**
  * Formatea una fecha para mostrarla de forma amigable
  * @param dateString Fecha en formato string
  * @returns Fecha formateada

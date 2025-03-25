@@ -2,26 +2,36 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from .models import Post, Category, User
-from .serializers import UserSerializer, UserShortSerializer
+from .serializers import (
+    UserSerializer, 
+    UserShortSerializer, 
+    PostSerializer, 
+    CategorySerializer
+)
 
 # Añadir viewsets para los modelos existentes
 class PostViewSet(viewsets.ModelViewSet):
     """
     API endpoint para administrar posts.
     """
-    queryset = Post.objects.all()
-    serializer_class = None  # Se necesita implementar el serializador
+    queryset = Post.objects.all().select_related('author', 'category').annotate(
+        comments_count=Count('comments')
+    )
+    serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     """
     API endpoint para administrar categorías.
     """
     queryset = Category.objects.all()
-    serializer_class = None  # Se necesita implementar el serializador
+    serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
