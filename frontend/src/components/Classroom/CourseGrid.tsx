@@ -9,6 +9,7 @@ export interface Course {
     imageUrl: string;
     progress: number;
     isPrivate: boolean;
+    lessonsCount?: number; // Añadir campo para número de lecciones
 }
 
 interface CourseGridProps {
@@ -25,10 +26,12 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
             {courses.map((course) => (
                 <CourseCard
                     key={course.id}
+                    id={typeof course.id === 'string' ? course.id : course.id.toString()}
                     title={course.title}
                     description={course.description}
                     imageUrl={course.imageUrl}
                     progress={course.progress}
+                    lessonsCount={course.lessonsCount}
                     isPrivate={course.isPrivate}
                     onClick={() => onCourseClick && onCourseClick(course.id)}
                 />

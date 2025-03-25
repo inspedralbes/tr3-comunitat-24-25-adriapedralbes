@@ -78,8 +78,8 @@ export const getEventsForDay = (date: Date, events: CalendarEvent[]): CalendarEv
 // Obtener el nombre del mes
 export const getMonthName = (month: number): string => {
     const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
     return monthNames[month];
 };
@@ -106,16 +106,14 @@ export const getEventColor = (type: string): string => {
     }
 };
 
-// Formatear hora (24h a 12h con am/pm)
+// Formatear hora según la configuración local del usuario
 export const formatTime = (date: Date): string => {
-    let hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'pm' : 'am';
-
-    hours = hours % 12;
-    hours = hours ? hours : 12; // La hora '0' debe ser '12'
-
-    const minutesStr = minutes < 10 ? '0' + minutes : minutes;
-
-    return hours + (minutes > 0 ? ':' + minutesStr : '') + ampm;
+    // Usamos el formateador de fecha nativo del navegador
+    const formatter = new Intl.DateTimeFormat('es', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false // Formato 24 horas
+    });
+    
+    return formatter.format(date);
 };

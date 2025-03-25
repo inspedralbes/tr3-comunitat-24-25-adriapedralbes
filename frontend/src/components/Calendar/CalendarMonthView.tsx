@@ -13,7 +13,7 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
     monthData,
     onEventClick
 }) => {
-    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
     return (
         <div className="bg-[#1F1F1E] rounded-lg overflow-hidden border border-[#333]">

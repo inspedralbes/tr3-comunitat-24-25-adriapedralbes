@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 import uuid
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
 
 class Subscriber(models.Model):
     """
@@ -41,6 +43,14 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Campos para Stripe
+    stripe_customer_id = models.CharField(max_length=100, blank=True, null=True)
+    has_active_subscription = models.BooleanField(default=False)
+    subscription_id = models.CharField(max_length=100, blank=True, null=True)
+    subscription_status = models.CharField(max_length=50, blank=True, null=True)  # 'active', 'canceled', 'past_due', etc.
+    subscription_start_date = models.DateTimeField(blank=True, null=True)
+    subscription_end_date = models.DateTimeField(blank=True, null=True)
+    
     objects = CustomUserManager()
     
     class Meta:
@@ -80,6 +90,8 @@ class Post(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
     content = models.TextField()
     image = models.ImageField(upload_to='post_images/', blank=True, null=True)
+    image_2 = models.ImageField(upload_to='post_images/', blank=True, null=True)
+    image_3 = models.ImageField(upload_to='post_images/', blank=True, null=True)
     likes = models.PositiveIntegerField(default=0)
     is_pinned = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -134,6 +146,11 @@ class PostLike(models.Model):
         return f"{self.user.username} liked {self.post.id}"
 
 
+# El modelo PollVote se ha eliminado temporalmente para evitar la necesidad de migraciones
+# En su lugar, los votos se almacenan directamente en el campo content del modelo Post
+# como parte de su estructura JSON
+
+
 class CommentLike(models.Model):
     """
     Registro de likes en comentarios.
@@ -149,3 +166,143 @@ class CommentLike(models.Model):
     
     def __str__(self):
         return f"{self.user.username} liked comment {self.comment.id}"
+
+
+class Course(models.Model):
+    """
+    Cursos de la plataforma.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True)
+    progress_percentage = models.IntegerField(default=0)  # Para seguimiento de progreso
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Curso'
+        verbose_name_plural = 'Cursos'
+    
+    def __str__(self):
+        return self.title
+
+
+class Lesson(models.Model):
+    """
+    Lecciones de los cursos.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    content = models.JSONField(default=dict, encoder=DjangoJSONEncoder)  # Para contenido enriquecido
+    order = models.PositiveIntegerField(default=0)  # Para ordenar lecciones dentro de un curso
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Lección'
+        verbose_name_plural = 'Lecciones'
+    
+    def __str__(self):
+        return self.title
+
+# Nuevos modelos para el progreso del usuario
+
+class UserLessonProgress(models.Model):
+    """
+    Modelo para rastrear el progreso del usuario en lecciones individuales.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson_progress')
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='user_progress')
+    completed = models.BooleanField(default=False)
+    completion_date = models.DateTimeField(null=True, blank=True)
+    time_spent_seconds = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user', 'lesson')
+        verbose_name = 'Progreso de Lección'
+        verbose_name_plural = 'Progresos de Lecciones'
+    
+    def __str__(self):
+        status = "Completada" if self.completed else "En progreso"
+        return f"{self.user.username} - {self.lesson.title[:30]} - {status}"
+        
+    def save(self, *args, **kwargs):
+        # Si se marca como completada y no tiene fecha de completado, asignarla
+        if self.completed and not self.completion_date:
+            self.completion_date = timezone.now()
+        # Si se marca como no completada, eliminar la fecha de completado
+        elif not self.completed and self.completion_date:
+            self.completion_date = None
+            
+        super().save(*args, **kwargs)
+
+
+class UserCourseProgress(models.Model):
+    """
+    Modelo para rastrear el progreso global del usuario en un curso.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_progress')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='user_progress')
+    progress_percentage = models.FloatField(default=0.0)
+    last_accessed_at = models.DateTimeField(default=timezone.now)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user', 'course')
+        verbose_name = 'Progreso de Curso'
+        verbose_name_plural = 'Progresos de Cursos'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.course.title[:30]} - {self.progress_percentage:.1f}%"
+        
+    def save(self, *args, **kwargs):
+        # Si el progreso llega al 100% y no tiene fecha de completado, asignarla
+        if self.progress_percentage >= 100 and not self.completed_at:
+            self.completed_at = timezone.now()
+        # Si el progreso es menor al 100%, eliminar la fecha de completado
+        elif self.progress_percentage < 100 and self.completed_at:
+            self.completed_at = None
+            
+        super().save(*args, **kwargs)
+
+
+class Event(models.Model):
+    """
+    Modelo para eventos del calendario.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField(null=True, blank=True)
+    type = models.CharField(
+        max_length=20, 
+        choices=[
+            ('english', 'English'),
+            ('masterclass', 'Masterclass'),
+            ('workshop', 'Workshop'),
+            ('mockinterview', 'Mock Interview'),
+            ('other', 'Other')
+        ],
+        default='other'
+    )
+    description = models.TextField(blank=True, null=True)
+    meeting_url = models.URLField(max_length=500, blank=True, null=True, help_text="URL para unirse a la reunión o evento online")
+    all_day = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['start_date']
+        verbose_name = 'Evento'
+        verbose_name_plural = 'Eventos'
+    
+    def __str__(self):
+        return self.title

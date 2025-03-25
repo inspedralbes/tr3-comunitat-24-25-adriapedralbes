@@ -1,25 +1,9 @@
-asgiref==3.8.1
-Django==5.1.6
-sqlparse==0.5.3
-psycopg2-binary==2.9.9
-djangorestframework==3.14.0
-
-# Seguridad
-django-axes==6.1.1  # Protección contra intentos de inicio de sesión fallidos
-django-csp==3.8  # Content Security Policy
-django-ratelimit==4.1.0  # Rate limiting
-django-admin-honeypot==1.1.0  # Trampa de miel para el panel de administración
-django-allauth==0.58.2
-djangorestframework-simplejwt==5.3.1
-django-cors-headers==4.3.1
-python-dotenv==1.0.1
-gunicorn==21.2.0
-channels==4.0.0
-daphne==4.0.0
-django-storages==1.14.2
-Pillow==10.1.0
-stripe==8.0.0
-django-filter==23.5
-pyyaml==6.0.1
-requests==2.31.0
-whitenoise==6.5.0
+django>=4.2,<5.0
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+pillow
+python-dotenv
+gunicorn
+stripe
+psycopg2-binary

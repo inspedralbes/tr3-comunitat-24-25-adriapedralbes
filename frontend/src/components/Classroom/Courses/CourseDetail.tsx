@@ -3,7 +3,11 @@
 import { Check, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import ProgressIndicator from '../ProgressIndicator';
+import React, { useState, useEffect } from 'react';
+import userProgressService from '@/services/userProgress';
+import authService from '@/services/auth';
+import { toast } from '@/components/ui/toast';
 
 import { CourseWithLessons, Lesson } from '@/types/Lesson';
 
@@ -25,23 +29,94 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
     // Estado para el progreso del curso
     const [progress, setProgress] = useState<number>(course.progress);
 
+    // Estado para indicar si está guardando el progreso
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+
+    // Cargar progreso desde la API al iniciar
+    useEffect(() => {
+        const loadUserProgress = async () => {
+            try {
+                // Verificar que el usuario esté autenticado antes de intentar obtener el progreso
+                if (!authService.isAuthenticated()) return;
+
+                // Obtener el progreso guardado para este curso
+                const courseProgress = await userProgressService.getCourseProgress(course.id);
+
+                // Actualizar las lecciones completadas según el progreso guardado
+                if (courseProgress && courseProgress.completed_lessons) {
+                    const completedLessonIds = new Set(
+                        courseProgress.completed_lessons
+                            .filter(lp => lp.completed)
+                            .map(lp => lp.lesson_id)
+                    );
+
+                    // Actualizar el estado local con las lecciones completadas
+                    setLessons(prevLessons =>
+                        prevLessons.map(lesson => ({
+                            ...lesson,
+                            isCompleted: completedLessonIds.has(lesson.id)
+                        }))
+                    );
+
+                    // Actualizar el progreso con el valor de la API
+                    setProgress(courseProgress.progress_percentage || 0);
+                }
+            } catch (error) {
+                console.error('Error al cargar el progreso del usuario:', error);
+                // No mostrar error al usuario para no interrumpir su experiencia
+            }
+        };
+
+        loadUserProgress();
+    }, [course.id]);
+
     // Obtener la lección activa
     const activeLesson = lessons.find(lesson => lesson.id === activeLessonId) || lessons[0];
 
     // Función para marcar una lección como completada o no completada
-    const toggleLessonCompletion = (lessonId: string) => {
-        const updatedLessons = lessons.map(lesson =>
-            lesson.id === lessonId
-                ? { ...lesson, isCompleted: !lesson.isCompleted }
-                : lesson
-        );
+    const toggleLessonCompletion = async (lessonId: string) => {
+        // Encontrar la lección actual
+        const lesson = lessons.find(l => l.id === lessonId);
+        if (!lesson) return;
 
-        setLessons(updatedLessons);
+        // Determinar el nuevo estado de completado
+        const newCompletionStatus = !lesson.isCompleted;
 
-        // Calcular el nuevo progreso
-        const completedCount = updatedLessons.filter(lesson => lesson.isCompleted).length;
-        const newProgress = Math.round((completedCount / updatedLessons.length) * 100);
-        setProgress(newProgress);
+        try {
+            setIsSaving(true);
+
+            // Actualizar en la base de datos
+            if (newCompletionStatus) {
+                await userProgressService.markLessonAsCompleted(course.id, lessonId);
+            } else {
+                await userProgressService.markLessonAsNotCompleted(course.id, lessonId);
+            }
+
+            // Actualizar estado local
+            const updatedLessons = lessons.map(l =>
+                l.id === lessonId
+                    ? { ...l, isCompleted: newCompletionStatus }
+                    : l
+            );
+
+            setLessons(updatedLessons);
+
+            // Calcular el nuevo progreso
+            const completedCount = updatedLessons.filter(l => l.isCompleted).length;
+            const newProgress = Math.round((completedCount / updatedLessons.length) * 100);
+            setProgress(newProgress);
+
+            // Mostrar notificación de éxito
+            toast.success(newCompletionStatus
+                ? "Lección marcada como completada"
+                : "Lección marcada como no completada"
+            );
+        } catch (error) {
+            console.error('Error al actualizar el progreso de la lección:', error);
+            toast.error("No se pudo actualizar el progreso. Inténtalo de nuevo.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // Cambiar a otra lección
@@ -89,15 +164,13 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                     </div>
 
                     <h2 className="text-xl font-medium text-white mb-2">{course.title}</h2>
-                    <div className="flex items-center gap-2 mb-1">
-                        <div className="flex-1 bg-[#1F1F1E] rounded-full h-2">
-                            <div
-                                className="bg-blue-600 h-2 rounded-full"
-                                style={{ width: `${progress}%` }}
-                            ></div>
-                        </div>
-                        <span className="text-zinc-400 text-xs">{progress}%</span>
-                    </div>
+                    <ProgressIndicator
+                        progress={progress || 0}
+                        lessonsCount={lessons.length}
+                        completedLessons={lessons.filter(l => l.isCompleted).length}
+                        variant="detailed"
+                        className="mb-4 mt-3"
+                    />
                 </div>
 
                 {/* Menú de módulos del curso */}
@@ -134,13 +207,18 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                     <h1 className="text-2xl font-medium text-white">{activeLesson.content.heading}</h1>
                     <button
                         onClick={() => toggleLessonCompletion(activeLessonId)}
+                        disabled={isSaving}
                         className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${activeLesson.isCompleted
                             ? 'bg-green-500 text-white'
                             : 'bg-white/10 text-white/50 hover:bg-white/20'
-                            }`}
-                        aria-label={activeLesson.isCompleted ? "Mark as incomplete" : "Mark as complete"}
+                            } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title={activeLesson.isCompleted ? "Marcar como no completada" : "Marcar como completada"}
                     >
-                        <Check size={18} />
+                        {isSaving ? (
+                            <div className="w-4 h-4 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                            <Check size={18} />
+                        )}
                     </button>
                 </div>
 
@@ -165,33 +243,42 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                     </div>
                 )}
 
+                {/* Contenido HTML si existe */}
+                {activeLesson.content.html && (
+                    <div className="lesson-content text-white/80 prose prose-invert max-w-none"
+                        dangerouslySetInnerHTML={{ __html: activeLesson.content.html }}
+                    ></div>
+                )}
+
                 {/* Texto descriptivo */}
-                <div className="space-y-4 text-white/80">
-                    {activeLesson.content.paragraphs.map((paragraph, index) => (
-                        <p key={index}>{paragraph}</p>
-                    ))}
+                {activeLesson.content.paragraphs && activeLesson.content.paragraphs.length > 0 && (
+                    <div className="space-y-4 text-white/80">
+                        {activeLesson.content.paragraphs.map((paragraph, index) => (
+                            <p key={index}>{paragraph}</p>
+                        ))}
+                    </div>
+                )}
 
-                    {/* Call to action si existe */}
-                    {activeLesson.content.callToAction && (
-                        <div className="pt-6">
-                            <Link
-                                href={activeLesson.content.callToAction.url}
-                                className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
-                            >
-                                {activeLesson.content.callToAction.text}
-                            </Link>
-                        </div>
-                    )}
+                {/* Call to action si existe */}
+                {activeLesson.content.callToAction && (
+                    <div className="pt-6">
+                        <Link
+                            href={activeLesson.content.callToAction.url}
+                            className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
+                        >
+                            {activeLesson.content.callToAction.text}
+                        </Link>
+                    </div>
+                )}
 
-                    {/* URL si existe */}
-                    {activeLesson.content.callToAction?.url && (
-                        <p className="text-blue-400 hover:underline pt-4">
-                            <Link href={activeLesson.content.callToAction.url}>
-                                {activeLesson.content.callToAction.url}
-                            </Link>
-                        </p>
-                    )}
-                </div>
+                {/* URL si existe */}
+                {activeLesson.content.callToAction?.url && (
+                    <p className="text-blue-400 hover:underline pt-4">
+                        <Link href={activeLesson.content.callToAction.url}>
+                            {activeLesson.content.callToAction.url}
+                        </Link>
+                    </p>
+                )}
             </div>
         </div>
     );

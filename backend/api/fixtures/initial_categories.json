@@ -1,0 +1,42 @@
+[
+    {
+        "model": "api.category",
+        "pk": 1,
+        "fields": {
+            "name": "General",
+            "slug": "general",
+            "color": "bg-zinc-700",
+            "created_at": "2025-03-21T12:00:00Z"
+        }
+    },
+    {
+        "model": "api.category",
+        "pk": 2,
+        "fields": {
+            "name": "Anuncios",
+            "slug": "anuncios",
+            "color": "bg-blue-600",
+            "created_at": "2025-03-21T12:00:00Z"
+        }
+    },
+    {
+        "model": "api.category",
+        "pk": 3,
+        "fields": {
+            "name": "Preguntas",
+            "slug": "preguntas",
+            "color": "bg-green-600",
+            "created_at": "2025-03-21T12:00:00Z"
+        }
+    },
+    {
+        "model": "api.category",
+        "pk": 4,
+        "fields": {
+            "name": "Logros",
+            "slug": "logros",
+            "color": "bg-yellow-600",
+            "created_at": "2025-03-21T12:00:00Z"
+        }
+    }
+]

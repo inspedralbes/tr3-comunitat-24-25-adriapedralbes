@@ -1,0 +1,107 @@
+[
+  {
+    "model": "api.event",
+    "pk": "c5e4e7b2-8f3d-4b9c-a7d1-32f1c5d8e4a6",
+    "fields": {
+      "title": "English (Advanced)",
+      "start_date": "2024-04-12T14:30:00Z",
+      "end_date": "2024-04-12T16:00:00Z",
+      "type": "english",
+      "description": "Advanced English class for improving conversation and vocabulary",
+      "location": "Online (Zoom)",
+      "all_day": false,
+      "created_at": "2024-03-20T10:00:00Z",
+      "updated_at": "2024-03-20T10:00:00Z"
+    }
+  },
+  {
+    "model": "api.event",
+    "pk": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6",
+    "fields": {
+      "title": "Mock Interview",
+      "start_date": "2024-04-15T18:00:00Z",
+      "end_date": "2024-04-15T19:00:00Z",
+      "type": "mockinterview",
+      "description": "Practice interviewing skills with real-world scenarios",
+      "location": "Online (Google Meet)",
+      "all_day": false,
+      "created_at": "2024-03-20T10:00:00Z",
+      "updated_at": "2024-03-20T10:00:00Z"
+    }
+  },
+  {
+    "model": "api.event",
+    "pk": "f4e3d2c1-b9a8-7654-3210-f1e2d3c4b5a6",
+    "fields": {
+      "title": "Workshop: Full-Stack Development",
+      "start_date": "2024-04-18T18:30:00Z",
+      "end_date": "2024-04-18T20:30:00Z",
+      "type": "workshop",
+      "description": "Learn the latest techniques in full-stack development with React and Django",
+      "location": "Campus Barcelona",
+      "all_day": false,
+      "created_at": "2024-03-20T10:00:00Z",
+      "updated_at": "2024-03-20T10:00:00Z"
+    }
+  },
+  {
+    "model": "api.event",
+    "pk": "12345678-9abc-def0-1234-56789abcdef0",
+    "fields": {
+      "title": "Masterclass: AI and Machine Learning",
+      "start_date": "2024-04-20T16:00:00Z",
+      "end_date": "2024-04-20T18:00:00Z",
+      "type": "masterclass",
+      "description": "Introduction to AI and machine learning concepts with practical examples",
+      "location": "Online (YouTube Live)",
+      "all_day": false,
+      "created_at": "2024-03-20T10:00:00Z",
+      "updated_at": "2024-03-20T10:00:00Z"
+    }
+  },
+  {
+    "model": "api.event",
+    "pk": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "fields": {
+      "title": "English (Intermediate)",
+      "start_date": "2024-04-22T14:30:00Z",
+      "end_date": "2024-04-22T16:00:00Z",
+      "type": "english",
+      "description": "Intermediate English class focusing on conversation and grammar",
+      "location": "Online (Zoom)",
+      "all_day": false,
+      "created_at": "2024-03-20T10:00:00Z",
+      "updated_at": "2024-03-20T10:00:00Z"
+    }
+  },
+  {
+    "model": "api.event",
+    "pk": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+    "fields": {
+      "title": "Mock Interview (Technical)",
+      "start_date": "2024-04-25T18:00:00Z",
+      "end_date": "2024-04-25T19:00:00Z",
+      "type": "mockinterview",
+      "description": "Technical interview practice with industry professionals",
+      "location": "Online (Google Meet)",
+      "all_day": false,
+      "created_at": "2024-03-20T10:00:00Z",
+      "updated_at": "2024-03-20T10:00:00Z"
+    }
+  },
+  {
+    "model": "api.event",
+    "pk": "cccccccc-dddd-eeee-ffff-gggggggggggg",
+    "fields": {
+      "title": "English (Beginner)",
+      "start_date": "2024-04-29T14:30:00Z",
+      "end_date": "2024-04-29T16:00:00Z",
+      "type": "english",
+      "description": "Beginner English class focusing on basic conversation",
+      "location": "Online (Zoom)",
+      "all_day": false,
+      "created_at": "2024-03-20T10:00:00Z",
+      "updated_at": "2024-03-20T10:00:00Z"
+    }
+  }
+]

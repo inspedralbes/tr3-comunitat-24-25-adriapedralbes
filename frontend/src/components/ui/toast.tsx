@@ -1,134 +1,130 @@
-import { cva, type VariantProps } from "class-variance-authority"
-import { X } from "lucide-react"
-import * as React from "react"
-// Importamos los elementos necesarios de react-hot-toast
-import * as ReactHotToast from "react-hot-toast";
-const { Toaster } = ReactHotToast;
-const toastFunc = ReactHotToast.default || ReactHotToast.toast;
+"use client";
 
-import { cn } from "@/lib/utils"
+import { useState, useEffect } from 'react';
+import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
-// We're creating a simpler toast system using react-hot-toast instead of Radix UI
+// Helper functions para acceder a la API global de toast
+export const toast = {
+  success: (message: string) => {
+    if (typeof window !== 'undefined' && (window as any).toast) {
+      (window as any).toast.success(message);
+    }
+  },
+  error: (message: string) => {
+    if (typeof window !== 'undefined' && (window as any).toast) {
+      (window as any).toast.error(message);
+    }
+  },
+  warning: (message: string) => {
+    if (typeof window !== 'undefined' && (window as any).toast) {
+      (window as any).toast.warning(message);
+    }
+  },
+  info: (message: string) => {
+    if (typeof window !== 'undefined' && (window as any).toast) {
+      (window as any).toast.info(message);
+    }
+  }
+};
 
-const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <>
-      {children}
-      <Toaster position="bottom-right" />
-    </>
-  )
+export type ToastType = 'success' | 'error' | 'warning' | 'info';
+
+interface ToastProps {
+  message: string;
+  type?: ToastType;
+  duration?: number;
+  onClose: () => void;
 }
 
-const ToastViewport: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, ...props }) => (
-  <div
-    className={cn(
-      "fixed bottom-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:max-w-[420px]",
-      className
-    )}
-    {...props}
-  />
-)
-ToastViewport.displayName = "ToastViewport"
+export const Toast = ({ message, type = 'info', duration = 5000, onClose }: ToastProps) => {
+  const [isVisible, setIsVisible] = useState(true);
 
-const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all",
-  {
-    variants: {
-      variant: {
-        default: "border bg-background text-foreground",
-        destructive:
-          "destructive group border-destructive bg-destructive text-destructive-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+      setTimeout(onClose, 300); // Esperar a que termine la animación
+    }, duration);
 
-interface ToastProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof toastVariants> {}
+    return () => clearTimeout(timer);
+  }, [duration, onClose]);
 
-const Toast: React.FC<ToastProps> = ({ className, variant, ...props }) => {
+  // Determinar el icono y color según el tipo
+  const getIconAndColor = () => {
+    switch (type) {
+      case 'success':
+        return { icon: <CheckCircle size={20} />, bgColor: 'bg-green-900', borderColor: 'border-green-500' };
+      case 'error':
+        return { icon: <X size={20} />, bgColor: 'bg-red-900', borderColor: 'border-red-500' };
+      case 'warning':
+        return { icon: <AlertTriangle size={20} />, bgColor: 'bg-yellow-900', borderColor: 'border-yellow-500' };
+      case 'info':
+      default:
+        return { icon: <Info size={20} />, bgColor: 'bg-blue-900', borderColor: 'border-blue-500' };
+    }
+  };
+
+  const { icon, bgColor, borderColor } = getIconAndColor();
+
   return (
     <div
-      className={cn(toastVariants({ variant }), className)}
-      {...props}
-    />
-  )
-}
-Toast.displayName = "Toast"
+      className={`fixed bottom-4 right-4 z-50 flex items-center p-4 rounded-lg shadow-lg border ${borderColor} ${bgColor} text-white transition-all duration-300 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+      }`}
+    >
+      <div className="mr-3">{icon}</div>
+      <div className="mr-8 max-w-xs">{message}</div>
+      <button
+        onClick={() => {
+          setIsVisible(false);
+          setTimeout(onClose, 300);
+        }}
+        className="text-white hover:text-gray-300 transition-colors"
+      >
+        <X size={16} />
+      </button>
+    </div>
+  );
+};
 
-type ToastActionProps = React.ButtonHTMLAttributes<HTMLButtonElement>
+// Componente controlador para mostrar toasts en toda la aplicación
+export const ToastProvider = () => {
+  const [toasts, setToasts] = useState<Array<{ id: string; message: string; type: ToastType }>>([]);
 
-const ToastAction: React.FC<ToastActionProps> = ({ className, ...props }) => (
-  <button
-    className={cn(
-      "inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive",
-      className
-    )}
-    {...props}
-  />
-)
-ToastAction.displayName = "ToastAction"
+  // Función para agregar un nuevo toast
+  const addToast = (message: string, type: ToastType = 'info') => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts((prev) => [...prev, { id, message, type }]);
+  };
 
-type ToastCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>
+  // Función para quitar un toast
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
-const ToastClose: React.FC<ToastCloseProps> = ({ className, ...props }) => (
-  <button
-    className={cn(
-      "absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
-      className
-    )}
-    aria-label="Close"
-    {...props}
-  >
-    <X className="h-4 w-4" />
-  </button>
-)
-ToastClose.displayName = "ToastClose"
+  // Exponemos las funciones al contexto global
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).toast = {
+        success: (message: string) => addToast(message, 'success'),
+        error: (message: string) => addToast(message, 'error'),
+        warning: (message: string) => addToast(message, 'warning'),
+        info: (message: string) => addToast(message, 'info'),
+      };
+    }
+  }, []);
 
-type ToastTitleProps = React.HTMLAttributes<HTMLHeadingElement>
+  return (
+    <>
+      {toasts.map(({ id, message, type }) => (
+        <Toast
+          key={id}
+          message={message}
+          type={type}
+          onClose={() => removeToast(id)}
+        />
+      ))}
+    </>
+  );
+};
 
-const ToastTitle: React.FC<ToastTitleProps> = ({ className, ...props }) => (
-  <h3
-    className={cn("text-sm font-semibold", className)}
-    {...props}
-  >
-    {props.children}
-  </h3>
-)
-ToastTitle.displayName = "ToastTitle"
-
-type ToastDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
-
-const ToastDescription: React.FC<ToastDescriptionProps> = ({ className, ...props }) => (
-  <p
-    className={cn("text-sm opacity-90", className)}
-    {...props}
-  />
-)
-ToastDescription.displayName = "ToastDescription"
-
-// Custom function to show toast using react-hot-toast
-const showToast = {
-  default: (message: string) => toastFunc(message),
-  success: (message: string) => ReactHotToast.toast.success(message),
-  error: (message: string) => ReactHotToast.toast.error(message),
-  loading: (message: string) => ReactHotToast.toast.loading(message),
-  dismiss: () => ReactHotToast.toast.dismiss()
-}
-
-type ToastActionElement = React.ReactElement<typeof ToastAction>
-
-export {
-  type ToastProps,
-  type ToastActionElement,
-  ToastProvider,
-  ToastViewport,
-  Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
-  ToastAction,
-  showToast
-}
+export default ToastProvider;

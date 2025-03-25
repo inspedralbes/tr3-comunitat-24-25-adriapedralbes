@@ -3,58 +3,90 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.futurprive.com';
 
 // Función para retornar la URL de la API
 const getApiUrl = () => {
-  // En desarrollo, sustituir localhost por 127.0.0.1 para evitar problemas con IPv6
-  // En producción, usar la URL tal cual
-  let baseUrl = API_URL;
-  if (baseUrl.includes('localhost')) {
-    baseUrl = baseUrl.replace('localhost', '127.0.0.1');
+  // Sustituir localhost por 127.0.0.1 para evitar problemas con IPv6
+  return API_URL.replace('localhost', '127.0.0.1');
+};
+
+// Función para construir la URL completa del endpoint
+const buildEndpointUrl = (endpoint: string, ensureTrailingSlash = false) => {
+  // Asegurarse de que endpoint no empieza con barra
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+
+  // Añadir barra final si se requiere y no existe
+  let finalEndpoint = cleanEndpoint;
+  if (ensureTrailingSlash && !finalEndpoint.endsWith('/')) {
+    finalEndpoint += '/';
   }
-  
-  // Asegurarse de que la URL base termina sin /
-  if (baseUrl.endsWith('/')) {
-    baseUrl = baseUrl.slice(0, -1);
-  }
-  
-  return baseUrl;
+
+  return `${getApiUrl()}/${finalEndpoint}`;
 };
 
 // Función para manejar errores
 const handleResponse = async (response: Response) => {
-  // Mantener un registro de la respuesta para debugging
-  console.log(`[API] Response status: ${response.status} ${response.statusText}`);
-  
+  // Log reducido solo para errores que no sean 404
+  if (!response.ok && response.status !== 404) {
+    console.log(`API Response: ${response.status} ${response.statusText} from ${response.url}`);
+  }
+
   if (!response.ok) {
-    let errorMessage = `Error ${response.status}: ${response.statusText}`;
-    
-    try {
-      // Intentar extraer mensaje de error del cuerpo de la respuesta
-      const errorData = await response.json();
-      console.error('[API] Error details:', errorData);
-      
-      errorMessage = errorData.message || errorData.detail || errorMessage;
-    } catch (parseError) {
-      // Si no podemos parsear JSON, usar el texto de la respuesta
-      try {
-        const textError = await response.text();
-        if (textError) {
-          console.error('[API] Error text:', textError);
-          errorMessage = textError.substring(0, 200); // Limitar longitud
-        }
-      } catch (textError) {
-        console.error('[API] Could not extract error details:', textError);
-      }
+    // Para errores 404, simplemente devolvemos un objeto/array vacío sin registrar errores ruidosos
+    if (response.status === 404) {
+      console.log(`Endpoint no implementado: ${response.url}`);
+      return response.url.includes('progress') ? [] : {};
     }
-    
+
+    let errorMessage = `Error ${response.status}: ${response.statusText}`;
+
+    try {
+      // Intentar obtener el error como JSON
+      const errorData = await response.json().catch(() => null);
+
+      if (errorData) {
+        console.error('API Error Response:', errorData);
+
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (typeof errorData === 'object') {
+          // Intentar obtener cualquier mensaje de error
+          const errorKeys = Object.keys(errorData);
+          if (errorKeys.length > 0) {
+            const firstError = errorData[errorKeys[0]];
+            if (Array.isArray(firstError) && firstError.length > 0) {
+              errorMessage = `${errorKeys[0]}: ${firstError[0]}`;
+            } else if (typeof firstError === 'string') {
+              errorMessage = `${errorKeys[0]}: ${firstError}`;
+            } else {
+              errorMessage = JSON.stringify(errorData);
+            }
+          }
+        }
+      } else {
+        // Si no es JSON, obtener texto
+        const errorText = await response.text().catch(() => '');
+        console.error('API Error Response (text):', errorText);
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      }
+    } catch (e) {
+      console.error('Error extrayendo detalle del error:', e);
+    }
+
     throw new Error(errorMessage);
   }
-  
+
   try {
     // Para respuestas 204 No Content o similares que no tienen cuerpo
     if (response.status === 204) {
       return {};
     }
-    
+
     const data = await response.json();
+    console.log('API Success Response:', data);
     return data;
   } catch (e) {
     console.warn('[API] Error parsing response JSON:', e);
@@ -88,27 +120,24 @@ const getHeaders = (includeContentType = true) => {
 const buildEndpointUrl = (endpoint: string, ensureTrailingSlash = false) => {
   // Asegurarse de que endpoint no empieza con barra
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-  
+
   // Añadir prefijo /api/ si no está presente
   const apiEndpoint = cleanEndpoint.startsWith('api/') ? cleanEndpoint : `api/${cleanEndpoint}`;
-  
+
   // Asegurarse de que la URL termine con / si se requiere
   // (para evitar redirecciones 301 que convierten POSTs en GETs)
   let finalEndpoint = apiEndpoint;
   if (ensureTrailingSlash && !finalEndpoint.endsWith('/')) {
     finalEndpoint += '/';
   }
-  
+
   return `${getApiUrl()}/${finalEndpoint}`;
 };
 
 // API general con funciones para peticiones HTTP
 export const api = {
   get: async (endpoint: string) => {
-    const url = buildEndpointUrl(endpoint);
-    console.log(`[API] GET request to ${url}`);
-    
-    const response = await fetch(url, {
+    const response = await fetch(buildEndpointUrl(endpoint), {
       method: 'GET',
       headers: getHeaders(),
     });
@@ -116,11 +145,8 @@ export const api = {
   },
 
   post: async <T>(endpoint: string, data: T) => {
-    // Asegurarse de que la URL termine con / para evitar redirecciones 301
-    const url = buildEndpointUrl(endpoint, true);
-    console.log(`[API] POST request to ${url}`, data);
-    
-    const response = await fetch(url, {
+    // Asegurar que la URL termine con / para evitar redirecciones 301 que convierten POST a GET
+    const response = await fetch(buildEndpointUrl(endpoint, true), {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -129,11 +155,8 @@ export const api = {
   },
 
   put: async <T>(endpoint: string, data: T) => {
-    // Asegurarse de que la URL termine con / para evitar redirecciones 301
-    const url = buildEndpointUrl(endpoint, true);
-    console.log(`[API] PUT request to ${url}`, data);
-    
-    const response = await fetch(url, {
+    // Asegurar que la URL termine con / para evitar redirecciones 301
+    const response = await fetch(buildEndpointUrl(endpoint, true), {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -142,11 +165,8 @@ export const api = {
   },
 
   patch: async <T>(endpoint: string, data: T) => {
-    // Asegurarse de que la URL termine con / para evitar redirecciones 301
-    const url = buildEndpointUrl(endpoint, true);
-    console.log(`[API] PATCH request to ${url}`, data);
-    
-    const response = await fetch(url, {
+    // Asegurar que la URL termine con / para evitar redirecciones 301
+    const response = await fetch(buildEndpointUrl(endpoint, true), {
       method: 'PATCH',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -155,10 +175,7 @@ export const api = {
   },
 
   delete: async (endpoint: string) => {
-    const url = buildEndpointUrl(endpoint);
-    console.log(`[API] DELETE request to ${url}`);
-    
-    const response = await fetch(url, {
+    const response = await fetch(buildEndpointUrl(endpoint), {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -170,7 +187,7 @@ export const api = {
     const headers: Record<string, string> = {
       'Accept': 'application/json',
     };
-    
+
     // Añadir token de autenticación
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('auth_token');
@@ -178,18 +195,14 @@ export const api = {
         headers['Authorization'] = `Bearer ${token}`;
       }
     }
-    
-    // Hacer la solicitud usando la URL construida correctamente
-    // Asegurarse de que la URL termine con / para evitar redirecciones 301
-    const url = buildEndpointUrl(endpoint, true);
-    console.log(`[API] Upload request to ${url}`);
-    
-    const response = await fetch(url, {
+
+    // Hacer la solicitud con URL que termina en slash
+    const response = await fetch(buildEndpointUrl(endpoint, true), {
       method: 'POST',
       headers, // No incluir Content-Type para que el navegador maneje el boundary
       body: formData,
     });
-    
+
     return handleResponse(response);
   },
 };

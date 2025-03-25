@@ -1,4 +1,4 @@
-import { User, Paperclip, Link2, Video, BarChart2, Smile } from 'lucide-react';
+import { User, Paperclip, Link2, Video, BarChart2, Smile, X } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
 
@@ -14,8 +14,21 @@ interface Category {
     color: string;
 }
 
+interface PollOption {
+    text: string;
+    id: number;
+}
+
 interface WritePostComponentProps {
-    onSubmit?: (content: string, title?: string, categoryId?: number) => Promise<boolean>;
+    onSubmit?: (
+        content: string,
+        title?: string,
+        categoryId?: number,
+        attachments?: File[],
+        videoUrl?: string,
+        linkUrl?: string,
+        pollOptions?: PollOption[]
+    ) => Promise<boolean>;
     categories?: Category[];
 }
 
@@ -34,6 +47,18 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [error, setError] = useState('');
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+    // Estados para las nuevas funcionalidades
+    const [attachments, setAttachments] = useState<File[]>([]);
+    const [showAttachmentPreview, setShowAttachmentPreview] = useState(false);
+    const [linkUrl, setLinkUrl] = useState('');
+    const [showLinkInput, setShowLinkInput] = useState(false);
+    const [videoUrl, setVideoUrl] = useState('');
+    const [showVideoInput, setShowVideoInput] = useState(false);
+    const [pollOptions, setPollOptions] = useState<PollOption[]>([{ id: 1, text: '' }, { id: 2, text: '' }]);
+    const [showPollCreator, setShowPollCreator] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
     const [user, setUser] = useState<{
         avatar_url?: string | null;
         username?: string;
@@ -42,7 +67,8 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
     const componentRef = useRef<HTMLDivElement>(null);
     const categoryDropdownRef = useRef<HTMLDivElement>(null);
-    const titleInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
 
     // Detectar si estamos en vista móvil
     useEffect(() => {
@@ -95,6 +121,25 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         };
     }, [showCategoryDropdown]);
 
+    // Cerrar otros popups al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            // Cerrar emoji picker si está abierto y el clic fue fuera
+            if (
+                showEmojiPicker &&
+                emojiPickerRef.current &&
+                !emojiPickerRef.current.contains(event.target as Node)
+            ) {
+                setShowEmojiPicker(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showEmojiPicker]);
+
     const handleExpand = () => {
         // Verificar si el usuario está autenticado
         if (!authService.isAuthenticated()) {
@@ -117,19 +162,40 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         setPostContent('');
         setSelectedCategory(undefined);
         setError('');
+        // Limpiar estados de las nuevas funcionalidades
+        setAttachments([]);
+        setLinkUrl('');
+        setVideoUrl('');
+        setPollOptions([{ id: 1, text: '' }, { id: 2, text: '' }]);
+        setShowAttachmentPreview(false);
+        setShowLinkInput(false);
+        setShowVideoInput(false);
+        setShowPollCreator(false);
+        setShowEmojiPicker(false);
     };
 
     // Cierra el componente al hacer clic fuera de él
     const handleOverlayClick = (e: React.MouseEvent) => {
         if (componentRef.current && !componentRef.current.contains(e.target as Node)) {
             // Si hay contenido, confirmar antes de cerrar
-            if (postTitle.trim() || postContent.trim()) {
+            if (postTitle.trim() || postContent.trim() || attachments.length > 0 || linkUrl || videoUrl ||
+                pollOptions.some(option => option.text.trim())) {
                 if (window.confirm("¿Estás seguro de que quieres descartar tu publicación?")) {
                     setIsExpanded(false);
                     setPostTitle('');
                     setPostContent('');
                     setSelectedCategory(undefined);
                     setError('');
+                    // Limpiar estados de las nuevas funcionalidades
+                    setAttachments([]);
+                    setLinkUrl('');
+                    setVideoUrl('');
+                    setPollOptions([{ id: 1, text: '' }, { id: 2, text: '' }]);
+                    setShowAttachmentPreview(false);
+                    setShowLinkInput(false);
+                    setShowVideoInput(false);
+                    setShowPollCreator(false);
+                    setShowEmojiPicker(false);
                 }
             } else {
                 setIsExpanded(false);
@@ -141,13 +207,24 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const handleOverlayKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
             // Si hay contenido, confirmar antes de cerrar
-            if (postTitle.trim() || postContent.trim()) {
+            if (postTitle.trim() || postContent.trim() || attachments.length > 0 || linkUrl || videoUrl ||
+                pollOptions.some(option => option.text.trim())) {
                 if (window.confirm("¿Estás seguro de que quieres descartar tu publicación?")) {
                     setIsExpanded(false);
                     setPostTitle('');
                     setPostContent('');
                     setSelectedCategory(undefined);
                     setError('');
+                    // Limpiar estados de las nuevas funcionalidades
+                    setAttachments([]);
+                    setLinkUrl('');
+                    setVideoUrl('');
+                    setPollOptions([{ id: 1, text: '' }, { id: 2, text: '' }]);
+                    setShowAttachmentPreview(false);
+                    setShowLinkInput(false);
+                    setShowVideoInput(false);
+                    setShowPollCreator(false);
+                    setShowEmojiPicker(false);
                 }
             } else {
                 setIsExpanded(false);
@@ -161,6 +238,139 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         setShowCategoryDropdown(false);
     };
 
+    // Handler para el botón de adjuntar archivo
+    const handleAttachFile = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    // Handler para cuando se seleccionan archivos
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            // Convertir FileList a array
+            const newFiles = Array.from(files);
+
+            // Verificar que los archivos sean imágenes o documentos aceptados
+            let validFiles = newFiles.filter(file =>
+                file.type.startsWith('image/') ||
+                file.type === 'application/pdf' ||
+                file.type === 'application/msword' ||
+                file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                file.type === 'text/plain'
+            );
+
+            if (validFiles.length !== newFiles.length) {
+                alert('Algunos archivos no son soportados. Solo se permiten imágenes, PDF y documentos de texto.');
+            }
+
+            // Contar cuántas imágenes ya tenemos y cuántas nuevas hay
+            const currentImages = attachments.filter(file => file.type.startsWith('image/')).length;
+            const newImages = validFiles.filter(file => file.type.startsWith('image/')).length;
+
+            // Verificar el límite de 3 imágenes
+            if (currentImages + newImages > 3) {
+                alert('Solo se permiten un máximo de 3 imágenes por publicación.');
+
+                // Filtrar para no exceder el límite
+                const remainingImageSlots = Math.max(0, 3 - currentImages);
+
+                // Separar imágenes de otros archivos
+                const newImageFiles = validFiles.filter(file => file.type.startsWith('image/')).slice(0, remainingImageSlots);
+                const newNonImageFiles = validFiles.filter(file => !file.type.startsWith('image/'));
+
+                // Combinar respetando el límite
+                validFiles = [...newImageFiles, ...newNonImageFiles];
+            }
+
+            if (validFiles.length > 0) {
+                setAttachments([...attachments, ...validFiles]);
+                setShowAttachmentPreview(true);
+            }
+        }
+    };
+
+    // Handler para eliminar un archivo adjunto
+    const handleRemoveAttachment = (index: number) => {
+        const newAttachments = [...attachments];
+        newAttachments.splice(index, 1);
+        setAttachments(newAttachments);
+        if (newAttachments.length === 0) {
+            setShowAttachmentPreview(false);
+        }
+    };
+
+    // Handler para el botón de enlace
+    const handleLinkButton = () => {
+        setShowLinkInput(!showLinkInput);
+        setShowVideoInput(false);
+        setShowPollCreator(false);
+        setShowEmojiPicker(false);
+    };
+
+    // Handler para el botón de video
+    const handleVideoButton = () => {
+        setShowVideoInput(!showVideoInput);
+        setShowLinkInput(false);
+        setShowPollCreator(false);
+        setShowEmojiPicker(false);
+    };
+
+    // Handler para el botón de encuesta
+    const handlePollButton = () => {
+        setShowPollCreator(!showPollCreator);
+        setShowLinkInput(false);
+        setShowVideoInput(false);
+        setShowEmojiPicker(false);
+    };
+
+    // Handler para añadir una opción a la encuesta
+    const handleAddPollOption = () => {
+        // Generar un nuevo ID para la opción
+        const newId = Math.max(...pollOptions.map(option => option.id), 0) + 1;
+        setPollOptions([...pollOptions, { id: newId, text: '' }]);
+    };
+
+    // Handler para eliminar una opción de la encuesta
+    const handleRemovePollOption = (id: number) => {
+        // No permitir menos de 2 opciones
+        if (pollOptions.length <= 2) return;
+        setPollOptions(pollOptions.filter(option => option.id !== id));
+    };
+
+    // Handler para cambiar el texto de una opción de encuesta
+    const handlePollOptionChange = (id: number, text: string) => {
+        setPollOptions(pollOptions.map(option =>
+            option.id === id ? { ...option, text } : option
+        ));
+    };
+
+    // Handler para el botón de emoji
+    const handleEmojiButton = () => {
+        setShowEmojiPicker(!showEmojiPicker);
+        setShowLinkInput(false);
+        setShowVideoInput(false);
+        setShowPollCreator(false);
+    };
+
+    // Array de emojis comunes
+    const commonEmojis = [
+        "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃",
+        "😉", "😊", "😇", "🥰", "😍", "😘", "😗", "😚", "😙", "😋",
+        "😛", "😜", "😝", "🤑", "🤗", "🤭", "🤫", "🤔", "🤐", "🤨",
+        "😐", "😑", "😶", "😏", "😒", "🙄", "😬", "🤥", "😌", "😔",
+        "😪", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥵", "🥶",
+        "👍", "👎", "👏", "🙌", "🤝", "👊", "✌️", "🤞", "🤟", "🤘",
+        "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "❣️", "💕", "💞"
+    ];
+
+    // Handler para añadir emoji al contenido
+    const handleEmojiSelect = (emoji: string) => {
+        setPostContent(prevContent => prevContent + emoji);
+        setShowEmojiPicker(false);
+    };
+
     // Manejar el envío del post
     const handleSubmit = async () => {
         if (!postContent.trim()) {
@@ -168,28 +378,53 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
             return;
         }
 
+        // Validar la encuesta si está activa
+        if (showPollCreator) {
+            // Al menos dos opciones deben tener texto
+            const validOptions = pollOptions.filter(option => option.text.trim().length > 0);
+            if (validOptions.length < 2) {
+                setError('Una encuesta debe tener al menos dos opciones válidas');
+                return;
+            }
+        }
+
         setIsSubmitting(true);
         setError('');
 
         try {
             if (onSubmit) {
-                // Preparar los datos del post
-                const trimmedContent = postContent.trim();
-                const trimmedTitle = postTitle.trim() || trimmedContent.split('\n')[0]; // Primera línea como título si no hay título específico
-                
-                console.log('Enviando post:', {
-                    title: trimmedTitle,
-                    content: trimmedContent,
-                    categoryId: selectedCategory
-                });
-                
-                const success = await onSubmit(trimmedContent, trimmedTitle, selectedCategory);
+                // Si hay título, enviarlo; de lo contrario, usar el contenido como título también
+                const title = postTitle.trim() || postContent.split('\n')[0]; // Usar la primera línea como título si no hay título
+
+                // Filtrar opciones de encuesta válidas
+                const validPollOptions = showPollCreator
+                    ? pollOptions.filter(option => option.text.trim().length > 0)
+                    : undefined;
+
+                const success = await onSubmit(
+                    postContent,
+                    title,
+                    selectedCategory,
+                    attachments.length > 0 ? attachments : undefined,
+                    showVideoInput && videoUrl ? videoUrl : undefined,
+                    showLinkInput && linkUrl ? linkUrl : undefined,
+                    validPollOptions && validPollOptions.length >= 2 ? validPollOptions : undefined
+                );
 
                 if (success) {
                     // Limpiar el formulario y cerrar
                     setPostTitle('');
                     setPostContent('');
                     setSelectedCategory(undefined);
+                    setAttachments([]);
+                    setLinkUrl('');
+                    setVideoUrl('');
+                    setPollOptions([{ id: 1, text: '' }, { id: 2, text: '' }]);
+                    setShowAttachmentPreview(false);
+                    setShowLinkInput(false);
+                    setShowVideoInput(false);
+                    setShowPollCreator(false);
+                    setShowEmojiPicker(false);
                     setIsExpanded(false);
                 } else {
                     setError('Hubo un error al publicar tu mensaje. Inténtalo de nuevo.');
@@ -326,7 +561,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                             <input
                                 ref={titleInputRef}
                                 type="text"
-                                placeholder="Título (opcional)"
+                                placeholder="Título"
                                 value={postTitle}
                                 onChange={(e) => setPostTitle(e.target.value)}
                                 className="w-full bg-transparent text-xl font-medium text-white border-none outline-none placeholder-zinc-500"
@@ -343,45 +578,178 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                             />
                         </div>
 
+                        {/* Previsualización de archivos adjuntos */}
+                        {showAttachmentPreview && attachments.length > 0 && (
+                            <div className="mb-4 p-3 bg-[#444442] rounded-lg border border-white/10">
+                                <h3 className="text-sm font-medium text-zinc-300 mb-2">
+                                    Archivos adjuntos ({attachments.length})
+                                    {attachments.filter(file => file.type.startsWith('image/')).length > 0 &&
+                                        <span className="text-xs ml-2 text-blue-300">
+                                            {attachments.filter(file => file.type.startsWith('image/')).length === 1
+                                                ? 'La imagen se mostrará en el post'
+                                                : `${attachments.filter(file => file.type.startsWith('image/')).length} imágenes se mostrarán en el post`}
+                                            <span className="text-xs ml-1 text-zinc-300">(máx. 3)</span>
+                                        </span>
+                                    }
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {attachments.map((file, index) => (
+                                        <div
+                                            key={index}
+                                            className={`flex items-center gap-2 p-2 rounded border border-white/10 ${index === 0 && file.type.startsWith('image/')
+                                                    ? 'bg-[#2a3144]'
+                                                    : 'bg-[#323230]'
+                                                }`}
+                                        >
+                                            {file.type.startsWith('image/') && (
+                                                <div className="w-8 h-8 flex-shrink-0 bg-[#444442] rounded overflow-hidden">
+                                                    <img
+                                                        src={URL.createObjectURL(file)}
+                                                        alt="Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                            )}
+                                            <span className={`text-xs ${index === 0 && file.type.startsWith('image/') ? 'text-blue-300' : 'text-zinc-300'} max-w-[150px] truncate`}>
+                                                {file.name}
+                                                {file.type.startsWith('image/') && index === 0 ? ' (principal)' : ''}
+                                            </span>
+                                            <button
+                                                onClick={() => handleRemoveAttachment(index)}
+                                                className="text-zinc-400 hover:text-zinc-200"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Campo de entrada para link */}
+                        {showLinkInput && (
+                            <div className="mb-4 p-3 bg-[#444442] rounded-lg border border-white/10">
+                                <h3 className="text-sm font-medium text-zinc-300 mb-2">Añadir enlace</h3>
+                                <input
+                                    type="text"
+                                    placeholder="https://ejemplo.com"
+                                    value={linkUrl}
+                                    onChange={(e) => setLinkUrl(e.target.value)}
+                                    className="w-full bg-[#323230] text-white px-3 py-2 rounded border border-white/10 focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+                        )}
+
+                        {/* Campo de entrada para video */}
+                        {showVideoInput && (
+                            <div className="mb-4 p-3 bg-[#444442] rounded-lg border border-white/10">
+                                <h3 className="text-sm font-medium text-zinc-300 mb-2">Añadir video</h3>
+                                <input
+                                    type="text"
+                                    placeholder="https://youtube.com/watch?v=..."
+                                    value={videoUrl}
+                                    onChange={(e) => setVideoUrl(e.target.value)}
+                                    className="w-full bg-[#323230] text-white px-3 py-2 rounded border border-white/10 focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+                        )}
+
+                        {/* Creador de encuestas */}
+                        {showPollCreator && (
+                            <div className="mb-4 p-3 bg-[#444442] rounded-lg border border-white/10">
+                                <h3 className="text-sm font-medium text-zinc-300 mb-2">Crear encuesta</h3>
+                                <div className="space-y-2 mb-3">
+                                    {pollOptions.map((option) => (
+                                        <div key={option.id} className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                placeholder={`Opción ${option.id}`}
+                                                value={option.text}
+                                                onChange={(e) => handlePollOptionChange(option.id, e.target.value)}
+                                                className="flex-1 bg-[#323230] text-white px-3 py-2 rounded border border-white/10 focus:outline-none focus:border-blue-500"
+                                            />
+                                            {pollOptions.length > 2 && (
+                                                <button
+                                                    onClick={() => handleRemovePollOption(option.id)}
+                                                    className="text-zinc-400 hover:text-zinc-200"
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={handleAddPollOption}
+                                    className="text-sm text-blue-400 hover:text-blue-300"
+                                >
+                                    + Añadir opción
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Selector de emojis simple */}
+                        {showEmojiPicker && (
+                            <div
+                                ref={emojiPickerRef}
+                                className="mb-4 p-3 bg-[#444442] rounded-lg border border-white/10 z-50 max-h-60 overflow-y-auto"
+                            >
+                                <div className="flex flex-wrap gap-2">
+                                    {commonEmojis.map((emoji, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => handleEmojiSelect(emoji)}
+                                            className="w-8 h-8 flex items-center justify-center hover:bg-[#323230] rounded-md text-lg"
+                                        >
+                                            {emoji}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Barra de herramientas */}
                         <div className="flex flex-wrap items-center">
                             <div className="flex flex-wrap space-x-2 mb-2 sm:mb-0">
                                 <button
-                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
-                                    aria-label="Attach file"
+                                    onClick={handleAttachFile}
+                                    className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showAttachmentPreview ? 'bg-[#444442]' : ''}`}
                                 >
                                     <Paperclip size={20} />
                                 </button>
                                 <button
-                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
-                                    aria-label="Add link"
+                                    onClick={handleLinkButton}
+                                    className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showLinkInput ? 'bg-[#444442]' : ''}`}
                                 >
                                     <Link2 size={20} />
                                 </button>
                                 <button
-                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
-                                    aria-label="Add video"
+                                    onClick={handleVideoButton}
+                                    className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showVideoInput ? 'bg-[#444442]' : ''}`}
                                 >
                                     <Video size={20} />
                                 </button>
                                 <button
-                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
-                                    aria-label="Add chart"
+                                    onClick={handlePollButton}
+                                    className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showPollCreator ? 'bg-[#444442]' : ''}`}
                                 >
                                     <BarChart2 size={20} />
                                 </button>
                                 <button
-                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
-                                    aria-label="Add emoji"
+                                    onClick={handleEmojiButton}
+                                    className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showEmojiPicker ? 'bg-[#444442]' : ''}`}
                                 >
                                     <Smile size={20} />
                                 </button>
-                                <button
-                                    className="p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5"
-                                    aria-label="Add GIF"
-                                >
-                                    <span className="font-bold">GIF</span>
-                                </button>
+
+                                {/* Input oculto para la selección de archivos */}
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    multiple
+                                />
                             </div>
 
                             <div className="ml-auto flex flex-wrap items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">

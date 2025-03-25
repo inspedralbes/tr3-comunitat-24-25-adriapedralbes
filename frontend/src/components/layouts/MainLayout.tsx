@@ -18,7 +18,6 @@ export default function MainLayout({ children, activeTab }: MainLayoutProps) {
         { name: "Calendario", url: "/calendar", icon: Calendar, active: activeTab === 'calendar' },
         { name: "Miembros", url: "/members", icon: User, active: activeTab === 'members' },
         { name: "Ranking", url: "/ranking", icon: Trophy, active: activeTab === 'ranking' },
-        { name: "Acerca", url: "/about", icon: Info, active: activeTab === 'about' },
     ];
 
     return (

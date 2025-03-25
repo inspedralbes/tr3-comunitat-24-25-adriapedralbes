@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike
+from .models import (
+    Subscriber, User, Category, Post, Comment, PostLike, CommentLike, 
+    Course, Lesson, UserLessonProgress, UserCourseProgress, Event
+)
 
 class SubscriberSerializer(serializers.ModelSerializer):
     class Meta:
@@ -149,10 +152,12 @@ class PostSerializer(serializers.ModelSerializer):
         allow_null=True,
         source='category'
     )
+    image_2_url = serializers.SerializerMethodField()
+    image_3_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'author', 'category', 'title', 'content', 'image', 'likes', 'is_pinned', 
+        fields = ['id', 'author', 'category', 'title', 'content', 'image', 'image_2_url', 'image_3_url', 'likes', 'is_pinned', 
                 'created_at', 'updated_at', 'comments_count', 'category_id', 'is_liked']
         read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'likes', 'is_pinned', 'is_liked']
     
@@ -166,6 +171,22 @@ class PostSerializer(serializers.ModelSerializer):
         post = Post.objects.create(**validated_data)
         logger.info(f"Post creado con ID: {post.id}")
         return post
+
+    def get_image_2_url(self, obj):
+        if obj.image_2 and hasattr(obj.image_2, 'url'):
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.image_2.url)
+            return obj.image_2.url
+        return None
+        
+    def get_image_3_url(self, obj):
+        if obj.image_3 and hasattr(obj.image_3, 'url'):
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.image_3.url)
+            return obj.image_3.url
+        return None
 
     def get_comments_count(self, obj):
         return obj.comments.count()
@@ -196,8 +217,126 @@ class PostLikeSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'created_at']
 
 
+# Eliminado el serializador PollVoteSerializer porque almacenaremos los votos directamente en el post
+
+
 class CommentLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentLike
         fields = ['id', 'user', 'comment', 'created_at']
         read_only_fields = ['id', 'user', 'created_at']
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ['id', 'title', 'content', 'order', 'created_at', 'updated_at', 'course']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class LessonDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ['id', 'title', 'content', 'order', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class CourseSerializer(serializers.ModelSerializer):
+    lessons_count = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+    progress_percentage = serializers.IntegerField(required=False, default=0, write_only=True)
+    
+    class Meta:
+        model = Course
+        fields = ['id', 'title', 'description', 'thumbnail_url', 'progress_percentage', 'created_at', 'updated_at', 'lessons_count']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_lessons_count(self, obj):
+        return obj.lessons.count()
+        
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail and hasattr(obj.thumbnail, 'url'):
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url
+        return None
+        
+    def validate(self, attrs):
+        # Asegurarse de que los campos requeridos están presentes
+        if 'title' not in attrs or not attrs['title']:
+            raise serializers.ValidationError({"title": "El título es obligatorio."})
+            
+        # Asegurar que el progreso está entre 0 y 100
+        if 'progress_percentage' in attrs and (attrs['progress_percentage'] < 0 or attrs['progress_percentage'] > 100):
+            raise serializers.ValidationError({"progress_percentage": "El progreso debe estar entre 0 y 100."})
+            
+        return attrs
+
+
+class CourseDetailSerializer(CourseSerializer):
+    lessons = LessonDetailSerializer(many=True, read_only=True)
+    
+    class Meta(CourseSerializer.Meta):
+        fields = CourseSerializer.Meta.fields + ['lessons']
+
+
+# Nuevos serializadores para el progreso del usuario
+
+class UserLessonProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserLessonProgress
+        fields = ['id', 'user', 'lesson', 'completed', 'completion_date', 'time_spent_seconds', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'completion_date']
+        
+    def validate(self, attrs):
+        # Asegurarse de que el campo lesson está presente
+        if 'lesson' not in attrs:
+            raise serializers.ValidationError({"lesson": "El ID de la lección es obligatorio."})
+            
+        return attrs
+
+
+class LessonProgressSerializer(serializers.ModelSerializer):
+    """Serializador simplificado para usarse en UserCourseProgressSerializer"""
+    lesson_id = serializers.CharField(source='lesson.id')
+    lesson_title = serializers.CharField(source='lesson.title')
+    
+    class Meta:
+        model = UserLessonProgress
+        fields = ['lesson_id', 'lesson_title', 'completed', 'completion_date', 'time_spent_seconds']
+
+
+class UserCourseProgressSerializer(serializers.ModelSerializer):
+    completed_lessons = serializers.SerializerMethodField()
+    course_title = serializers.CharField(source='course.title', read_only=True)
+    total_lessons = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = UserCourseProgress
+        fields = ['id', 'user', 'course', 'course_title', 'progress_percentage', 
+                  'last_accessed_at', 'completed_at', 'created_at', 'updated_at',
+                  'completed_lessons', 'total_lessons']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'completed_at']
+    
+    def get_completed_lessons(self, obj):
+        """Obtener todas las lecciones completadas por el usuario en este curso"""
+        lesson_progress = UserLessonProgress.objects.filter(
+            user=obj.user,
+            lesson__course=obj.course
+        )
+        return LessonProgressSerializer(lesson_progress, many=True).data
+    
+    def get_total_lessons(self, obj):
+        """Obtener el número total de lecciones en el curso"""
+        return Lesson.objects.filter(course=obj.course).count()
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = [
+            'id', 'title', 'start_date', 'end_date', 'type',
+            'description', 'meeting_url', 'all_day',
+            'created_at', 'updated_at'
+        ]

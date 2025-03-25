@@ -207,6 +207,14 @@ SITE_URL = os.environ.get('SITE_URL', 'http://localhost:3000')
 BEEHIIV_API_KEY = os.environ.get('BEEHIIV_API_KEY', '')
 BEEHIIV_PUBLICATION_ID = os.environ.get('BEEHIIV_PUBLICATION_ID', '')
 
+# Stripe configuration
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_51R4NzXDcOc9O52MPqsbUfvO7cHaqMcW7Vee87RvicBKJceDEyMpL8YG0WdbZHQmFROVZLcbSrgG2xMIMSpif9w4j00ZiOxPJ3x')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID', 'price_1KChNcB9x3GyCLI6yfkZCkxe')
+STRIPE_PRODUCT_ID = os.environ.get('STRIPE_PRODUCT_ID', '')
+STRIPE_MONTHLY_PLAN_AMOUNT = int(os.environ.get('STRIPE_MONTHLY_PLAN_AMOUNT', 20))
+
 # Configuración de Rest Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

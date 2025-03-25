@@ -2,9 +2,11 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
-from .debug_post import debug_posts
+from . import subscription_views
+from . import webhook_views
+from . import progress_views
 from api.gamification import urls as gamification_urls
-from .views import subscribe, confirm_subscription, unsubscribe
+from .views import EventListView
 
 # Configurar router para las vistas viewset
 router = DefaultRouter()
@@ -12,6 +14,10 @@ router.register(r'users', views.UserViewSet)
 router.register(r'categories', views.CategoryViewSet)
 router.register(r'posts', views.PostViewSet)
 router.register(r'comments', views.CommentViewSet)
+router.register(r'courses', views.CourseViewSet)
+router.register(r'lessons', views.LessonViewSet)
+router.register(r'user/lessons/progress', progress_views.UserLessonProgressViewSet, basename='lesson-progress')
+router.register(r'user/courses/progress', progress_views.UserCourseProgressViewSet, basename='course-progress')
 
 urlpatterns = [
     # Ruta raíz de la API (limitada)
@@ -38,8 +44,18 @@ urlpatterns = [
     path('leaderboard/', views.LeaderboardView.as_view(), name='leaderboard'),
     path('pinned-posts/', views.PinnedPostsView.as_view(), name='pinned-posts'),
     path('posts/<uuid:post_id>/like/', views.PostLikeView.as_view(), name='post-like'),
+    path('posts/<uuid:post_id>/vote/', views.PollVoteView.as_view(), name='poll-vote'),
     path('comments/<uuid:comment_id>/like/', views.CommentLikeView.as_view(), name='comment-like'),
     
     # Rutas de gamificación
     path('gamification/', include(gamification_urls)),
+    
+    # Rutas de suscripciones
+    path('subscription/create-checkout-session/', subscription_views.CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
+    path('subscription/status/', subscription_views.SubscriptionStatusView.as_view(), name='subscription-status'),
+    path('subscription/cancel/', subscription_views.CancelSubscriptionView.as_view(), name='cancel-subscription'),
+    
+    # Webhooks de Stripe
+    path('webhooks/stripe/', webhook_views.stripe_webhook, name='stripe-webhook'),
+    path('events/', EventListView.as_view(), name='event-list'),
 ]
