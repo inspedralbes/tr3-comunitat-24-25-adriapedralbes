@@ -37,6 +37,7 @@ urlpatterns = [
     path('leaderboard/', views.LeaderboardView.as_view(), name='leaderboard'),
     path('pinned-posts/', views.PinnedPostsView.as_view(), name='pinned-posts'),
     path('posts/<uuid:post_id>/like/', views.PostLikeView.as_view(), name='post-like'),
+    path('posts/<uuid:post_id>/vote/', views.PollVoteView.as_view(), name='poll-vote'),
     path('comments/<uuid:comment_id>/like/', views.CommentLikeView.as_view(), name='comment-like'),
     
     # Rutas de gamificación

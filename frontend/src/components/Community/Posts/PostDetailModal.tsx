@@ -44,6 +44,13 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     isOpen,
     onClose
 }) => {
+    // Variable interna para manejar el post actualizado
+    const [selectedPost, setSelectedPost] = useState<Post | null>(post);
+    
+    // Actualizar selectedPost cuando cambia el prop post
+    useEffect(() => {
+        setSelectedPost(post);
+    }, [post]);
     const _router = useRouter();
     const [comment, setComment] = useState('');
     const [replyToComment, setReplyToComment] = useState<ReplyToInfo | null>(null);
@@ -541,35 +548,54 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         );
     };
 
+    // Extraer contenido enriquecido si el contenido es JSON
+    const getEnrichedContent = (content: string) => {
+        try {
+            const parsedContent = JSON.parse(content);
+            if (parsedContent.text && parsedContent.features) {
+                return parsedContent;
+            }
+            return null;
+        } catch (e) {
+            return null; // No es JSON o no tiene la estructura esperada
+        }
+    };
+    
     // Format content with title and body
     const formatContent = () => {
-        if (!post) return { title: '', body: '' };
+        if (!selectedPost) return { title: '', body: '', features: null };
         
         // Asegurarse de que post.content sea un string
-        const content = typeof post.content === 'string' 
-            ? post.content 
-            : (post.content ? JSON.stringify(post.content) : '');
+        const contentStr = typeof selectedPost.content === 'string' 
+            ? selectedPost.content 
+            : (selectedPost.content ? JSON.stringify(selectedPost.content) : '');
+            
+        // Verificar si hay contenido enriquecido
+        const enrichedContent = getEnrichedContent(contentStr);
+        const plainContent = enrichedContent ? enrichedContent.text : contentStr;
+        const contentFeatures = enrichedContent ? enrichedContent.features : null;
 
         // Si el post tiene título explícito, usarlo
-        if (post.title) {
+        if (selectedPost.title) {
             return { 
-                title: post.title, 
-                body: content 
+                title: selectedPost.title, 
+                body: plainContent,
+                features: contentFeatures 
             };
         }
 
         // Si no tiene título, extraerlo de la primera línea del contenido (compatibilidad con posts antiguos)
-        const contentLines = content.split('\n');
+        const contentLines = plainContent.split('\n');
         const title = contentLines[0];
         const body = contentLines.slice(1).join('\n');
 
-        return { title, body };
+        return { title, body, features: contentFeatures };
     };
 
-    if (!isOpen || !post) return null;
+    if (!isOpen || !selectedPost) return null;
 
-    const { title, body } = formatContent();
-    const isReply = post.content.startsWith('Re:');
+    const { title, body, features } = formatContent();
+    const isReply = typeof selectedPost.content === 'string' && selectedPost.content.startsWith('Re:');
 
     return (
         <div className="fixed inset-0 bg-black/75 z-50 flex items-start justify-center pt-8 sm:pt-16 overflow-y-auto">
@@ -618,27 +644,286 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     <div className="mb-3">
                         <p className="text-zinc-200">{body}</p>
                     </div>
+                    
+                    {/* Enlace si existe */}
+                    {features && features.link && (
+                        <div className="mb-4 bg-[#252524] p-3 rounded-lg border border-white/10">
+                            <a 
+                                href={features.link.startsWith('http') ? features.link : `https://${features.link}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-400 hover:underline flex items-center gap-2"
+                                onClick={(e) => e.stopPropagation()} // Evitar propagación
+                            >
+                                <div className="bg-blue-500/20 p-1.5 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 015.656 0l4 4a4 4 0 01-5.656 5.656l-1.102-1.101" />
+                                    </svg>
+                                </div>
+                                {features.link}
+                            </a>
+                        </div>
+                    )}
 
-                    {/* Image if available */}
+                    {/* Video si existe */}
+                    {features && features.video && (
+                        <div className="mb-4 rounded-lg overflow-hidden border border-white/10">
+                            {(() => {
+                                // Función para extraer el ID de video de YouTube
+                                const getYoutubeVideoId = (url: string) => {
+                                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                                    const match = url.match(regExp);
+                                    return match && match[2].length === 11 ? match[2] : null;
+                                };
+                                
+                                // Función para extraer el ID de video de Vimeo
+                                const getVimeoVideoId = (url: string) => {
+                                    const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
+                                    const match = url.match(regExp);
+                                    return match ? match[5] : null;
+                                };
+                                
+                                const videoUrl = features.video.startsWith('http') ? features.video : `https://${features.video}`;
+                                
+                                // Detectar tipo de video
+                                if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+                                    const videoId = getYoutubeVideoId(videoUrl);
+                                    if (videoId) {
+                                        return (
+                                            <div className="relative pt-[56.25%] w-full">
+                                                <iframe 
+                                                    className="absolute top-0 left-0 w-full h-full"
+                                                    src={`https://www.youtube.com/embed/${videoId}`}
+                                                    title="YouTube video"
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                    onClick={(e) => e.stopPropagation()}
+                                                ></iframe>
+                                            </div>
+                                        );
+                                    }
+                                } else if (videoUrl.includes('vimeo.com')) {
+                                    const videoId = getVimeoVideoId(videoUrl);
+                                    if (videoId) {
+                                        return (
+                                            <div className="relative pt-[56.25%] w-full">
+                                                <iframe 
+                                                    className="absolute top-0 left-0 w-full h-full"
+                                                    src={`https://player.vimeo.com/video/${videoId}`}
+                                                    title="Vimeo video"
+                                                    frameBorder="0"
+                                                    allow="autoplay; fullscreen; picture-in-picture"
+                                                    allowFullScreen
+                                                    onClick={(e) => e.stopPropagation()}
+                                                ></iframe>
+                                            </div>
+                                        );
+                                    }
+                                }
+                                
+                                // Si no se reconoce el formato o no se pudo extraer el ID, mostrar enlace
+                                return (
+                                    <div className="p-3 bg-[#252524] flex items-center gap-2">
+                                        <div className="bg-red-500/20 p-1.5 rounded">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <a 
+                                            href={videoUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-red-400 hover:underline"
+                                            onClick={(e) => e.stopPropagation()} // Evitar propagación
+                                        >
+                                            Ver video
+                                        </a>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    )}
+
+                    {/* Encuesta si existe */}
+                    {features && features.poll && features.poll.length >= 2 && (
+                        <div className="mb-4 bg-[#252524] p-4 rounded-lg border border-white/10">
+                            <h4 className="text-white font-medium mb-3">Encuesta</h4>
+                            <div className="space-y-3">
+                                {features.poll.map((option: any) => {
+                                    // Obtener resultados de la encuesta si existen
+                                    const pollResults = features.poll_results || {};
+                                    const totalVotes = Object.values(pollResults).reduce((a: number, b: number) => a + (b as number), 0) as number;
+                                    const optionVotes = pollResults[option.id] || 0;
+                                    const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
+                                    
+                                    return (
+                                        <div 
+                                            key={option.id} 
+                                            className="relative bg-[#323230] hover:bg-[#3a3a38] transition-colors rounded-lg p-3 text-zinc-200 cursor-pointer flex items-center gap-2 overflow-hidden"
+                                            onClick={() => {
+                                                if (!selectedPost) return;
+                                                // Llamar al servicio para votar
+                                                communityService.votePoll(selectedPost.id, option.id)
+                                                    .then(response => {
+                                                        console.log('Voto registrado:', response);
+                                                        
+                                                        // Actualizar el post con los nuevos resultados
+                                                        if (selectedPost && typeof selectedPost.content === 'string') {
+                                                            try {
+                                                                const contentObj = JSON.parse(selectedPost.content);
+                                                                if (contentObj.features) {
+                                                                    contentObj.features.poll_results = response.poll_results;
+                                                                    // Crear una copia del post con el contenido actualizado
+                                                                    const updatedPost = {
+                                                                        ...selectedPost,
+                                                                        content: JSON.stringify(contentObj)
+                                                                    };
+                                                                    // Actualizar el estado
+                                                                    setSelectedPost(updatedPost);
+                                                                }
+                                                            } catch (e) {
+                                                                console.error('Error al actualizar resultados:', e);
+                                                            }
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Error al votar:', error);
+                                                    });
+                                            }}
+                                        >
+                                            {/* Barra de progreso */}
+                                            {totalVotes > 0 && (
+                                                <div 
+                                                    className="absolute top-0 left-0 h-full bg-blue-500/20" 
+                                                    style={{ width: `${percentage}%` }}
+                                                ></div>
+                                            )}
+                                            
+                                            <div className={`w-5 h-5 rounded-full border ${totalVotes > 0 && optionVotes > 0 ? 'border-blue-500 bg-blue-500/20' : 'border-zinc-500'} flex-shrink-0 relative z-10`}></div>
+                                            
+                                            {/* Contenido de la opción con el porcentaje */}
+                                            <div className="flex flex-1 justify-between items-center relative z-10">
+                                                <span>{option.text}</span>
+                                                {totalVotes > 0 && (
+                                                    <span className="text-sm text-blue-300 ml-2">{percentage}%</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                
+                                {/* Mostrar total de votos si hay resultados */}
+                                {features.poll_results && Object.keys(features.poll_results).length > 0 && (
+                                    <div className="text-sm text-zinc-400 mt-2 text-right">
+                                        {Object.values(features.poll_results).reduce((a: number, b: number) => a + (b as number), 0)} votos
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Imágenes para el post */}
                     {post.imageUrl && (
                         <div className="mt-2 mb-3">
-                            <button 
-                            className="cursor-pointer hover:opacity-90 transition-opacity block w-full"
-                            onClick={(e) => {
-                            e.stopPropagation(); // Evitar que el click se propague
-                            setImageViewerOpen(true);
-                            }}
-                                aria-label="Ver imagen a tamaño completo"
-                            >
-                                <Image
-                                    src={formatImageUrl(post.imageUrl) || ''}
-                                    alt={`Contenido de ${title}`}
-                                    width={600}
-                                    height={400}
-                                    className="rounded-lg max-h-72 object-cover border border-white/10"
-                                    unoptimized={true}
-                                />
-                            </button>
+                            {/* Verificar si hay múltiples imágenes en el contenido */}
+                            {(() => {
+                                try {
+                                    if (typeof selectedPost?.content === 'string' && selectedPost.content.includes('multi_image')) {
+                                        const contentObj = JSON.parse(selectedPost.content);
+                                        if (contentObj.features && contentObj.features.multi_image) {
+                                            const imagesCount = contentObj.features.images_count || 1;
+                                            
+                                            // Preparar URLs para todas las imágenes
+                                            const baseImageUrl = formatImageUrl(post.imageUrl) || '';
+                                            
+                                            // Si hay 2 imágenes
+                                            if (imagesCount === 2) {
+                                                return (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <button 
+                                                            className="cursor-pointer hover:opacity-90 transition-opacity"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setImageViewerOpen(true);
+                                                            }}
+                                                            aria-label="Ver primera imagen a tamaño completo"
+                                                        >
+                                                            <Image
+                                                                src={baseImageUrl}
+                                                                alt={`Imagen 1 de ${title}`}
+                                                                width={300} 
+                                                                height={300}
+                                                                className="rounded-lg w-full h-56 object-cover border border-white/10"
+                                                                unoptimized={true}
+                                                            />
+                                                        </button>
+                                                        <div className="w-full h-56 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                            <span>+1 imagen más</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                            
+                                            // Si hay 3 imágenes
+                                            if (imagesCount === 3) {
+                                                return (
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <button 
+                                                            className="cursor-pointer hover:opacity-90 transition-opacity"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setImageViewerOpen(true);
+                                                            }}
+                                                            aria-label="Ver primera imagen a tamaño completo"
+                                                        >
+                                                            <Image
+                                                                src={baseImageUrl}
+                                                                alt={`Imagen 1 de ${title}`}
+                                                                width={200}
+                                                                height={200}
+                                                                className="rounded-lg w-full h-40 object-cover border border-white/10"
+                                                                unoptimized={true}
+                                                            />
+                                                        </button>
+                                                        <div className="w-full h-40 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                            <span>+1</span>
+                                                        </div>
+                                                        <div className="w-full h-40 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                            <span>+1</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.log("Error parsing content for multiple images in modal", e);
+                                }
+                                
+                                // Por defecto, mostrar solo la imagen principal
+                                return (
+                                    <button 
+                                        className="cursor-pointer hover:opacity-90 transition-opacity block w-full"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setImageViewerOpen(true);
+                                        }}
+                                        aria-label="Ver imagen a tamaño completo"
+                                    >
+                                        <Image
+                                            src={formatImageUrl(post.imageUrl) || ''}
+                                            alt={`Contenido de ${title}`}
+                                            width={600}
+                                            height={400}
+                                            className="rounded-lg max-h-72 object-cover border border-white/10"
+                                            unoptimized={true}
+                                        />
+                                    </button>
+                                );
+                            })()}
                         </div>
                     )}
 

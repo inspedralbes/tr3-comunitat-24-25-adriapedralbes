@@ -1,6 +1,7 @@
 from rest_framework import status, viewsets, permissions, generics, filters
 from api.gamification.services import award_points
 import logging
+import json
 
 # Configurar logger
 logger = logging.getLogger(__name__)
@@ -818,6 +819,109 @@ class CommentLikeView(APIView):
             # Nota: No restamos puntos al quitar likes para mantener la integridad del sistema
             
             return Response({'status': 'unliked', 'likes': comment.likes})
+
+
+class PollVoteView(APIView):
+    """
+    Vista para votar en una encuesta.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        option_id = request.data.get('option_id')
+        user_id = str(request.user.id)  # Usamos el ID del usuario como clave
+        
+        if not option_id:
+            return Response({'error': 'Se requiere el ID de la opción'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            option_id = int(option_id)
+        except (ValueError, TypeError):
+            return Response({'error': 'El ID de la opción debe ser un número entero'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verificar si el post tiene una encuesta
+        try:
+            content = post.content
+            if isinstance(content, str):
+                try:
+                    content_json = json.loads(content)
+                    if not (content_json.get('features', {}).get('poll')):
+                        return Response({'error': 'El post no tiene una encuesta'}, status=status.HTTP_400_BAD_REQUEST)
+                    
+                    # Verificar que la opción existe en la encuesta
+                    poll_options = content_json['features']['poll']
+                    option_ids = [opt.get('id') for opt in poll_options]
+                    
+                    if option_id not in option_ids:
+                        return Response({'error': 'La opción seleccionada no existe en esta encuesta'}, status=status.HTTP_400_BAD_REQUEST)
+                except json.JSONDecodeError:
+                    return Response({'error': 'El post no tiene una encuesta válida'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Error al verificar encuesta: {str(e)}")
+            return Response({'error': 'Error al procesar la encuesta'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Actualizar el contenido del post para almacenar los votos en el JSON
+        try:
+            content_json = json.loads(post.content)
+            
+            # Inicializar las estructuras necesarias si no existen
+            if 'features' not in content_json:
+                content_json['features'] = {}
+            
+            if 'poll_results' not in content_json['features']:
+                content_json['features']['poll_results'] = {}
+                
+                # Inicializar contadores para cada opción
+                for opt in content_json['features']['poll']:
+                    content_json['features']['poll_results'][str(opt['id'])] = 0
+            
+            if 'user_votes' not in content_json['features']:
+                content_json['features']['user_votes'] = {}
+            
+            # Ver si el usuario ya ha votado
+            previous_vote = content_json['features']['user_votes'].get(user_id)
+            
+            # Si el usuario ya votó anteriormente
+            if previous_vote is not None:
+                # Actualizar el contador: restar uno de la opción anterior
+                old_option = str(previous_vote)
+                if old_option in content_json['features']['poll_results']:
+                    content_json['features']['poll_results'][old_option] = max(0, content_json['features']['poll_results'][old_option] - 1)
+            
+            # Registrar o actualizar el voto del usuario
+            content_json['features']['user_votes'][user_id] = option_id
+            
+            # Actualizar el contador para la nueva opción
+            option_str = str(option_id)
+            if option_str in content_json['features']['poll_results']:
+                content_json['features']['poll_results'][option_str] += 1
+            else:
+                content_json['features']['poll_results'][option_str] = 1
+            
+            # Guardar los cambios en el post
+            post.content = json.dumps(content_json)
+            post.save(update_fields=['content'])
+            
+            # Otorgar puntos solo si es el primer voto
+            if previous_vote is None:
+                try:
+                    award_points(request.user, 'vote_in_poll', reference_id=str(post.id))
+                except Exception as e:
+                    logger.error(f"Error al otorgar puntos por votar en encuesta: {str(e)}")
+            
+            status_msg = 'updated' if previous_vote is not None else 'voted'
+            message = 'Voto actualizado correctamente' if previous_vote is not None else 'Voto registrado correctamente'
+            
+            return Response({
+                'status': status_msg,
+                'message': message,
+                'poll_results': content_json['features']['poll_results']
+            })
+                
+        except Exception as e:
+            logger.error(f"Error al actualizar resultados de encuesta: {str(e)}")
+            return Response({'error': f'Error al actualizar los resultados de la encuesta: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CourseViewSet(viewsets.ModelViewSet):

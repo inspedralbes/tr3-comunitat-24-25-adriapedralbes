@@ -90,6 +90,8 @@ class Post(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
     content = models.TextField()
     image = models.ImageField(upload_to='post_images/', blank=True, null=True)
+    image_2 = models.ImageField(upload_to='post_images/', blank=True, null=True)
+    image_3 = models.ImageField(upload_to='post_images/', blank=True, null=True)
     likes = models.PositiveIntegerField(default=0)
     is_pinned = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -142,6 +144,11 @@ class PostLike(models.Model):
     
     def __str__(self):
         return f"{self.user.username} liked {self.post.id}"
+
+
+# El modelo PollVote se ha eliminado temporalmente para evitar la necesidad de migraciones
+# En su lugar, los votos se almacenan directamente en el campo content del modelo Post
+# como parte de su estructura JSON
 
 
 class CommentLike(models.Model):

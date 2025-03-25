@@ -138,12 +138,30 @@ class PostSerializer(serializers.ModelSerializer):
         allow_null=True,
         source='category'
     )
+    image_2_url = serializers.SerializerMethodField()
+    image_3_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'author', 'category', 'title', 'content', 'image', 'likes', 'is_pinned', 
+        fields = ['id', 'author', 'category', 'title', 'content', 'image', 'image_2_url', 'image_3_url', 'likes', 'is_pinned', 
                 'created_at', 'updated_at', 'comments_count', 'category_id', 'is_liked']
         read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'likes', 'is_pinned', 'is_liked']
+
+    def get_image_2_url(self, obj):
+        if obj.image_2 and hasattr(obj.image_2, 'url'):
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.image_2.url)
+            return obj.image_2.url
+        return None
+        
+    def get_image_3_url(self, obj):
+        if obj.image_3 and hasattr(obj.image_3, 'url'):
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.image_3.url)
+            return obj.image_3.url
+        return None
 
     def get_comments_count(self, obj):
         return obj.comments.count()
@@ -172,6 +190,9 @@ class PostLikeSerializer(serializers.ModelSerializer):
         model = PostLike
         fields = ['id', 'user', 'post', 'created_at']
         read_only_fields = ['id', 'user', 'created_at']
+
+
+# Eliminado el serializador PollVoteSerializer porque almacenaremos los votos directamente en el post
 
 
 class CommentLikeSerializer(serializers.ModelSerializer):

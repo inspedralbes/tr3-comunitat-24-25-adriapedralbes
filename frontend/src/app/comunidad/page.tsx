@@ -108,6 +108,65 @@ function CommunityContent() {
     
     loadViewedPosts();
   }, []);
+  
+  // Escuchar evento de refresco para actualizar los posts después de votar en encuestas
+  useEffect(() => {
+    const handleRefreshPosts = (event: any) => {
+      if (event.detail && event.detail.postId) {
+        const postId = event.detail.postId;
+        const newResults = event.detail.newResults;
+        
+        // Función para actualizar los resultados de encuesta en un array de posts
+        const updatePostsArray = (posts: Post[]) => {
+          return posts.map(post => {
+            if (post.id === postId && typeof post.content === 'string') {
+              try {
+                const contentObj = JSON.parse(post.content);
+                if (contentObj.features) {
+                  contentObj.features.poll_results = newResults;
+                  return {
+                    ...post,
+                    content: JSON.stringify(contentObj)
+                  };
+                }
+              } catch (e) {
+                console.error('Error al actualizar post:', e);
+              }
+            }
+            return post;
+          });
+        };
+        
+        // Actualizar posts fijados y regulares
+        setPinnedPosts(updatePostsArray(pinnedPosts));
+        setRegularPosts(updatePostsArray(regularPosts));
+        
+        // Si el post seleccionado es el que se actualizó, también actualizarlo
+        if (selectedPost && selectedPost.id === postId) {
+          communityService.getPostById(postId)
+            .then(freshPost => {
+              if (freshPost) {
+                setSelectedPost({
+                  ...selectedPost,
+                  content: freshPost.content
+                });
+              }
+            })
+            .catch(err => {
+              console.error('Error al recargar post después de votar:', err);
+            });
+        }
+      }
+    };
+    
+    // Registrar evento personalizado
+    window.addEventListener('refresh-posts', handleRefreshPosts);
+    
+    // Limpiar evento al desmontar
+    return () => {
+      window.removeEventListener('refresh-posts', handleRefreshPosts);
+    };
+  }, [pinnedPosts, regularPosts, selectedPost]);
 
   // Función para cargar los comentarios de un post
   const fetchPostComments = useCallback(async (postId: string) => {
@@ -170,6 +229,26 @@ function CommunityContent() {
       
       if (postData) {
         // Normalizar el post para asegurar que tiene la estructura esperada
+        // Manejar el contenido - podría ser JSON o string
+        const contentValue = typeof postData.content === 'string' 
+          ? postData.content 
+          : JSON.stringify(postData.content);
+        
+        // Intentar detectar contenido enriquecido (JSON con features)
+        let processedContent = contentValue;
+        try {
+          // Si el contenido parece ser JSON con nuestra estructura enriquecida (text + features)
+          // lo dejamos como está para permitir que se procese correctamente
+          const parsedContent = JSON.parse(contentValue);
+          if (parsedContent.text && parsedContent.features) {
+            processedContent = contentValue; // Mantener el JSON como string para procesar en componentes
+            console.log("Post con contenido enriquecido detectado:", postId);
+          }
+        } catch (e) {
+          // Si no es JSON o no tiene la estructura esperada, usamos como está
+          processedContent = contentValue;
+        }
+        
         const normalizedPost = {
           id: postData.id,
           author: {
@@ -180,7 +259,7 @@ function CommunityContent() {
             avatar_url: postData.author?.avatar_url
           },
           title: postData.title,
-          content: typeof postData.content === 'string' ? postData.content : JSON.stringify(postData.content),
+          content: processedContent,
           category: typeof postData.category === 'object' && postData.category !== null ? postData.category.name : postData.category,
           categoryColor: typeof postData.category === 'object' && postData.category !== null && postData.category.color ? postData.category.color : 'bg-[#444442] border border-white/5',
           created_at: postData.created_at,
@@ -476,7 +555,15 @@ function CommunityContent() {
   };
 
   // Función para crear un nuevo post
-  const handleCreatePost = async (content: string, title?: string, categoryId?: number) => {
+  const handleCreatePost = async (
+    content: string, 
+    title?: string, 
+    categoryId?: number, 
+    attachments?: File[], 
+    videoUrl?: string, 
+    linkUrl?: string,
+    pollOptions?: { id: number, text: string }[]
+  ) => {
     // Verificar autenticación antes de crear un post
     if (!authService.isAuthenticated()) {
       setIsAuthModalOpen(true);
@@ -487,7 +574,11 @@ function CommunityContent() {
       await communityService.createPost({
         title,
         content,
-        category_id: categoryId
+        category_id: categoryId,
+        attachments,
+        video_url: videoUrl,
+        link_url: linkUrl,
+        poll_options: pollOptions
       });
       
       // Recargar posts después de crear uno nuevo

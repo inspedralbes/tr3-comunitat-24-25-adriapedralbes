@@ -130,8 +130,48 @@ export const PostFeed: React.FC<PostFeedProps> = ({
                 // Extraer timestamp del created_at de la API
                 const timestamp = post.timestamp || post.created_at || 'hace un momento';
                 
-                // Extraer URL de imagen si existe
+                // Siempre extraer la URL de imagen principal
                 const imageUrl = post.imageUrl || post.image || undefined;
+                
+                // Verificar si hay múltiples imágenes en el contenido enriquecido
+                let image2Url = undefined;
+                let image3Url = undefined;
+                let hasMultipleImages = false;
+                
+                // Obtener la URL base para imágenes (podría ser diferente en producción)
+                const baseImageUrl = imageUrl ? 
+                    (imageUrl.startsWith('http') ? 
+                        imageUrl.substring(0, imageUrl.lastIndexOf('/') + 1) : 
+                        '/media/post_images/') : 
+                    '/media/post_images/';
+                
+                try {
+                    // Intentar parsear el contenido como JSON
+                    if (typeof post.content === 'string' && post.content.includes('multi_image')) {
+                        const contentObj = JSON.parse(post.content);
+                        
+                        // Verificar si tiene la marca de múltiples imágenes
+                        if (contentObj.features && contentObj.features.multi_image) {
+                            hasMultipleImages = true;
+                            const imagesCount = contentObj.features.images_count || 0;
+                            
+                            // Generar URLs basadas en el ID del post
+                            if (imagesCount >= 2) {
+                                // Para la segunda imagen, usar un patrón predecible basado en el ID
+                                const postIdShort = post.id.substring(0, 8);
+                                image2Url = imageUrl ? imageUrl.replace('.jpg', '_2.jpg').replace('.png', '_2.png') : undefined;
+                            }
+                            
+                            if (imagesCount >= 3) {
+                                // Para la tercera imagen, similar a la segunda
+                                image3Url = imageUrl ? imageUrl.replace('.jpg', '_3.jpg').replace('.png', '_3.png') : undefined;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Si hay error al parsear, seguimos con solo la imagen principal
+                    console.log("Error parsing content for multiple images:", e);
+                }
                 
                 // Normalizar la URL del avatar - asegurarse de que author.avatarUrl siempre exista
                 const author = {
@@ -152,6 +192,8 @@ export const PostFeed: React.FC<PostFeedProps> = ({
                         likes={post.likes || 0}
                         comments={post.comments_count || 0}
                         imageUrl={imageUrl}
+                        image2Url={image2Url}
+                        image3Url={image3Url}
                         isLiked={post.is_liked || false}
                         onPostClick={onPostClick}
                         postComments={postComments[post.id] || []}

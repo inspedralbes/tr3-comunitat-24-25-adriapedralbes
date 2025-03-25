@@ -26,6 +26,8 @@ interface PostCardProps {
     comments: number;
     isPinned?: boolean;
     imageUrl?: string;
+    image2Url?: string;
+    image3Url?: string;
     isLiked?: boolean;
     onPostClick: (id: string) => void;
     postComments?: Comment[];
@@ -61,6 +63,8 @@ export const PostCard: React.FC<PostCardProps> = ({
     comments,
     isPinned = false,
     imageUrl,
+    image2Url,
+    image3Url,
     isLiked = false,
     onPostClick,
     postComments = [],
@@ -71,10 +75,30 @@ export const PostCard: React.FC<PostCardProps> = ({
     const [isPostLiked, setIsPostLiked] = useState(isLiked);
     const [likesCount, setLikesCount] = useState(likes);
 
+    // Extraer contenido enriquecido si el contenido es JSON
+    const getEnrichedContent = (content: string) => {
+        try {
+            const parsedContent = JSON.parse(content);
+            if (parsedContent.text && parsedContent.features) {
+                return parsedContent;
+            }
+            return null;
+        } catch (e) {
+            return null; // No es JSON o no tiene la estructura esperada
+        }
+    };
+    
     // Si no se proporciona un título explícito, extraerlo de la primera línea del contenido
-    const contentLines = content.split('\n');
+    const contentToDisplay = typeof content === 'string' ? content : JSON.stringify(content);
+    
+    // Verificar si hay contenido enriquecido
+    const enrichedContent = getEnrichedContent(contentToDisplay);
+    const plainContent = enrichedContent ? enrichedContent.text : contentToDisplay;
+    const features = enrichedContent ? enrichedContent.features : null;
+    
+    const contentLines = plainContent.split('\n');
     const displayTitle = title || contentLines[0];
-    const body = title ? content : contentLines.slice(1).join('\n');
+    const body = title ? plainContent : contentLines.slice(1).join('\n');
 
     // Extraer los comentadores únicos de los comentarios reales
     const uniqueCommenters: Commenter[] = [];
@@ -206,20 +230,277 @@ export const PostCard: React.FC<PostCardProps> = ({
                 <p className="text-zinc-200 text-sm">{body}</p>
             </div>
 
-            {/* Imagen adjunta */}
+            {/* Enlace si existe */}
+            {features && features.link && (
+                <div className="mb-3 bg-[#2a2a29] p-3 rounded-lg border border-white/10">
+                    <a 
+                        href={features.link.startsWith('http') ? features.link : `https://${features.link}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline text-sm flex items-center gap-2"
+                        onClick={(e) => e.stopPropagation()} // Evitar que se abra el post al clicar en el enlace
+                    >
+                        <div className="bg-blue-500/20 p-1 rounded">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 015.656 0l4 4a4 4 0 01-5.656 5.656l-1.102-1.101" />
+                            </svg>
+                        </div>
+                        {features.link}
+                    </a>
+                </div>
+            )}
+
+            {/* Video si existe */}
+            {features && features.video && (
+                <div className="mb-3 rounded-lg border border-white/10 overflow-hidden">
+                    {(() => {
+                        // Función para extraer el ID de video de YouTube
+                        const getYoutubeVideoId = (url: string) => {
+                            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                            const match = url.match(regExp);
+                            return match && match[2].length === 11 ? match[2] : null;
+                        };
+                        
+                        // Función para extraer el ID de video de Vimeo
+                        const getVimeoVideoId = (url: string) => {
+                            const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
+                            const match = url.match(regExp);
+                            return match ? match[5] : null;
+                        };
+                        
+                        const videoUrl = features.video.startsWith('http') ? features.video : `https://${features.video}`;
+                        
+                        // Detectar tipo de video
+                        if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+                            const videoId = getYoutubeVideoId(videoUrl);
+                            if (videoId) {
+                                return (
+                                    <div className="relative pt-[56.25%] w-full">
+                                        <iframe 
+                                            className="absolute top-0 left-0 w-full h-full"
+                                            src={`https://www.youtube.com/embed/${videoId}`}
+                                            title="YouTube video"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            onClick={(e) => e.stopPropagation()}
+                                        ></iframe>
+                                    </div>
+                                );
+                            }
+                        } else if (videoUrl.includes('vimeo.com')) {
+                            const videoId = getVimeoVideoId(videoUrl);
+                            if (videoId) {
+                                return (
+                                    <div className="relative pt-[56.25%] w-full">
+                                        <iframe 
+                                            className="absolute top-0 left-0 w-full h-full"
+                                            src={`https://player.vimeo.com/video/${videoId}`}
+                                            title="Vimeo video"
+                                            frameBorder="0"
+                                            allow="autoplay; fullscreen; picture-in-picture"
+                                            allowFullScreen
+                                            onClick={(e) => e.stopPropagation()}
+                                        ></iframe>
+                                    </div>
+                                );
+                            }
+                        }
+                        
+                        // Si no se reconoce el formato o no se pudo extraer el ID, mostrar enlace
+                        return (
+                            <div className="p-3 bg-[#2a2a29] flex items-center gap-2">
+                                <div className="bg-red-500/20 p-1 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <a 
+                                    href={videoUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-red-400 hover:underline text-sm"
+                                    onClick={(e) => e.stopPropagation()} // Evitar que se abra el post al clicar en el enlace de video
+                                >
+                                    Ver video
+                                </a>
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
+
+            {/* Encuesta si existe */}
+            {features && features.poll && features.poll.length >= 2 && (
+                <div className="mb-3 bg-[#2a2a29] p-3 rounded-lg border border-white/10">
+                    <h4 className="text-sm font-medium text-white mb-2">Encuesta</h4>
+                    <div className="space-y-2">
+                        {features.poll.map((option: any) => {
+                            // Obtener resultados de la encuesta si existen
+                            const pollResults = features.poll_results || {};
+                            const totalVotes = Object.values(pollResults).reduce((a: number, b: number) => a + (b as number), 0) as number;
+                            const optionVotes = pollResults[option.id] || 0;
+                            const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
+                            
+                            return (
+                                <div 
+                                    key={option.id} 
+                                    className={`relative bg-[#444442] rounded-lg p-2 text-sm text-white hover:bg-[#505050] transition-colors cursor-pointer overflow-hidden ${
+                                        optionVotes > 0 ? 'border border-blue-500/30' : ''
+                                    }`}
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Evitar que se abra el post al votar
+                                        // Llamar al servicio para votar
+                                        communityService.votePoll(id, option.id)
+                                            .then(response => {
+                                                console.log('Voto registrado:', response);
+                                                
+                                                // Actualizar el componente con los nuevos resultados
+                                                if (response.poll_results && enrichedContent) {
+                                                    // Crear una copia del objeto features actual
+                                                    const updatedFeatures = {...enrichedContent.features};
+                                                    
+                                                    // Actualizar con los nuevos resultados
+                                                    updatedFeatures.poll_results = response.poll_results;
+                                                    
+                                                    // Forzar actualización del componente
+                                                    const refreshEvent = new CustomEvent('refresh-posts', {
+                                                        detail: { postId: id, newResults: response.poll_results }
+                                                    });
+                                                    window.dispatchEvent(refreshEvent);
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error al votar:', error);
+                                            });
+                                    }}
+                                >
+                                    {/* Barra de progreso */}
+                                    {totalVotes > 0 && (
+                                        <div 
+                                            className="absolute top-0 left-0 h-full bg-blue-500/20" 
+                                            style={{ width: `${percentage}%` }}
+                                        ></div>
+                                    )}
+                                    
+                                    {/* Contenido de la opción */}
+                                    <div className="flex justify-between items-center relative z-10">
+                                        <span>{option.text}</span>
+                                        {totalVotes > 0 && (
+                                            <span className="text-xs text-blue-300">{percentage}%</span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        
+                        {/* Mostrar total de votos si hay resultados */}
+                        {features.poll_results && Object.keys(features.poll_results).length > 0 && (
+                            <div className="text-xs text-zinc-400 mt-2 text-right">
+                                {Object.values(features.poll_results).reduce((a: number, b: number) => a + (b as number), 0)} votos
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Imágenes para el post */}
             {imageUrl && (
                 <div className="mt-2 mb-3">
-                    <div className="cursor-pointer hover:opacity-95 transition-all">
-                        <Image
-                            src={imageUrl.startsWith('http') ? imageUrl : `http://127.0.0.1:8000${imageUrl}`}
-                            alt={`Contenido de ${title}`}
-                            width={500}
-                            height={300}
-                            className="rounded-lg max-h-28 object-cover border border-white/10"
-                            priority={true}
-                            unoptimized={true}
-                        />
-                    </div>
+                    {/* Verificar si hay información de imágenes múltiples en el contenido del post */}
+                    {(() => {
+                        try {
+                            // Tratar de parsear el contenido como JSON para verificar múltiples imágenes
+                            if (typeof content === 'string' && content.includes('multi_image')) {
+                                const contentObj = JSON.parse(content);
+                                if (contentObj.features && contentObj.features.multi_image) {
+                                    // Hay múltiples imágenes, mostrarlas según su cantidad
+                                    const imagesCount = contentObj.features.images_count || 1;
+                                    
+                                    // Preparar URLs para todas las imágenes - usar la misma que la principal
+                                    // pero modificar el nombre para tener un patrón predecible
+                                    const baseImageUrl = imageUrl.startsWith('http') ? 
+                                        imageUrl : `http://127.0.0.1:8000${imageUrl}`;
+                                    
+                                    // Generar URLs para imágenes adicionales basadas en la primera
+                                    const img2 = baseImageUrl.replace(/\.[^.]+$/, '_2.jpg');
+                                    const img3 = baseImageUrl.replace(/\.[^.]+$/, '_3.jpg');
+                                    
+                                    // Si hay 2 imágenes
+                                    if (imagesCount === 2) {
+                                        return (
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="cursor-pointer hover:opacity-95 transition-all">
+                                                    <Image
+                                                        src={baseImageUrl}
+                                                        alt={`Imagen 1 de ${title}`}
+                                                        width={300}
+                                                        height={200}
+                                                        className="rounded-lg h-24 w-full object-cover border border-white/10"
+                                                        priority={true}
+                                                        unoptimized={true}
+                                                    />
+                                                </div>
+                                                <div className="cursor-pointer hover:opacity-95 transition-all">
+                                                    <div className="w-full h-24 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                        <span>+1 imagen más</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                    
+                                    // Si hay 3 imágenes
+                                    if (imagesCount === 3) {
+                                        return (
+                                            <div className="grid grid-cols-3 gap-1">
+                                                <div className="cursor-pointer hover:opacity-95 transition-all">
+                                                    <Image
+                                                        src={baseImageUrl}
+                                                        alt={`Imagen 1 de ${title}`}
+                                                        width={200}
+                                                        height={200}
+                                                        className="rounded-lg h-20 w-full object-cover border border-white/10"
+                                                        priority={true}
+                                                        unoptimized={true}
+                                                    />
+                                                </div>
+                                                <div className="cursor-pointer hover:opacity-95 transition-all">
+                                                    <div className="w-full h-20 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70 text-xs">
+                                                        <span>+1</span>
+                                                    </div>
+                                                </div>
+                                                <div className="cursor-pointer hover:opacity-95 transition-all">
+                                                    <div className="w-full h-20 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70 text-xs">
+                                                        <span>+1</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.log("Error parsing post content for multiple images", e);
+                        }
+                        
+                        // Por defecto, mostrar solo la imagen principal
+                        return (
+                            <div className="cursor-pointer hover:opacity-95 transition-all">
+                                <Image
+                                    src={imageUrl.startsWith('http') ? imageUrl : `http://127.0.0.1:8000${imageUrl}`}
+                                    alt={`Contenido de ${title}`}
+                                    width={500}
+                                    height={300}
+                                    className="rounded-lg max-h-28 object-cover border border-white/10"
+                                    priority={true}
+                                    unoptimized={true}
+                                />
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
 

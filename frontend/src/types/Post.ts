@@ -13,6 +13,8 @@ export interface Post {
     created_at?: string;
     updated_at?: string;
     image?: string;
+    image_2_url?: string;
+    image_3_url?: string;
     comments_count?: number;
     is_pinned?: boolean;
     is_liked?: boolean;
@@ -25,5 +27,7 @@ export interface Post {
     comments?: number;
     isPinned?: boolean;
     imageUrl?: string;
+    image2Url?: string;
+    image3Url?: string;
     categoryColor?: string;
 }
