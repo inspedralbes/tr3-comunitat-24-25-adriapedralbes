@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from api.gamification.models import UserLevel, UserAction, UserAchievement
+from django.db import connection
 
 class Command(BaseCommand):
     help = 'Configura el sistema de gamificación con datos iniciales'
@@ -14,23 +14,111 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Iniciando configuración del sistema de gamificación...'))
         
+        # Crear tablas manualmente
+        self.create_tables()
+        
+        # Configurar datos iniciales
         self.setup_levels(options)
         self.setup_actions(options)
         self.setup_achievements(options)
         
         self.stdout.write(self.style.SUCCESS('Sistema de gamificación configurado correctamente'))
     
+    def create_tables(self):
+        """Crear tablas necesarias para el sistema de gamificación"""
+        self.stdout.write('Creando tablas para el sistema de gamificación...')
+        
+        # Verificar si las tablas ya existen
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'api_userlevel')")
+            table_exists = cursor.fetchone()[0]
+            
+            if table_exists:
+                self.stdout.write(self.style.WARNING('Las tablas ya existen. Omitiendo creación...'))
+                return
+        
+        # Crear las tablas necesarias
+        with connection.cursor() as cursor:
+            # Tabla UserLevel
+            cursor.execute("""
+                CREATE TABLE api_userlevel (
+                    id SERIAL PRIMARY KEY,
+                    level INTEGER UNIQUE NOT NULL,
+                    points_required INTEGER NOT NULL,
+                    title VARCHAR(100) NULL,
+                    badge_color VARCHAR(20) NOT NULL DEFAULT 'bg-blue-500',
+                    icon VARCHAR(50) NULL,
+                    description TEXT NULL
+                )
+            """)
+            
+            # Tabla UserAction
+            cursor.execute("""
+                CREATE TABLE api_useraction (
+                    id SERIAL PRIMARY KEY,
+                    action_type VARCHAR(30) NOT NULL,
+                    points INTEGER NOT NULL,
+                    description VARCHAR(255) NOT NULL,
+                    is_active BOOLEAN NOT NULL DEFAULT TRUE
+                )
+            """)
+            
+            # Tabla UserAchievement
+            cursor.execute("""
+                CREATE TABLE api_userachievement (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL,
+                    description TEXT NOT NULL,
+                    achievement_type VARCHAR(20) NOT NULL,
+                    icon VARCHAR(50) NOT NULL,
+                    badge_color VARCHAR(20) NOT NULL DEFAULT 'bg-yellow-500',
+                    points_reward INTEGER NOT NULL DEFAULT 0,
+                    required_value INTEGER NOT NULL DEFAULT 1,
+                    is_hidden BOOLEAN NOT NULL DEFAULT FALSE
+                )
+            """)
+            
+            # Tabla UserAchievementUnlock
+            cursor.execute("""
+                CREATE TABLE api_userachievementunlock (
+                    id SERIAL PRIMARY KEY,
+                    unlocked_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    achievement_id INTEGER NOT NULL REFERENCES api_userachievement(id) ON DELETE CASCADE,
+                    user_id INTEGER NOT NULL REFERENCES api_user(id) ON DELETE CASCADE,
+                    CONSTRAINT unique_user_achievement UNIQUE (user_id, achievement_id)
+                )
+            """)
+            
+            # Tabla UserActionLog
+            cursor.execute("""
+                CREATE TABLE api_useractionlog (
+                    id SERIAL PRIMARY KEY,
+                    points_earned INTEGER NOT NULL,
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    reference_id VARCHAR(100) NULL,
+                    action_id INTEGER NOT NULL REFERENCES api_useraction(id) ON DELETE CASCADE,
+                    user_id INTEGER NOT NULL REFERENCES api_user(id) ON DELETE CASCADE
+                )
+            """)
+        
+        self.stdout.write(self.style.SUCCESS('Tablas creadas correctamente'))
+    
     def setup_levels(self, options):
         """Configura los niveles de usuario"""
         self.stdout.write('Configurando niveles de usuario...')
         
-        if UserLevel.objects.exists():
-            if options.get('force', False):
-                UserLevel.objects.all().delete()
-                self.stdout.write(self.style.WARNING('Niveles existentes eliminados forzosamente'))
-            else:
-                self.stdout.write(self.style.WARNING('Ya existen niveles de usuario. Omitiendo...'))
-                return
+        # Verificar si ya existen niveles
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM api_userlevel")
+            count = cursor.fetchone()[0]
+            
+            if count > 0:
+                if options.get('force', False):
+                    cursor.execute("DELETE FROM api_userlevel")
+                    self.stdout.write(self.style.WARNING('Niveles existentes eliminados forzosamente'))
+                else:
+                    self.stdout.write(self.style.WARNING('Ya existen niveles de usuario. Omitiendo...'))
+                    return
         
         # Parámetros de la fórmula para calcular puntos necesarios por nivel
         base = 100
@@ -64,37 +152,40 @@ class Command(BaseCommand):
         }
         
         # Crear niveles (1-10)
-        levels = []
-        for i in range(1, 11):
-            points_required = int(base * (i ** factor))
-            # El nivel 1 comienza con 0 puntos
-            if i == 1:
-                points_required = 0
+        with connection.cursor() as cursor:
+            for i in range(1, 11):
+                points_required = int(base * (i ** factor))
+                # El nivel 1 comienza con 0 puntos
+                if i == 1:
+                    points_required = 0
                 
-            levels.append(UserLevel(
-                level=i,
-                points_required=points_required,
-                title=level_titles.get(i, f'Nivel {i}'),
-                badge_color=level_colors.get(i, 'bg-blue-500'),
-                description=f'Has alcanzado el nivel {i}. {level_titles.get(i, "")}'
-            ))
+                title = level_titles.get(i, f'Nivel {i}')
+                badge_color = level_colors.get(i, 'bg-blue-500')
+                description = f'Has alcanzado el nivel {i}. {title}'
+                
+                cursor.execute("""
+                    INSERT INTO api_userlevel (level, points_required, title, badge_color, description)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, [i, points_required, title, badge_color, description])
         
-        # Crear en bulk
-        UserLevel.objects.bulk_create(levels)
-        
-        self.stdout.write(self.style.SUCCESS(f'Creados {len(levels)} niveles de usuario'))
+        self.stdout.write(self.style.SUCCESS(f'Creados 10 niveles de usuario'))
     
     def setup_actions(self, options):
         """Configura las acciones de usuario y sus recompensas"""
         self.stdout.write('Configurando acciones de usuario...')
         
-        if UserAction.objects.exists():
-            if options.get('force', False):
-                UserAction.objects.all().delete()
-                self.stdout.write(self.style.WARNING('Acciones existentes eliminadas forzosamente'))
-            else:
-                self.stdout.write(self.style.WARNING('Ya existen acciones de usuario. Omitiendo...'))
-                return
+        # Verificar si ya existen acciones
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM api_useraction")
+            count = cursor.fetchone()[0]
+            
+            if count > 0:
+                if options.get('force', False):
+                    cursor.execute("DELETE FROM api_useraction")
+                    self.stdout.write(self.style.WARNING('Acciones existentes eliminadas forzosamente'))
+                else:
+                    self.stdout.write(self.style.WARNING('Ya existen acciones de usuario. Omitiendo...'))
+                    return
         
         # Definir acciones y sus puntos
         actions = [
@@ -141,22 +232,31 @@ class Command(BaseCommand):
         ]
         
         # Crear acciones
-        action_objects = [UserAction(**action) for action in actions]
-        UserAction.objects.bulk_create(action_objects)
+        with connection.cursor() as cursor:
+            for action in actions:
+                cursor.execute("""
+                    INSERT INTO api_useraction (action_type, points, description, is_active)
+                    VALUES (%s, %s, %s, %s)
+                """, [action['action_type'], action['points'], action['description'], True])
         
-        self.stdout.write(self.style.SUCCESS(f'Creadas {len(action_objects)} acciones de usuario'))
+        self.stdout.write(self.style.SUCCESS(f'Creadas {len(actions)} acciones de usuario'))
     
     def setup_achievements(self, options):
         """Configura los logros que pueden desbloquear los usuarios"""
         self.stdout.write('Configurando logros...')
         
-        if UserAchievement.objects.exists():
-            if options.get('force', False):
-                UserAchievement.objects.all().delete()
-                self.stdout.write(self.style.WARNING('Logros existentes eliminados forzosamente'))
-            else:
-                self.stdout.write(self.style.WARNING('Ya existen logros. Omitiendo...'))
-                return
+        # Verificar si ya existen logros
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM api_userachievement")
+            count = cursor.fetchone()[0]
+            
+            if count > 0:
+                if options.get('force', False):
+                    cursor.execute("DELETE FROM api_userachievement")
+                    self.stdout.write(self.style.WARNING('Logros existentes eliminados forzosamente'))
+                else:
+                    self.stdout.write(self.style.WARNING('Ya existen logros. Omitiendo...'))
+                    return
         
         # Definir logros
         achievements = [
@@ -334,7 +434,23 @@ class Command(BaseCommand):
         ]
         
         # Crear logros
-        achievement_objects = [UserAchievement(**achievement) for achievement in achievements]
-        UserAchievement.objects.bulk_create(achievement_objects)
+        with connection.cursor() as cursor:
+            for achievement in achievements:
+                cursor.execute("""
+                    INSERT INTO api_userachievement (
+                        name, description, achievement_type, icon, badge_color,
+                        points_reward, required_value, is_hidden
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, [
+                    achievement['name'],
+                    achievement['description'],
+                    achievement['achievement_type'],
+                    achievement['icon'],
+                    achievement['badge_color'],
+                    achievement['points_reward'],
+                    achievement['required_value'],
+                    False
+                ])
         
-        self.stdout.write(self.style.SUCCESS(f'Creados {len(achievement_objects)} logros'))
+        self.stdout.write(self.style.SUCCESS(f'Creados {len(achievements)} logros'))

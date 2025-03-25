@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LucideIcon, User, Settings, LogOut, LogIn } from "lucide-react";
+import { LucideIcon, User, Settings, LogOut, LogIn, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 
 import { AuthModal, AuthModalType } from "@/components/Auth";
+import { NotificationIcon } from "@/components/UI/NotificationIcon";
 import { cn } from "@/lib/utils";
 import { authService, UserProfile } from "@/services/auth";
 
@@ -194,6 +195,13 @@ export function NavBar({ items, className }: NavBarProps) {
             );
           })}
 
+          {/* Ícono de mensajes con notificaciones (solo para usuarios autenticados) */}
+          {isAuthenticated && (
+            <div className="ml-0 sm:ml-2">
+              <NotificationIcon />
+            </div>
+          )}
+
           {/* Menú desplegable personalizado */}
           <div className="ml-0 sm:ml-2 relative" ref={dropdownRef}>
             <button
@@ -237,6 +245,18 @@ export function NavBar({ items, className }: NavBarProps) {
                       >
                         <User className="mr-2 h-4 w-4" />
                         <span>Perfil</span>
+                      </button>
+
+                      <button
+                        className="flex items-center w-full px-4 py-2 text-zinc-200 hover:bg-[#323230] hover:text-white transition-colors"
+                        onClick={() => {
+                          // Ir a Mensajes
+                          router.push('/mensajes');
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        <span>Mensajes</span>
                       </button>
 
                       <button
