@@ -250,6 +250,9 @@ function CommunityContent() {
           processedContent = contentValue;
         }
         
+        // Buscar si el post existe en las listas para preservar el estado de like
+        const existingPost = [...pinnedPosts, ...regularPosts].find(post => post.id === postId);
+        
         const normalizedPost = {
           id: postData.id,
           author: {
@@ -269,10 +272,13 @@ function CommunityContent() {
           comments_count: postData.comments_count || 0,
           is_pinned: postData.is_pinned,
           timestamp: postData.timestamp || postData.created_at,
-          likes: postData.likes || 0,
+          // Preservar el estado de like si existe, o usar el valor de la API
+          likes: existingPost?.likes || postData.likes || 0,
           comments: postData.comments_count || 0,
           isPinned: postData.is_pinned,
-          imageUrl: postData.image || postData.imageUrl
+          imageUrl: postData.image || postData.imageUrl,
+          // Preservar el estado de like si existe, o usar el valor de la API
+          is_liked: existingPost?.is_liked !== undefined ? existingPost.is_liked : postData.is_liked
         };
         
         // Actualizar las listas si el estado de fijado ha cambiado
@@ -476,8 +482,24 @@ function CommunityContent() {
   // Función para manejar el clic en un post
   const handlePostClick = useCallback(async (postId: string) => {
     try {
+      // Buscar el post en las listas existentes para preservar su estado (como is_liked)
+      let existingPost = [...pinnedPosts, ...regularPosts].find(post => post.id === postId);
+      
       // Cargar el post directamente sin cambiar la URL mientras esté en la vista principal
-      await loadPostContent(postId, false);
+      const loadedPost = await loadPostContent(postId, false);
+      
+      // Si encontramos el post en las listas y tenemos uno cargado, asegurarse de que el estado de like se preserve
+      if (existingPost && loadedPost) {
+        // Actualizar el selectedPost con el estado de like de la lista
+        setSelectedPost(prev => {
+          if (!prev) return loadedPost;
+          return {
+            ...prev,
+            is_liked: existingPost?.is_liked,
+            likes: existingPost?.likes
+          };
+        });
+      }
       
       // Solo actualizar la URL cuando se está viendo desde la página principal
       if (typeof window !== 'undefined') {

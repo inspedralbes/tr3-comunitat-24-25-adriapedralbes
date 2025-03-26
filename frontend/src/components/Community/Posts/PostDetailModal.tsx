@@ -1,4 +1,5 @@
 import { ThumbsUp, MessageCircle, Bell, Smile, CornerUpRight } from 'lucide-react';
+import { formatRelativeTime } from '@/utils/dateUtils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
@@ -47,9 +48,13 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     // Variable interna para manejar el post actualizado
     const [selectedPost, setSelectedPost] = useState<Post | null>(post);
 
-    // Actualizar selectedPost cuando cambia el prop post
+    // Actualizar selectedPost y estados de like cuando cambia el prop post
     useEffect(() => {
-        setSelectedPost(post);
+        if (post) {
+            setSelectedPost(post);
+            setLiked(post.is_liked || false);
+            setLikesCount(post.likes || 0);
+        }
     }, [post]);
 
     const _router = useRouter();
@@ -57,9 +62,9 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const [replyToComment, setReplyToComment] = useState<ReplyToInfo | null>(null);
     const [lastRespondedComment, setLastRespondedComment] = useState<ReplyToInfo | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
-    // Use selectedPost for initial like state as well
-    const [liked, setLiked] = useState(selectedPost?.is_liked || false);
-    const [likesCount, setLikesCount] = useState(selectedPost?.likes || 0);
+    // Ensure liked state is properly tracked from the post prop
+    const [liked, setLiked] = useState(post?.is_liked || false);
+    const [likesCount, setLikesCount] = useState(post?.likes || 0);
     const [comments, setComments] = useState<EnhancedComment[]>([]);
     const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
     const [imageViewerOpen, setImageViewerOpen] = useState(false);
@@ -79,15 +84,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
         fetchCurrentUser();
 
-        // Update liked state when selectedPost changes (using the state variable)
-        if (selectedPost) {
-            setLiked(selectedPost.is_liked || false);
-            setLikesCount(selectedPost.likes || 0);
-        } else {
-             // Reset if post becomes null
-            setLiked(false);
-            setLikesCount(0);
-        }
+        // No need to update state here, it's already handled in the post useEffect
 
         // Reiniciar el estado del visor de imágenes al abrir el post
         if (isOpen) {
@@ -103,6 +100,18 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         return true;
     }, [comment]);
 
+    // Definición de la animación personalizada
+    const animatePulseLight = `
+        @keyframes pulseLight {
+            0% { opacity: 1; }
+            50% { opacity: 0.85; }
+            100% { opacity: 1; }
+        }
+        .animate-pulse-light {
+            animation: pulseLight 2s ease-in-out;
+        }
+    `;
+    
     // Close on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -162,8 +171,18 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     // Confirm update
                     setLiked(response.status === 'liked');
                     setLikesCount(response.likes);
-                    // Also update selectedPost state if necessary (might not be needed if parent re-fetches)
+                    // Update selectedPost state
                     setSelectedPost(prevPost => prevPost ? {...prevPost, is_liked: response.status === 'liked', likes: response.likes} : null);
+                    
+                    // Dispatch event to synchronize like state across the app
+                    const likeUpdateEvent = new CustomEvent('post-like-update', {
+                        detail: { 
+                            postId: selectedPost.id, 
+                            isLiked: response.status === 'liked',
+                            likesCount: response.likes
+                        }
+                    });
+                    window.dispatchEvent(likeUpdateEvent);
                 })
                 .catch(error => {
                     console.error('Error al dar/quitar like:', error);
@@ -194,6 +213,24 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
          // console.log("Updated comment cache:", cache); // For debugging if needed
     };
 
+    // Emitir evento cuando cambie el contador de comentarios
+    useEffect(() => {
+        if (selectedPost) {
+            const commentUpdateEvent = new CustomEvent('post-comment-update', {
+                detail: { 
+                    postId: selectedPost.id, 
+                    commentCount: selectedPost.comments
+                }
+            });
+            // Usar un pequeño retraso para asegurar que ocurra después del renderizado
+            const timerId = setTimeout(() => {
+                window.dispatchEvent(commentUpdateEvent);
+            }, 0);
+            
+            return () => clearTimeout(timerId);
+        }
+    }, [selectedPost?.comments, selectedPost?.id]);
+    
     // Cargar comentarios
     useEffect(() => {
         // Use selectedPost
@@ -233,7 +270,8 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                 avatarUrl: authorAvatarUrl
                             },
                             mentionedUser: mentionedUser, // Assign the extracted string
-                            timestamp: comment.timestamp || comment.created_at || 'just now', // Ensure timestamp exists
+                            timestamp: comment.timestamp || comment.created_at || new Date().toISOString(), // Ensure timestamp exists
+                            created_at: comment.created_at || comment.timestamp || new Date().toISOString(), // Guardar created_at original
                             replies: [], // Initialize replies array
                         };
 
@@ -337,87 +375,135 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const addCommentOrReply = async () => {
         if (comment.trim() === '' || !selectedPost) return; // Ensure post exists
 
+        const commentContent = comment.trim();
+        setComment(''); // Clear input field immediately for better UX
+        
         try {
-            // Datos para el nuevo comentario/respuesta
-            const commentData: { post_id: string; content: string; parent_id?: string; mentioned_user_id?: string } = {
+            // Obtener datos del usuario actual
+            const userProfile = currentUser || await authService.getProfile();
+            
+            // Crear un ID temporal para el comentario
+            const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            
+            // Crear un comentario optimista que se mostrará inmediatamente
+            const now = new Date().toISOString(); // Usar una fecha ISO real para evitar errores de parseo
+            const optimisticComment: EnhancedComment = {
+                id: tempId,
+                author: {
+                    id: userProfile?.id || '',
+                    username: userProfile?.username || 'Usuario',
+                    level: userProfile?.level,
+                    avatarUrl: userProfile?.avatar_url,
+                },
+                content: commentContent,
+                timestamp: 'ahora mismo', // Texto amigable para el usuario
+                created_at: now, // Fecha real para operaciones internas
+                likes: 0,
+                is_liked: false,
+                isLiked: false,
+                likesCount: 0,
+                mentionedUser: replyToComment?.username,
+                replyLevel: replyToComment ? replyToComment.replyLevel : 0,
+                parentId: replyToComment?.id,
+                parentCommentId: replyToComment?.parentCommentId,
+                replies: [],
+            };
+
+            // Actualizar UI inmediatamente (optimistic update)
+            if (replyToComment) {
+                // Es una respuesta a un comentario existente
+                setComments(prevComments => {
+                    const updatedComments = addReplyToCommentTree(
+                        prevComments, 
+                        replyToComment.id, 
+                        optimisticComment
+                    );
+                    updateAllCommentsCache(updatedComments);
+                    return updatedComments;
+                });
+
+                // Guardar referencia para "responder de nuevo"
+                setLastRespondedComment({ ...replyToComment });
+                setReplyToComment(null);
+            } else {
+                // Es un comentario nuevo de primer nivel
+                setComments(prevComments => {
+                    const updatedComments = [...prevComments, optimisticComment];
+                    updateAllCommentsCache(updatedComments);
+                    return updatedComments;
+                });
+                setLastRespondedComment(null);
+            }
+
+            // Actualizar el contador de comentarios del post (optimistic)
+            setSelectedPost(prevPost => 
+                prevPost ? {...prevPost, comments: (prevPost.comments || 0) + 1} : null
+            );
+
+            // Preparar datos para la API
+            const commentData = {
                 post_id: selectedPost.id,
-                content: comment,
-                // If replying, parent_id is the ID of the comment being directly replied to
+                content: commentContent,
                 parent_id: replyToComment?.id,
-                // Pass mentioned user ID if replying
                 mentioned_user_id: replyToComment?.userId || undefined
             };
 
-             // console.log('Sending comment/reply:', commentData); // Debugging
-
-            // Enviar el comentario/respuesta a la API
+            // Enviar a la API en segundo plano
             const response = await communityService.createComment(commentData);
-             // console.log('API response:', response); // Debugging
 
-            // Assuming API returns the created comment object structure
-            // Get current user profile for author info
-            const userProfile = currentUser || await authService.getProfile(); // Use cached or fetch if needed
-
-            // Create the new EnhancedComment object
-             const newEnhancedComment: EnhancedComment = {
-                ...response, // Spread the response data (id, timestamp, potentially likes=0, is_liked=false etc.)
-                id: response.id, // Ensure ID is correct
-                author: {
-                    id: userProfile?.id || '', // Use optional chaining
-                    username: userProfile?.username || 'Usuario',
-                    level: userProfile?.level,
-                    avatarUrl: userProfile?.avatar_url, // Use only avatar_url property that exists in UserProfile
-                },
-                content: response.content || comment, // Use content from response or local state
-                timestamp: response.timestamp || response.created_at || 'just now', // Use timestamp from response
-                likes: response.likes || 0,
-                is_liked: response.is_liked || false,
-                isLiked: response.is_liked || false, // Local state
-                likesCount: response.likes || 0, // Local state
-                mentionedUser: replyToComment?.username, // Username of person replied to
-                replyLevel: replyToComment ? replyToComment.replyLevel : 0, // Level of this new comment
-                parentId: replyToComment?.id, // Direct parent ID if it's a reply
-                parentCommentId: replyToComment?.parentCommentId, // Root comment ID if it's a reply
-                replies: [], // New comments/replies start with no replies
-             };
-             // console.log('Created new EnhancedComment:', newEnhancedComment); // Debugging
-
-
-            if (replyToComment) {
-                 // It's a reply, add it to the correct place in the tree
-                 // console.log(`Adding reply to parent ${replyToComment.id} within root ${replyToComment.parentCommentId}`); // Debugging
-                setComments(prevComments => {
-                    // Need to find the correct comment (or reply) by ID and add the new reply to its `replies` array
-                    const updatedComments = addReplyToCommentTree(prevComments, replyToComment.id, newEnhancedComment);
-                    // console.log("Updated comments tree after adding reply:", updatedComments); // Debugging
-                    updateAllCommentsCache(updatedComments); // Update cache if needed
-                    return updatedComments;
-                });
-
-                // Save reference to the last replied comment for "reply again" feature
-                setLastRespondedComment({ ...replyToComment });
-                setReplyToComment(null); // Clear reply state
-
-            } else {
-                 // It's a new top-level comment
-                 // console.log("Adding new top-level comment"); // Debugging
-                setComments(prevComments => {
-                    const updatedComments = [...prevComments, newEnhancedComment];
-                    updateAllCommentsCache(updatedComments); // Update cache if needed
-                    return updatedComments;
-                });
-                setLastRespondedComment(null); // Clear last responded if adding a root comment
-            }
-
-            setComment(''); // Clear input field
-
-             // Update the main post's comment count (optimistic)
-            setSelectedPost(prevPost => prevPost ? {...prevPost, comments: (prevPost.comments || 0) + 1} : null);
-
+            // Una vez recibida la respuesta, actualizar el comentario temporal con los datos reales
+            setComments(prevComments => {
+                // Función para actualizar un comentario temporal en el árbol de comentarios
+                const updateCommentInTree = (comments: EnhancedComment[]): EnhancedComment[] => {
+                    return comments.map(c => {
+                        if (c.id === tempId) {
+                            // Reemplazar el comentario temporal con el real
+                            return {
+                                ...response,
+                                id: response.id,
+                                author: {
+                                    id: userProfile?.id || '',
+                                    username: userProfile?.username || 'Usuario',
+                                    level: userProfile?.level,
+                                    avatarUrl: userProfile?.avatar_url,
+                                },
+                                content: response.content || commentContent,
+                                timestamp: response.timestamp || response.created_at || 'ahora mismo',
+                                likes: response.likes || 0,
+                                is_liked: response.is_liked || false,
+                                isLiked: response.is_liked || false,
+                                likesCount: response.likes || 0,
+                                mentionedUser: c.mentionedUser,
+                                replyLevel: c.replyLevel,
+                                parentId: c.parentId,
+                                parentCommentId: c.parentCommentId,
+                                replies: c.replies || [],
+                            };
+                        }
+                        
+                        // Si tiene respuestas, buscar recursivamente
+                        if (c.replies && Array.isArray(c.replies) && c.replies.length > 0) {
+                            return {
+                                ...c,
+                                replies: updateCommentInTree(c.replies as EnhancedComment[])
+                            };
+                        }
+                        
+                        return c;
+                    });
+                };
+                
+                // Actualizar toda la estructura de comentarios
+                const updatedComments = updateCommentInTree(prevComments);
+                updateAllCommentsCache(updatedComments);
+                return updatedComments;
+            });
 
         } catch (error) {
             console.error('Error al añadir comentario/respuesta:', error);
-            // Optionally show an error message to the user
+            // Mostrar mensaje de error y restaurar el comentario al campo de entrada
+            setComment(commentContent);
+            // Opcionalmente mostrar un toast o alerta de error
         }
     };
 
@@ -469,7 +555,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         const borderClass = nestingLevel > 0 ? `pl-4 border-l-2 border-[#3a3a38]` : '';
 
         return (
-            <div className={`mb-4 ${indentationClass}`}>
+            <div className={`mb-6 ${indentationClass}`}>
                  <div className={` ${borderClass}`}>
                     <div className="flex gap-2">
                         {/* Avatar and author details */}
@@ -503,7 +589,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             {/* Comment Header */}
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span className="font-medium text-white text-sm">{comment.author?.username || 'Usuario'}</span>
-                                <span className="text-xs text-zinc-400">{comment.timestamp}</span>
+                                <span className="text-xs text-zinc-400">{formatRelativeTime(comment.timestamp)}</span>
                             </div>
 
                             {/* Comment Body */}
@@ -520,12 +606,57 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             <div className="flex items-center gap-4 ml-1 text-xs">
                                 <div className="flex items-center gap-1">
                                     <button
-                                        className={`p-1 rounded-full transition-colors ${isCommentLiked ? 'text-blue-400' : 'text-zinc-400 hover:text-zinc-300'}`}
-                                        onClick={handleCommentLike}
-                                        aria-pressed={isCommentLiked}
-                                        aria-label={isCommentLiked ? 'Quitar me gusta' : 'Me gusta'}
+                                        className={`p-1 rounded-full transition-all transform hover:scale-110 ${isCommentLiked ? 'text-blue-400 hover:text-blue-500' : 'text-zinc-400 hover:text-zinc-300'}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            
+                                            // Crear un elemento temporal para mostrar efecto de animación
+                                            const button = e.currentTarget;
+                                            const rect = button.getBoundingClientRect();
+                                            const tempIcon = document.createElement('div');
+                                            tempIcon.innerHTML = `<svg 
+                                              width="14" 
+                                              height="14" 
+                                              viewBox="0 0 24 24" 
+                                              fill="none" 
+                                              stroke="${!isCommentLiked ? '#3b82f6' : '#9ca3af'}" 
+                                              stroke-width="2" 
+                                              stroke-linecap="round" 
+                                              stroke-linejoin="round"
+                                              class="lucide lucide-thumbs-up"
+                                            >
+                                              <path d="M7 10v12"></path>
+                                              <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
+                                            </svg>`;
+                                            
+                                            tempIcon.style.position = 'fixed';
+                                            tempIcon.style.left = `${rect.left + rect.width/2 - 7}px`;
+                                            tempIcon.style.top = `${rect.top + rect.height/2 - 7}px`;
+                                            tempIcon.style.opacity = '1';
+                                            tempIcon.style.transform = 'scale(1)';
+                                            tempIcon.style.transition = 'all 0.5s ease-out';
+                                            tempIcon.style.pointerEvents = 'none';
+                                            tempIcon.style.zIndex = '9999';
+                                            
+                                            document.body.appendChild(tempIcon);
+                                            
+                                            // Animar el elemento
+                                            setTimeout(() => {
+                                              tempIcon.style.opacity = '0';
+                                              tempIcon.style.transform = 'scale(2) translateY(-10px)';
+                                            }, 50);
+                                            
+                                            // Eliminar después de la animación
+                                            setTimeout(() => {
+                                              document.body.removeChild(tempIcon);
+                                            }, 550);
+                                            
+                                            // Llamar al manejador original
+                                            handleCommentLike(e);
+                                        }}
+                                        aria-label={isCommentLiked ? 'Quitar like' : 'Dar like'}
                                     >
-                                        <ThumbsUp size={14} fill={isCommentLiked ? 'currentColor' : 'none'}/>
+                                        <ThumbsUp size={14} className={isCommentLiked ? 'transform animate-pulse' : ''} />
                                     </button>
                                     {/* Show count only if > 0 */}
                                     {commentLikesCount > 0 && (
@@ -643,6 +774,8 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
 
     return (
+        <>
+        <style jsx>{animatePulseLight}</style>
         <div className="fixed inset-0 bg-black/80 z-50 flex items-start justify-center pt-8 sm:pt-12 md:pt-16 pb-8 px-2 sm:px-4 overflow-y-auto" aria-modal="true" role="dialog" aria-labelledby="post-modal-title">
             <div
                 ref={modalRef}
@@ -850,12 +983,55 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     <div className="flex items-center gap-4 pt-3 pb-3 border-b border-white/10 text-zinc-300">
                         <div className="flex items-center gap-1">
                             <button
-                                className={`p-1 rounded-full transition-colors ${liked ? 'text-blue-400' : 'text-zinc-400 hover:text-zinc-300'}`}
-                                onClick={handleLike}
-                                aria-pressed={liked}
-                                aria-label={liked ? "Quitar me gusta" : "Me gusta"}
+                                className={`p-1 rounded-full transition-all transform hover:scale-110 ${liked ? 'text-blue-400 hover:text-blue-500' : 'text-zinc-400 hover:text-zinc-300'}`}
+                                onClick={(e) => {
+                                    // Crear un elemento temporal para mostrar efecto de animación
+                                    const button = e.currentTarget;
+                                    const rect = button.getBoundingClientRect();
+                                    const tempIcon = document.createElement('div');
+                                    tempIcon.innerHTML = `<svg 
+                                      width="16" 
+                                      height="16" 
+                                      viewBox="0 0 24 24" 
+                                      fill="none" 
+                                      stroke="${!liked ? '#3b82f6' : '#9ca3af'}" 
+                                      stroke-width="2" 
+                                      stroke-linecap="round" 
+                                      stroke-linejoin="round"
+                                      class="lucide lucide-thumbs-up"
+                                    >
+                                      <path d="M7 10v12"></path>
+                                      <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
+                                    </svg>`;
+                                    
+                                    tempIcon.style.position = 'fixed';
+                                    tempIcon.style.left = `${rect.left + rect.width/2 - 8}px`;
+                                    tempIcon.style.top = `${rect.top + rect.height/2 - 8}px`;
+                                    tempIcon.style.opacity = '1';
+                                    tempIcon.style.transform = 'scale(1)';
+                                    tempIcon.style.transition = 'all 0.5s ease-out';
+                                    tempIcon.style.pointerEvents = 'none';
+                                    tempIcon.style.zIndex = '9999';
+                                    
+                                    document.body.appendChild(tempIcon);
+                                    
+                                    // Animar el elemento
+                                    setTimeout(() => {
+                                      tempIcon.style.opacity = '0';
+                                      tempIcon.style.transform = 'scale(2) translateY(-10px)';
+                                    }, 50);
+                                    
+                                    // Eliminar después de la animación
+                                    setTimeout(() => {
+                                      document.body.removeChild(tempIcon);
+                                    }, 550);
+                                    
+                                    // Llamar al manejador original
+                                    handleLike();
+                                }}
+                                aria-label={liked ? 'Quitar like' : 'Dar like'}
                             >
-                                <ThumbsUp size={16} fill={liked ? 'currentColor' : 'none'} />
+                                <ThumbsUp size={14} className={liked ? 'transform animate-pulse' : ''} />
                             </button>
                             <span className="text-sm tabular-nums">{likesCount}</span>
                         </div>
@@ -875,14 +1051,27 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
                         {/* Lista de comentarios */}
                         {comments.length > 0 ? (
-                            <div className="space-y-0 mb-5"> {/* Reduced space-y */}
-                                {comments.map(comment => (
-                                    <CommentItem key={comment.id} comment={comment} nestingLevel={0} />
+                            <div className="space-y-2 mb-6"> {/* Increased space-y for better separation */}
+                                {comments.map((comment, index) => (
+                                    <div 
+                                        key={comment.id} 
+                                        className={`transition-all duration-300 ease-in-out ${
+                                            comment.id.startsWith('temp-') ? 'animate-pulse-light' : ''
+                                        }`}
+                                    >
+                                        <CommentItem comment={comment} nestingLevel={0} />
+                                        {index < comments.length - 1 && (
+                                            <div className="border-b border-zinc-800/50 mt-5 mb-1"></div>
+                                        )}
+                                    </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-zinc-500 text-sm text-center py-4">
-                                Aún no hay comentarios. ¡Sé el primero!
+                            <div className="text-zinc-500 text-sm text-center py-8 border border-dashed border-zinc-800 rounded-lg">
+                                <div className="flex flex-col items-center gap-2">
+                                    <MessageCircle size={20} className="opacity-50" />
+                                    <p>Aún no hay comentarios. ¡Sé el primero!</p>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -959,15 +1148,29 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             )}
 
                             {/* Input Field */}
-                            <div className="bg-[#2a2a29] rounded-full flex items-center border border-white/10 focus-within:border-amber-400/50 transition-colors">
+                            <div className="bg-[#2a2a29] rounded-full flex items-center border border-white/10 focus-within:border-amber-400/50 focus-within:ring-1 focus-within:ring-amber-400/30 transition-all">
                                 <input
                                     id="comment-input"
                                     type="text"
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
                                     placeholder={replyToComment ? `Responder a ${replyToComment.username}...` : "Añadir un comentario..."}
-                                    className="flex-1 bg-transparent text-zinc-200 outline-none px-4 py-2 text-sm rounded-full placeholder-zinc-500"
-                                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && comment.trim()) { e.preventDefault(); addCommentOrReply(); } }} // Submit on Enter
+                                    className="flex-1 bg-transparent text-zinc-200 outline-none px-4 py-2.5 text-sm rounded-full placeholder-zinc-500"
+                                    onKeyDown={(e) => { 
+                                        if (e.key === 'Enter' && !e.shiftKey && comment.trim()) { 
+                                            e.preventDefault();
+                                            
+                                            // Efecto visual de enfoque
+                                            const input = e.currentTarget;
+                                            const originalBg = input.style.backgroundColor;
+                                            input.style.backgroundColor = 'rgba(251, 191, 36, 0.05)';
+                                            
+                                            setTimeout(() => {
+                                                input.style.backgroundColor = originalBg;
+                                                addCommentOrReply();
+                                            }, 150);
+                                        } 
+                                    }}
                                 />
                                  {/* Optional: Emoji/GIF buttons */}
                                 {/* <div className="flex items-center mr-3 space-x-1">
@@ -995,9 +1198,18 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     <Button
                                         variant="default" // Keep default for primary action
                                         size="sm"
-                                        onClick={addCommentOrReply}
+                                        onClick={(e) => {
+                                            // Efecto visual de botón pulsado
+                                            const button = e.currentTarget;
+                                            button.classList.add("scale-95");
+                                            
+                                            setTimeout(() => {
+                                                button.classList.remove("scale-95");
+                                                addCommentOrReply();
+                                            }, 150);
+                                        }}
                                         disabled={comment.trim() === ''} // Disable if empty
-                                        className="rounded-full font-medium text-sm bg-amber-500 hover:bg-amber-600 text-black px-4 py-1.5 h-auto" // Adjust padding/height
+                                        className="rounded-full font-medium text-sm bg-amber-500 hover:bg-amber-600 text-black px-4 py-1.5 h-auto transition-all transform active:scale-95" // Adjust padding/height
                                     >
                                         {replyToComment ? 'Responder' : 'Comentar'}
                                     </Button>
@@ -1020,5 +1232,6 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
             )}
 
         </div>
+        </>
     );
 };

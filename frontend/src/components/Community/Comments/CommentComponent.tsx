@@ -67,10 +67,11 @@ export const CommentComponent: React.FC<CommentComponentProps> = ({
                     <div className="flex items-center gap-4">
                         <div className="flex items-center">
                             <button
-                                className="flex items-center text-zinc-400 hover:text-zinc-300"
+                                className={`p-1 rounded-full ${likesCount > 0 ? 'text-blue-400' : 'text-zinc-400 hover:text-zinc-300'}`}
                                 onClick={onLike}
+                                aria-label={likesCount > 0 ? 'Quitar like' : 'Dar like'}
                             >
-                                <ThumbsUp size={16} className="mr-1" />
+                                <ThumbsUp size={14} />
                             </button>
                             {likesCount > 0 && (
                                 <span className="text-xs text-zinc-400 ml-1">{likesCount}</span>
@@ -80,7 +81,7 @@ export const CommentComponent: React.FC<CommentComponentProps> = ({
                             className="flex items-center text-zinc-400 hover:text-zinc-300"
                             onClick={onReply}
                         >
-                            <Reply size={16} className="mr-1" /> Reply
+                            <Reply size={16} className="mr-1" /> Responder
                         </button>
                     </div>
                 </div>

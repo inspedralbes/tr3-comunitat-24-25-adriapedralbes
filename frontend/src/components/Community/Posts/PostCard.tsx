@@ -1,6 +1,6 @@
 import { ThumbsUp, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { CommentAvatars } from '@/components/Community/Comments/CommentAvatars';
 import { PostAuthor } from '@/components/Community/Posts/PostAuthor';
@@ -63,6 +63,38 @@ export const PostCard: React.FC<PostCardProps> = ({
     // Estado local para controlar el like
     const [isPostLiked, setIsPostLiked] = useState(isLiked);
     const [likesCount, setLikesCount] = useState(likes);
+    
+    // Estado para el contador de comentarios
+    const [commentsCount, setCommentsCount] = useState(comments);
+    
+    // Listen for like updates and comment updates from other components (e.g., PostDetailModal)
+    useEffect(() => {
+        const handleLikeUpdate = (event: Event) => {
+            const detail = (event as CustomEvent).detail;
+            if (detail && detail.postId === id) {
+                setIsPostLiked(detail.isLiked);
+                setLikesCount(detail.likesCount);
+            }
+        };
+        
+        const handleCommentUpdate = (event: Event) => {
+            // Usar setTimeout para asegurar que la actualización no ocurra durante el renderizado
+            setTimeout(() => {
+                const detail = (event as CustomEvent).detail;
+                if (detail && detail.postId === id) {
+                    setCommentsCount(detail.commentCount);
+                }
+            }, 0);
+        };
+        
+        window.addEventListener('post-like-update', handleLikeUpdate);
+        window.addEventListener('post-comment-update', handleCommentUpdate);
+        
+        return () => {
+            window.removeEventListener('post-like-update', handleLikeUpdate);
+            window.removeEventListener('post-comment-update', handleCommentUpdate);
+        };
+    }, [id]);
 
     // Extraer contenido enriquecido si el contenido es JSON
     const getEnrichedContent = (content: string) => {
@@ -507,11 +539,52 @@ export const PostCard: React.FC<PostCardProps> = ({
                 <div className="flex items-center gap-4 text-zinc-300">
                     <div className="flex items-center gap-1">
                         <button
-                            className={`p-1 hover:bg-[#444442] rounded-full transition-colors ${isPostLiked ? 'text-blue-400' : ''}`}
+                            className={`p-1 rounded-full transition-all transform hover:scale-110 ${isPostLiked ? 'text-blue-400 hover:text-blue-500' : 'text-zinc-400 hover:text-zinc-300'}`}
                             onClick={(e) => {
                                 e.stopPropagation(); // Evitar que se abra el modal al dar like
                                 const originalLiked = isPostLiked;
                                 const originalCount = likesCount;
+
+                                // Crear un elemento temporal para mostrar efecto de animación
+                                const button = e.currentTarget;
+                                const rect = button.getBoundingClientRect();
+                                const tempIcon = document.createElement('div');
+                                tempIcon.innerHTML = `<svg 
+                                  width="16" 
+                                  height="16" 
+                                  viewBox="0 0 24 24" 
+                                  fill="none" 
+                                  stroke="${!originalLiked ? '#3b82f6' : '#9ca3af'}" 
+                                  stroke-width="2" 
+                                  stroke-linecap="round" 
+                                  stroke-linejoin="round"
+                                  class="lucide lucide-thumbs-up"
+                                >
+                                  <path d="M7 10v12"></path>
+                                  <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
+                                </svg>`;
+                                
+                                tempIcon.style.position = 'fixed';
+                                tempIcon.style.left = `${rect.left + rect.width/2 - 8}px`;
+                                tempIcon.style.top = `${rect.top + rect.height/2 - 8}px`;
+                                tempIcon.style.opacity = '1';
+                                tempIcon.style.transform = 'scale(1)';
+                                tempIcon.style.transition = 'all 0.5s ease-out';
+                                tempIcon.style.pointerEvents = 'none';
+                                tempIcon.style.zIndex = '9999';
+                                
+                                document.body.appendChild(tempIcon);
+                                
+                                // Animar el elemento
+                                setTimeout(() => {
+                                  tempIcon.style.opacity = '0';
+                                  tempIcon.style.transform = 'scale(2) translateY(-10px)';
+                                }, 50);
+                                
+                                // Eliminar después de la animación
+                                setTimeout(() => {
+                                  document.body.removeChild(tempIcon);
+                                }, 550);
 
                                 // Optimistic UI update
                                 setIsPostLiked(!originalLiked);
@@ -522,6 +595,16 @@ export const PostCard: React.FC<PostCardProps> = ({
                                         // Confirm update with server response
                                         setIsPostLiked(response.status === 'liked');
                                         setLikesCount(response.likes);
+                                        
+                                        // Dispatch event to synchronize like state across the app
+                                        const likeUpdateEvent = new CustomEvent('post-like-update', {
+                                            detail: { 
+                                                postId: id, 
+                                                isLiked: response.status === 'liked',
+                                                likesCount: response.likes
+                                            }
+                                        });
+                                        window.dispatchEvent(likeUpdateEvent);
                                     })
                                     .catch(() => {
                                         // Revert on error
@@ -531,10 +614,9 @@ export const PostCard: React.FC<PostCardProps> = ({
                                         // Optionally show an error message to the user
                                     });
                             }}
-                            aria-pressed={isPostLiked}
-                            aria-label={isPostLiked ? "Quitar me gusta" : "Me gusta"}
+                            aria-label={isPostLiked ? 'Quitar like' : 'Dar like'}
                         >
-                            <ThumbsUp size={16} fill={isPostLiked ? 'currentColor' : 'none'} />
+                            <ThumbsUp size={14} className={isPostLiked ? 'transform animate-pulse' : ''} />
                         </button>
                         <span className="text-sm tabular-nums">{likesCount}</span>
                     </div>
@@ -543,7 +625,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                         <span className="p-1 text-zinc-400"> {/* Just display icon + count */}
                             <MessageCircle size={16} />
                         </span>
-                        <span className="text-sm tabular-nums">{comments}</span>
+                        <span className="text-sm tabular-nums">{commentsCount}</span>
                     </div>
                 </div>
 

@@ -31,11 +31,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setIsLoading(true);
 
     try {
-      await authService.login({ username, password });
+      // Login and get token response
+      const tokenResponse = await authService.login({ username, password });
+      
+      // Immediately fetch user profile to update state before redirect
+      const userProfile = await authService.getProfile();
+      
+      // Call onSuccess only after we've retrieved the user profile
       onSuccess();
       
-      // Redirigir a la comunidad después del login
-      router.push('/comunidad');
+      // Give the UI a moment to update before redirecting
+      setTimeout(() => {
+        // Redirigir a la comunidad después del login
+        router.push('/comunidad');
+      }, 100);
     } catch (err: unknown) {
       const error = err as Error;
       setError(error.message || 'Credenciales inválidas. Por favor, intenta de nuevo.');

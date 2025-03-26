@@ -74,6 +74,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply }) =>
                             <button
                                 className={`p-1 rounded-full ${liked ? 'text-blue-400' : 'text-zinc-400 hover:text-zinc-300'}`}
                                 onClick={handleLike}
+                                aria-label={liked ? 'Quitar like' : 'Dar like'}
                             >
                                 <ThumbsUp size={14} />
                             </button>
@@ -86,7 +87,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply }) =>
                             onClick={handleReply}
                         >
                             <CornerUpRight size={14} />
-                            Reply
+                            Responder
                         </button>
                     </div>
                 </div>
