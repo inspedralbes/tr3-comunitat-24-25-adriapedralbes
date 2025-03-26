@@ -7,6 +7,8 @@ from . import webhook_views
 from . import progress_views
 from api.gamification import urls as gamification_urls
 from .views import EventListView
+from .views_newsletter import subscribe, confirm_subscription, unsubscribe
+from .debug_post import debug_posts
 
 # Configurar router para las vistas viewset
 router = DefaultRouter()

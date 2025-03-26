@@ -7,3 +7,7 @@ python-dotenv
 gunicorn
 stripe
 psycopg2-binary
+django-axes
+whitenoise
+django-csp
+django-ratelimit
