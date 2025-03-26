@@ -28,22 +28,16 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
     };
 
     return (
-      <div
-        ref={ref}
-        className={cn("tabs", className)}
-        data-value={selectedValue}
-        {...props}
-      >
-        {React.Children.map(children, (child) => {
-          if (React.isValidElement(child)) {
-            return React.cloneElement(child as React.ReactElement<TabsListProps | TabsTriggerProps | TabsContentProps>, {
-              value: selectedValue,
-              onValueChange: handleValueChange,
-            });
-          }
-          return child;
-        })}
-      </div>
+      <TabsProvider value={selectedValue} onValueChange={handleValueChange}>
+        <div
+          ref={ref}
+          className={cn("tabs", className)}
+          data-value={selectedValue}
+          {...props}
+        >
+          {children}
+        </div>
+      </TabsProvider>
     );
   }
 );

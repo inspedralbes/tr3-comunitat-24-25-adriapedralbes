@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Upload } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+
 import api from '@/services/api';
 import courseService from '@/services/courses';
 import { Course } from '@/types/Course';
@@ -55,7 +56,7 @@ export default function CourseEditor({ courseId, initialData }: CourseEditorProp
       // Log de depuración
       console.log('Enviando datos del curso:', { title, description });
       
-      let courseData: any = {
+      const courseData: any = {
         title,
         description
         // El progreso no se envía ya que se calcula automáticamente

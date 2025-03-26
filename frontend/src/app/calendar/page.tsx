@@ -6,8 +6,8 @@ import { Calendar } from '@/components/Calendar/Calendar';
 import { EventDetailModal } from '@/components/Calendar/EventDetailModel';
 import MainLayout from '@/components/layouts/MainLayout';
 import { mockEvents } from '@/mockData/calendarEvents';
-import { CalendarEvent } from '@/types/Calendar';
 import { fetchEvents } from '@/services/eventService';
+import { CalendarEvent } from '@/types/Calendar';
 
 export default function CalendarPage() {
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);

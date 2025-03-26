@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import MainLayout from '@/components/layouts/MainLayout';
-import LessonViewer from '@/components/Classroom/LessonViewer';
-import courseService from '@/services/courses';
-import { Lesson } from '@/types/Course';
 import { ArrowLeft } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import LessonViewer from '@/components/Classroom/LessonViewer';
+import MainLayout from '@/components/layouts/MainLayout';
+import { default as courseService } from '@/services/courses';
+import { Lesson } from '@/types/Course';
+
 
 export default function LessonPage() {
   const params = useParams();

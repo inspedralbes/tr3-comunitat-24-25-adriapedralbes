@@ -1,15 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, use } from 'react';
-import MainLayout from '@/components/layouts/MainLayout';
+
 import CourseEditor from '@/components/Classroom/Admin/CourseEditor';
-import courseService from '@/services/courses';
+import MainLayout from '@/components/layouts/MainLayout';
+import { default as courseService } from '@/services/courses';
 import { Course } from '@/types/Course';
 
-export default function EditCoursePage({ params }: { params: { slug: string } }) {
-  // Usando React.use para desenvolver el objeto params
-  const unwrappedParams = use(params);
-  const courseId = unwrappedParams.slug;
+export default function EditCoursePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug: courseId } = use(params);
   
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);

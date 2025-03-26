@@ -1,5 +1,6 @@
-import api from '../api';
 import { Course, CourseDetail, Lesson, LessonDetail } from '@/types/Course';
+
+import api from '../api';
 
 export const courseService = {
   // Get all courses

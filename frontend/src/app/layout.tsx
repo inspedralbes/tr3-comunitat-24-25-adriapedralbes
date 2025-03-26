@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
 import { ToastProvider } from '@/components/ui/toast';
+
+import type { Metadata } from "next";
 import "./globals.css";
 import "../styles/transitions.css";
 

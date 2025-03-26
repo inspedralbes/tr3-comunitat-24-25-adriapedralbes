@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from 'lucide-react';
+// X no es utilizado
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 

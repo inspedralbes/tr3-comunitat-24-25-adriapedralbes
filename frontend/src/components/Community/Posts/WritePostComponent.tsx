@@ -2,9 +2,8 @@ import { User, Paperclip, Link2, Video, BarChart2, Smile, X } from 'lucide-react
 import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
 
-import UserLevelBadge from '@/components/ui/UserLevelBadge';
-
 import { AuthModal, AuthModalType } from '@/components/Auth';
+import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { authService } from '@/services/auth';
 
 interface Category {

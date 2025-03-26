@@ -1,18 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, use } from 'react';
-import Link from 'next/link';
 import { ArrowLeft, Edit, Plus, Trash2 } from 'lucide-react';
-import MainLayout from '@/components/layouts/MainLayout';
-import courseService from '@/services/courses';
-import { Course, CourseDetail, Lesson } from '@/types/Course';
+import Link from 'next/link';
+import React, { useState, useEffect, use } from 'react';
 
-export default function AdminCourseLessonsPage({ params }: { params: { id: string } }) {
-  // Usando React.use para desenvolver el objeto params
-  const unwrappedParams = use(params);
-  const courseId = unwrappedParams.id;
+import MainLayout from '@/components/layouts/MainLayout';
+import { default as courseService } from '@/services/courses';
+import { CourseDetail, LessonDetail } from '@/types/Course';
+
+export default function AdminCourseLessonsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: courseId } = use(params);
   const [course, setCourse] = useState<CourseDetail | null>(null);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [lessons, setLessons] = useState<LessonDetail[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

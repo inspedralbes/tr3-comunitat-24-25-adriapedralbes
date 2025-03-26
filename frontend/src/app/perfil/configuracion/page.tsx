@@ -5,13 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
-import { SubscriptionStatus } from '@/services/subscription';
-import subscriptionService from '@/services/subscription';
 
 import MainLayout from '@/components/layouts/MainLayout';
 import { ProfileSettings } from '@/components/Profile/ProfileSettings';
 import { RequiredSubscriptionModal } from '@/components/Subscription';
 import { UserProfile, authService } from '@/services/auth';
+import { default as subscriptionService, SubscriptionStatus } from '@/services/subscription';
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
@@ -19,7 +18,7 @@ export default function ProfileSettingsPage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [_showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   const [isSubscriptionRequired, setIsSubscriptionRequired] = useState(false);
 

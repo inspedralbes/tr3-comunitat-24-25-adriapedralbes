@@ -1,18 +1,18 @@
 "use client";
 
-import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 import LessonEditor from '@/components/Classroom/Admin/LessonEditor';
 import MainLayout from '@/components/layouts/MainLayout';
-import { default as courseService } from '@/services/courses';
+import courseService from '@/services/courses';
 import { Lesson } from '@/types/Course';
 
-export default function EditLessonPage() {
-  const params = useParams();
-  const courseId = params.id as string;
-  const lessonId = params.lessonId as string;
-  
+interface LessonEditorPageProps {
+  courseId: string;
+  lessonId: string;
+}
+
+export default function LessonEditorPage({ courseId, lessonId }: LessonEditorPageProps) {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

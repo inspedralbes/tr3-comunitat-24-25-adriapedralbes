@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+
 import courseService from '@/services/courses';
 import { Lesson } from '@/types/Course';
+
 import MarkdownEditor from './MarkdownEditor/index';
 
 interface LessonEditorProps {
@@ -47,7 +49,7 @@ export default function LessonEditor({ courseId, lessonId, initialData }: Lesson
   const [errorMessage, setErrorMessage] = useState('');
   
   // Función para extraer la URL del video desde el markdown
-  function extractVideoUrl(markdown: string): string | null {
+  function extractVideoUrl(markdown: string): string | undefined {
     // Buscar la URL de YouTube en un iframe
     const youtubeMatch = markdown.match(/src=["']https:\/\/www\.youtube\.com\/embed\/([^"'\s]+)["']/i);
     if (youtubeMatch) {
@@ -60,11 +62,11 @@ export default function LessonEditor({ courseId, lessonId, initialData }: Lesson
       return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
     }
     
-    return null;
+    return undefined;
   }
   
   // Función para convertir HTML a Markdown (mejorada)
-  function htmlToMarkdown(html: string, videoUrl?: string | null): string {
+  function htmlToMarkdown(html: string, videoUrl?: string): string {
     // Si tenemos una URL de video directamente, crear un iframe para ella
     if (videoUrl) {
       const iframe = `<iframe src="${videoUrl}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`;
@@ -166,7 +168,7 @@ export default function LessonEditor({ courseId, lessonId, initialData }: Lesson
   // Función para convertir Markdown a HTML (mejorada)
   function markdownToHtml(markdown: string): string {
     // Buscar y extraer el iframe si existe
-    let iframeMatch = markdown.match(/<iframe[^>]*>[\s\S]*?<\/iframe>/i);
+    const iframeMatch = markdown.match(/<iframe[^>]*>[\s\S]*?<\/iframe>/i);
     let iframeHtml = '';
     if (iframeMatch) {
       iframeHtml = iframeMatch[0];

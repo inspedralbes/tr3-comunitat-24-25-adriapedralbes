@@ -1,8 +1,9 @@
 "use client";
 
 import React from 'react';
-import MainLayout from '@/components/layouts/MainLayout';
+
 import CourseEditor from '@/components/Classroom/Admin/CourseEditor';
+import MainLayout from '@/components/layouts/MainLayout';
 
 export default function NewCoursePage() {
   return (
