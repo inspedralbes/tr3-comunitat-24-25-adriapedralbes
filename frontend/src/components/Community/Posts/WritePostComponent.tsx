@@ -68,6 +68,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const categoryDropdownRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
+    const titleInputRef = useRef<HTMLInputElement>(null);
 
     // Detectar si estamos en vista móvil
     useEffect(() => {

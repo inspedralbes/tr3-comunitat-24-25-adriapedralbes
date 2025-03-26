@@ -602,7 +602,7 @@ function CommunityContent() {
     }
 
     try {
-      await communityService.createPost({
+      const newPostResponse = await communityService.createPost({
         title,
         content,
         category_id: categoryId,

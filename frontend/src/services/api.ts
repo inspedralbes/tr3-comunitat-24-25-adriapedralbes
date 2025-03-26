@@ -7,19 +7,8 @@ const getApiUrl = () => {
   return API_URL.replace('localhost', '127.0.0.1');
 };
 
-// Función para construir la URL completa del endpoint
-const buildEndpointUrl = (endpoint: string, ensureTrailingSlash = false) => {
-  // Asegurarse de que endpoint no empieza con barra
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-
-  // Añadir barra final si se requiere y no existe
-  let finalEndpoint = cleanEndpoint;
-  if (ensureTrailingSlash && !finalEndpoint.endsWith('/')) {
-    finalEndpoint += '/';
-  }
-
-  return `${getApiUrl()}/${finalEndpoint}`;
-};
+// Declaramos la función para construir URLs de endpoints
+let buildEndpointUrl: (endpoint: string, ensureTrailingSlash?: boolean) => string;
 
 // Función para manejar errores
 const handleResponse = async (response: Response) => {
@@ -116,8 +105,8 @@ const getHeaders = (includeContentType = true) => {
   return headers;
 };
 
-// Función para construir la URL completa del endpoint
-const buildEndpointUrl = (endpoint: string, ensureTrailingSlash = false) => {
+// Implementamos la función declarada anteriormente
+buildEndpointUrl = (endpoint: string, ensureTrailingSlash = false) => {
   // Asegurarse de que endpoint no empieza con barra
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
 
