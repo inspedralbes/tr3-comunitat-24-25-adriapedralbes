@@ -7,11 +7,10 @@ import { CourseGrid } from '@/components/Classroom/CourseGrid';
 import { CourseDetail } from '@/components/Classroom/Courses/CourseDetail';
 import MainLayout from '@/components/layouts/MainLayout';
 import courseService from '@/services/courses';
-import authService from '@/services/auth';
+import authService, { UserProfile } from '@/services/auth';
 import userProgressService from '@/services/userProgress';
 import { Course } from '@/types/Course';
 import { CourseWithLessons, Lesson } from '@/types/Lesson';
-import { UserProfile } from '@/services/auth';
 
 export default function ClassroomPage() {
     // Estado para el usuario
@@ -122,49 +121,54 @@ export default function ClassroomPage() {
     }, []);
 
     // Manejador para cuando un curso es seleccionado
-    const handleCourseClick = async (courseId: string) => {
-        try {
-            setLoading(true);
-            
-            // Obtener detalle del curso
-            const courseDetail = await courseService.getCourseById(courseId);
-            
-            // Verificar que tenemos lecciones
-            const lessons = Array.isArray(courseDetail.lessons) ? courseDetail.lessons : [];
-            
-            // Formatear las lecciones para el componente CourseDetail
-            const formattedLessons: Lesson[] = lessons.map((lesson: any) => {
-                console.log('Contenido de lección:', lesson.content);
-                return {
-                    id: lesson.id,
-                    title: lesson.title,
-                    content: {
-                        heading: lesson.title,
-                        paragraphs: [],
-                        html: typeof lesson.content === 'object' ? lesson.content.html : ''
-                    },
-                    isCompleted: false,
-                    order: lesson.order
+    const handleCourseClick = (courseId: string | number) => {
+        const courseIdString = typeof courseId === 'number' ? courseId.toString() : courseId;
+        
+        const fetchCourseDetails = async () => {
+            try {
+                setLoading(true);
+                
+                // Obtener detalle del curso
+                const courseDetail = await courseService.getCourseById(courseIdString);
+                
+                // Verificar que tenemos lecciones
+                const lessons = Array.isArray(courseDetail.lessons) ? courseDetail.lessons : [];
+                
+                // Formatear las lecciones para el componente CourseDetail
+                const formattedLessons: Lesson[] = lessons.map((lesson: any) => {
+                    return {
+                        id: lesson.id,
+                        title: lesson.title,
+                        content: {
+                            heading: lesson.title,
+                            paragraphs: [],
+                            html: typeof lesson.content === 'object' ? lesson.content.html : ''
+                        },
+                        isCompleted: false,
+                        order: lesson.order
+                    };
+                });
+                
+                // Crear objeto CourseWithLessons
+                const courseWithLessons: CourseWithLessons = {
+                    id: courseDetail.id,
+                    title: courseDetail.title,
+                    description: courseDetail.description || '',
+                    imageUrl: courseDetail.thumbnail_url || '/api/placeholder/600/400',
+                    progress: courseDetail.progress_percentage,
+                    isPrivate: false, // Todos son públicos según requerimientos
+                    lessons: formattedLessons
                 };
-            });
-            
-            // Crear objeto CourseWithLessons
-            const courseWithLessons: CourseWithLessons = {
-                id: courseDetail.id,
-                title: courseDetail.title,
-                description: courseDetail.description || '',
-                imageUrl: courseDetail.thumbnail_url || '/api/placeholder/600/400',
-                progress: courseDetail.progress_percentage,
-                isPrivate: false, // Todos son públicos según requerimientos
-                lessons: formattedLessons
-            };
-            
-            setSelectedCourse(courseWithLessons);
-        } catch (error) {
-            console.error(`Error fetching course ${courseId}:`, error);
-        } finally {
-            setLoading(false);
-        }
+                
+                setSelectedCourse(courseWithLessons);
+            } catch (error) {
+                console.error(`Error fetching course ${courseIdString}:`, error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCourseDetails();
     };
 
     // Manejador para volver a la lista de cursos

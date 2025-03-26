@@ -40,7 +40,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                 if (!authService.isAuthenticated()) return;
 
                 // Obtener el progreso guardado para este curso
-                const courseProgress = await userProgressService.getCourseProgress(course.id);
+                const courseProgress = await userProgressService.getCourseProgress(course.id.toString());
 
                 // Actualizar las lecciones completadas según el progreso guardado
                 if (courseProgress && courseProgress.completed_lessons) {
@@ -87,9 +87,9 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
 
             // Actualizar en la base de datos
             if (newCompletionStatus) {
-                await userProgressService.markLessonAsCompleted(course.id, lessonId);
+                await userProgressService.markLessonAsCompleted(course.id.toString(), lessonId);
             } else {
-                await userProgressService.markLessonAsNotCompleted(course.id, lessonId);
+                await userProgressService.markLessonAsNotCompleted(course.id.toString(), lessonId);
             }
 
             // Actualizar estado local

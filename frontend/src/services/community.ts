@@ -6,6 +6,24 @@ export interface PollOption {
   id: number;
 }
 
+// Tipo para las características del contenido enriquecido
+export interface ContentFeatures {
+  link?: string;
+  video?: string;
+  poll?: PollOption[];
+  multi_image?: boolean;
+  images_count?: number;
+  image_filenames?: string[];
+  attachments_count?: number;
+  [key: string]: any; // Permitir propiedades adicionales
+}
+
+// Tipo para el contenido enriquecido
+export interface EnrichedContent {
+  text: string;
+  features: ContentFeatures;
+}
+
 // Tipos para el servicio
 export interface CreatePostData {
   title?: string;
@@ -89,24 +107,24 @@ export const communityService = {
     const formData = new FormData();
 
     // Crear estructura de contenido enriquecido para almacenar todo en el campo content
-    let enrichedContent = {
+    let enrichedContent: EnrichedContent = {
       text: data.content,  // Texto original
       features: {}
     };
 
     // Añadir URL de enlace si existe
     if (data.link_url) {
-      enrichedContent.features['link'] = data.link_url;
+      enrichedContent.features.link = data.link_url;
     }
 
     // Añadir URL de video si existe
     if (data.video_url) {
-      enrichedContent.features['video'] = data.video_url;
+      enrichedContent.features.video = data.video_url;
     }
 
     // Añadir opciones de encuesta si existen
     if (data.poll_options && data.poll_options.length >= 2) {
-      enrichedContent.features['poll'] = data.poll_options;
+      enrichedContent.features.poll = data.poll_options;
     }
 
     // Datos básicos
@@ -161,12 +179,12 @@ export const communityService = {
         }
 
         // Agregar un marcador para indicar que hay múltiples imágenes
-        enrichedContent.features['multi_image'] = true;
-        enrichedContent.features['images_count'] = maxImages;
+        enrichedContent.features.multi_image = true;
+        enrichedContent.features.images_count = maxImages;
 
         // Incluir los nombres de archivo para ayudar en la visualización
         const imageFilenames = allImages.map(img => img.name || 'image.jpg');
-        enrichedContent.features['image_filenames'] = imageFilenames;
+        enrichedContent.features.image_filenames = imageFilenames;
 
         // Almacenar los nombres de archivo para mostrar en la UI
         formData.append('image_filenames', JSON.stringify(imageFilenames));
@@ -192,7 +210,7 @@ export const communityService = {
     if (data.attachments && data.attachments.length > 0) {
       // También incluimos la información de archivos adjuntos en el contenido
       if (hasFeatures) {
-        enrichedContent.features['attachments_count'] = data.attachments.length;
+        enrichedContent.features.attachments_count = data.attachments.length;
         // Actualizar el contenido con la nueva información de attachments
         formData.set('content', JSON.stringify(enrichedContent));
       }

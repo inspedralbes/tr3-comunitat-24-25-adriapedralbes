@@ -7,7 +7,7 @@ import React, { useState, useRef, ChangeEvent } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { UserProfile, authService } from '@/services/auth';
-import { stripeService } from '@/services/stripe';
+import subscriptionService from '@/services/stripe';
 
 interface ProfileSetupModalProps {
   userProfile: UserProfile;
@@ -109,11 +109,14 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const proceedToSubscription = async () => {
     try {
       // Redirigir a la página de pago de Stripe
-      const result = await stripeService.createCheckoutSession();
+      const result = await subscriptionService.createCheckoutSession(
+        window.location.origin + '/perfil',
+        window.location.origin + '/perfil'
+      );
       
-      if (result && result.url) {
+      if (result && result.checkout_url) {
         // Redirigir al usuario a la URL de checkout de Stripe
-        window.location.href = result.url;
+        window.location.href = result.checkout_url;
       } else {
         throw new Error('No se pudo obtener la URL de pago');
       }

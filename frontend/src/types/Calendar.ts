@@ -8,6 +8,7 @@ export interface CalendarEvent {
     allDay?: boolean;
     description?: string;
     meetingUrl?: string;
+    location?: string; // Añadido para soportar el campo de ubicación
 }
 
 export type ViewMode = 'month' | 'week' | 'day' | 'list';

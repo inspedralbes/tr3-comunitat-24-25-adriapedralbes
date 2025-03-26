@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
-import { SubscriptionStatus } from '@/services/subscription';
-import subscriptionService from '@/services/subscription';
+import subscriptionService, { SubscriptionStatus } from '@/services/subscription';
 
 import MainLayout from '@/components/layouts/MainLayout';
 import { ProfileSettings } from '@/components/Profile/ProfileSettings';

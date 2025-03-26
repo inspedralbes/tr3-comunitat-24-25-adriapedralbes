@@ -47,7 +47,7 @@ export default function LessonEditor({ courseId, lessonId, initialData }: Lesson
   const [errorMessage, setErrorMessage] = useState('');
   
   // Función para extraer la URL del video desde el markdown
-  function extractVideoUrl(markdown: string): string | null {
+  function extractVideoUrl(markdown: string): string | undefined {
     // Buscar la URL de YouTube en un iframe
     const youtubeMatch = markdown.match(/src=["']https:\/\/www\.youtube\.com\/embed\/([^"'\s]+)["']/i);
     if (youtubeMatch) {
@@ -60,11 +60,11 @@ export default function LessonEditor({ courseId, lessonId, initialData }: Lesson
       return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
     }
     
-    return null;
+    return undefined; // Nunca devolver null, siempre undefined
   }
   
   // Función para convertir HTML a Markdown (mejorada)
-  function htmlToMarkdown(html: string, videoUrl?: string | null): string {
+  function htmlToMarkdown(html: string, videoUrl?: string): string {
     // Si tenemos una URL de video directamente, crear un iframe para ella
     if (videoUrl) {
       const iframe = `<iframe src="${videoUrl}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`;
@@ -255,11 +255,11 @@ export default function LessonEditor({ courseId, lessonId, initialData }: Lesson
         title,
         content: { 
           html: markdownToHtml(content),
-          video_url: extractVideoUrl(content) // Extraer URL del video si existe
+          video_url: extractVideoUrl(content) || undefined // Asegurar que sea string | undefined, nunca null
         },
         order: Number(order),
         course: courseId
-      };
+      } as Partial<Lesson>; // Asegurar que se ajusta al tipo esperado
 
       if (isEditMode) {
         // Modo edición

@@ -425,4 +425,4 @@ export default function MarkdownEditor({
       </div>
     </div>
   );
-};
+}

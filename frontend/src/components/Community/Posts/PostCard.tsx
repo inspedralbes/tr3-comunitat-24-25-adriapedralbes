@@ -41,16 +41,6 @@ interface Commenter {
     avatar_url?: string;
 }
 
-// Tipo para comentarios con anidación
-// interface CommentWithReplies {
-//     author: { 
-//         username: string; 
-//         avatarUrl?: string;
-//     };
-//     timestamp: string;
-//     replies?: CommentWithReplies[];
-// }
-
 export const PostCard: React.FC<PostCardProps> = ({
     id,
     author,
@@ -63,12 +53,9 @@ export const PostCard: React.FC<PostCardProps> = ({
     comments = 0,
     isPinned = false,
     imageUrl,
-    image2Url,
-    image3Url,
     isLiked = false,
     onPostClick,
     postComments = [],
-    isViewed = false,
     lastViewedAt = null
 }) => {
     // Estado local para controlar el like
@@ -176,17 +163,6 @@ export const PostCard: React.FC<PostCardProps> = ({
             }
         });
 
-        // Depurar el timestamp y el formato resultante
-        if (lastCommentTime) {
-            // console.log('Post:', id, 'Last comment time:', lastCommentTime);
-            // console.log('Formatted as:', formatRelativeTime(lastCommentTime));
-
-            if (lastViewedAt) {
-                // console.log('Last viewed at:', lastViewedAt);
-                // console.log('Is newest comment:', isNewComment(lastViewedAt, lastCommentTime));
-            }
-        }
-
         // Determinar si el comentario es nuevo (no visto por el usuario)
         isNewestComment = isNewComment(lastViewedAt, lastCommentTime);
     }
@@ -284,7 +260,6 @@ export const PostCard: React.FC<PostCardProps> = ({
                                             frameBorder="0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                             allowFullScreen
-                                            onClick={(e) => e.stopPropagation()}
                                         ></iframe>
                                     </div>
                                 );
@@ -301,7 +276,6 @@ export const PostCard: React.FC<PostCardProps> = ({
                                             frameBorder="0"
                                             allow="autoplay; fullscreen; picture-in-picture"
                                             allowFullScreen
-                                            onClick={(e) => e.stopPropagation()}
                                         ></iframe>
                                     </div>
                                 );
@@ -332,80 +306,6 @@ export const PostCard: React.FC<PostCardProps> = ({
                 </div>
             )}
 
-            {/* Encuesta si existe */}
-            {features && features.poll && features.poll.length >= 2 && (
-                <div className="mb-3 bg-[#2a2a29] p-3 rounded-lg border border-white/10">
-                    <h4 className="text-sm font-medium text-white mb-2">Encuesta</h4>
-                    <div className="space-y-2">
-                        {features.poll.map((option: any) => {
-                            // Obtener resultados de la encuesta si existen
-                            const pollResults = features.poll_results || {};
-                            const totalVotes = Object.values(pollResults).reduce((a: number, b: number) => a + (b as number), 0) as number;
-                            const optionVotes = pollResults[option.id] || 0;
-                            const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
-                            
-                            return (
-                                <div 
-                                    key={option.id} 
-                                    className={`relative bg-[#444442] rounded-lg p-2 text-sm text-white hover:bg-[#505050] transition-colors cursor-pointer overflow-hidden ${
-                                        optionVotes > 0 ? 'border border-blue-500/30' : ''
-                                    }`}
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Evitar que se abra el post al votar
-                                        // Llamar al servicio para votar
-                                        communityService.votePoll(id, option.id)
-                                            .then(response => {
-                                                console.log('Voto registrado:', response);
-                                                
-                                                // Actualizar el componente con los nuevos resultados
-                                                if (response.poll_results && enrichedContent) {
-                                                    // Crear una copia del objeto features actual
-                                                    const updatedFeatures = {...enrichedContent.features};
-                                                    
-                                                    // Actualizar con los nuevos resultados
-                                                    updatedFeatures.poll_results = response.poll_results;
-                                                    
-                                                    // Forzar actualización del componente
-                                                    const refreshEvent = new CustomEvent('refresh-posts', {
-                                                        detail: { postId: id, newResults: response.poll_results }
-                                                    });
-                                                    window.dispatchEvent(refreshEvent);
-                                                }
-                                            })
-                                            .catch(error => {
-                                                console.error('Error al votar:', error);
-                                            });
-                                    }}
-                                >
-                                    {/* Barra de progreso */}
-                                    {totalVotes > 0 && (
-                                        <div 
-                                            className="absolute top-0 left-0 h-full bg-blue-500/20" 
-                                            style={{ width: `${percentage}%` }}
-                                        ></div>
-                                    )}
-                                    
-                                    {/* Contenido de la opción */}
-                                    <div className="flex justify-between items-center relative z-10">
-                                        <span>{option.text}</span>
-                                        {totalVotes > 0 && (
-                                            <span className="text-xs text-blue-300">{percentage}%</span>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        
-                        {/* Mostrar total de votos si hay resultados */}
-                        {features.poll_results && Object.keys(features.poll_results).length > 0 && (
-                            <div className="text-xs text-zinc-400 mt-2 text-right">
-                                {Object.values(features.poll_results).reduce((a: number, b: number) => a + (b as number), 0)} votos
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
             {/* Imágenes para el post */}
             {imageUrl && (
                 <div className="mt-2 mb-3">
@@ -419,86 +319,53 @@ export const PostCard: React.FC<PostCardProps> = ({
                                     // Hay múltiples imágenes, mostrarlas según su cantidad
                                     const imagesCount = contentObj.features.images_count || 1;
                                     
-                                    // Preparar URLs para todas las imágenes - usar la misma que la principal
-                                    // pero modificar el nombre para tener un patrón predecible
-                                    const baseImageUrl = imageUrl.startsWith('http') ? 
-                                        imageUrl : `http://127.0.0.1:8000${imageUrl}`;
-                                    
-                                    // Generar URLs para imágenes adicionales basadas en la primera
-                                    const img2 = baseImageUrl.replace(/\.[^.]+$/, '_2.jpg');
-                                    const img3 = baseImageUrl.replace(/\.[^.]+$/, '_3.jpg');
-                                    
-                                    // Si hay 2 imágenes
-                                    if (imagesCount === 2) {
-                                        return (
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div className="cursor-pointer hover:opacity-95 transition-all">
-                                                    <Image
-                                                        src={baseImageUrl}
-                                                        alt={`Imagen 1 de ${title}`}
-                                                        width={300}
-                                                        height={200}
-                                                        className="rounded-lg h-24 w-full object-cover border border-white/10"
-                                                        priority={true}
-                                                        unoptimized={true}
-                                                    />
-                                                </div>
-                                                <div className="cursor-pointer hover:opacity-95 transition-all">
-                                                    <div className="w-full h-24 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
-                                                        <span>+1 imagen más</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    }
-                                    
-                                    // Si hay 3 imágenes
-                                    if (imagesCount === 3) {
-                                        return (
-                                            <div className="grid grid-cols-3 gap-1">
-                                                <div className="cursor-pointer hover:opacity-95 transition-all">
-                                                    <Image
-                                                        src={baseImageUrl}
-                                                        alt={`Imagen 1 de ${title}`}
-                                                        width={200}
-                                                        height={200}
-                                                        className="rounded-lg h-20 w-full object-cover border border-white/10"
-                                                        priority={true}
-                                                        unoptimized={true}
-                                                    />
-                                                </div>
-                                                <div className="cursor-pointer hover:opacity-95 transition-all">
-                                                    <div className="w-full h-20 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70 text-xs">
-                                                        <span>+1</span>
-                                                    </div>
-                                                </div>
-                                                <div className="cursor-pointer hover:opacity-95 transition-all">
-                                                    <div className="w-full h-20 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70 text-xs">
-                                                        <span>+1</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    }
+                                    // Por defecto, mostrar solo la imagen principal en un botón
+                                    return (
+                                        <button
+                                            className="cursor-pointer hover:opacity-95 transition-all w-full"
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Detener la propagación para que no se abra el post completo
+                                                onPostClick(id); // Pero abrir el post de todos modos
+                                            }}
+                                            aria-label="Ver imágenes del post"
+                                        >
+                                            <Image
+                                                src={imageUrl.startsWith('http') ? imageUrl : `http://127.0.0.1:8000${imageUrl}`}
+                                                alt={`Imagen de ${title || 'post'}`}
+                                                width={500}
+                                                height={300}
+                                                className="rounded-lg max-h-28 object-cover border border-white/10"
+                                                priority={true}
+                                                unoptimized={true}
+                                            />
+                                        </button>
+                                    );
                                 }
                             }
                         } catch (e) {
-                            console.log("Error parsing post content for multiple images", e);
+                            console.error("Error parsing post content for multiple images", e);
                         }
                         
-                        // Por defecto, mostrar solo la imagen principal
+                        // Por defecto, mostrar solo la imagen principal en un botón
                         return (
-                            <div className="cursor-pointer hover:opacity-95 transition-all">
+                            <button
+                                className="cursor-pointer hover:opacity-95 transition-all w-full"
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Detener la propagación para que no se abra el post completo
+                                    onPostClick(id); // Pero abrir el post de todos modos
+                                }}
+                                aria-label="Ver imagen del post"
+                            >
                                 <Image
                                     src={imageUrl.startsWith('http') ? imageUrl : `http://127.0.0.1:8000${imageUrl}`}
-                                    alt={`Contenido de ${title}`}
+                                    alt={`Imagen de ${title || 'post'}`}
                                     width={500}
                                     height={300}
                                     className="rounded-lg max-h-28 object-cover border border-white/10"
                                     priority={true}
                                     unoptimized={true}
                                 />
-                            </div>
+                            </button>
                         );
                     })()}
                 </div>
@@ -523,6 +390,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                                         console.error('Error al dar/quitar like');
                                     });
                             }}
+                            aria-label={isPostLiked ? "Quitar like" : "Dar like"}
                         >
                             <ThumbsUp size={16} />
                         </button>
@@ -534,6 +402,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                             onClick={(e) => {
                                 e.stopPropagation(); // Evitar que se abra el modal al comentar
                                 // Aquí iría la lógica para ir directamente a comentar
+                                onPostClick(id);
                             }}
                             aria-label="Comment on this post"
                         >

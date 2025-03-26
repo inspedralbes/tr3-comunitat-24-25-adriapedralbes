@@ -609,7 +609,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     <div className="flex items-center gap-2">
                         <Bell size={14} className="text-zinc-400" />
                         <span className="text-zinc-300 text-xs">
-                            {post.isPinned ? 'Post fijado' : 'Post de la comunidad'}
+                            {post?.isPinned ? 'Post fijado' : 'Post de la comunidad'}
                         </span>
                     </div>
                     <button
@@ -624,12 +624,12 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 {/* Post Content */}
                 <div className="px-5 py-3">
                     <UserBadge
-                        username={post.author.username}
-                        level={post.author.level}
-                        avatarUrl={post.author.avatarUrl || post.author.avatar_url}
-                        timestamp={post.timestamp || post.created_at || 'hace un momento'}
-                        category={typeof post.category === 'object' && post.category !== null ? post.category.name : post.category}
-                        categoryColor={post.categoryColor || 'bg-[#444442] border border-white/5'}
+                        username={selectedPost.author.username}
+                        level={selectedPost.author.level}
+                        avatarUrl={selectedPost.author.avatarUrl || selectedPost.author.avatar_url}
+                        timestamp={selectedPost.timestamp || selectedPost.created_at || 'hace un momento'}
+                        category={typeof selectedPost.category === 'object' && selectedPost.category !== null ? selectedPost.category.name : selectedPost.category}
+                        categoryColor={selectedPost.categoryColor || 'bg-[#444442] border border-white/5'}
                     />
 
                     {/* Title */}
@@ -757,7 +757,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                 {features.poll.map((option: any) => {
                                     // Obtener resultados de la encuesta si existen
                                     const pollResults = features.poll_results || {};
-                                    const totalVotes = Object.values(pollResults).reduce((a: number, b: number) => a + (b as number), 0) as number;
+                                    const totalVotes = Object.values(pollResults).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0);
                                     const optionVotes = pollResults[option.id] || 0;
                                     const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
 
@@ -820,7 +820,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                 {/* Mostrar total de votos si hay resultados */}
                                 {features.poll_results && Object.keys(features.poll_results).length > 0 && (
                                     <div className="text-sm text-zinc-400 mt-2 text-right">
-                                        {Object.values(features.poll_results).reduce((a: number, b: number) => a + (b as number), 0)} votos
+                                        {Object.values(features.poll_results).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0)} votos
                                     </div>
                                 )}
                             </div>
@@ -828,7 +828,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     )}
 
                     {/* Imágenes para el post */}
-                    {post.imageUrl && (
+                    {selectedPost.imageUrl && (
                         <div className="mt-2 mb-3">
                             {/* Verificar si hay múltiples imágenes en el contenido */}
                             {(() => {
@@ -839,7 +839,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                             const imagesCount = contentObj.features.images_count || 1;
 
                                             // Preparar URLs para todas las imágenes
-                                            const baseImageUrl = formatImageUrl(post.imageUrl) || '';
+                                            const baseImageUrl = formatImageUrl(post?.imageUrl) || '';
 
                                             // Si hay 2 imágenes
                                             if (imagesCount === 2) {
@@ -916,7 +916,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                         aria-label="Ver imagen a tamaño completo"
                                     >
                                         <Image
-                                            src={formatImageUrl(post.imageUrl) || ''}
+                                            src={formatImageUrl(selectedPost.imageUrl) || ''}
                                             alt={`Contenido de ${title}`}
                                             width={600}
                                             height={400}
@@ -949,7 +949,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             >
                                 <MessageCircle size={16} />
                             </button>
-                            <span className="text-sm">{post.comments}</span>
+                            <span className="text-sm">{selectedPost.comments}</span>
                         </div>
                     </div>
 
@@ -1092,12 +1092,12 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
             </div>
 
             {/* Modal de visualización de imagen completa */}
-            {post.imageUrl && imageViewerOpen && (
+            {selectedPost.imageUrl && imageViewerOpen && (
                 <ImageViewerModal
-                    imageUrl={post.imageUrl}
+                    imageUrl={selectedPost.imageUrl}
                     isOpen={imageViewerOpen}
                     onClose={() => setImageViewerOpen(false)}
-                    altText={`Imagen de ${post.author.username}: ${title}`}
+                    altText={`Imagen de ${selectedPost.author.username}: ${title}`}
                 />
             )}
         </div>
