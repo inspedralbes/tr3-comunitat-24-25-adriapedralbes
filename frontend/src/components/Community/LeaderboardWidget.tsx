@@ -98,7 +98,7 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
             </div>
 
             <div className="mt-4 text-center">
-                <a href="/leaderboards" className="text-xs text-blue-300 hover:text-blue-200 hover:underline">
+                <a href="/ranking" className="text-xs text-blue-300 hover:text-blue-200 hover:underline">
                     Ver ranking completo
                 </a>
             </div>
