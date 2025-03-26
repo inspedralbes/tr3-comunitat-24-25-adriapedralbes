@@ -7,7 +7,7 @@ import React, { useState, useRef, ChangeEvent } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { UserProfile, authService } from '@/services/auth';
-import { default as subscriptionService } from '@/services/subscription';
+import { stripeService } from '@/services/stripe';
 
 interface ProfileSetupModalProps {
   userProfile: UserProfile;
@@ -22,7 +22,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   onClose,
   onComplete 
 }) => {
-  const _router = useRouter();
+  const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile>(initialProfile);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -108,16 +108,12 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
 
   const proceedToSubscription = async () => {
     try {
-      // Crear URLs de éxito y cancelación
-      const successUrl = `${window.location.origin}/dashboard`;
-      const cancelUrl = `${window.location.origin}/profile`;
+      // Redirigir a la página de pago de Stripe
+      const result = await stripeService.createCheckoutSession();
       
-      // Redirigir a la página de pago de Stripe con los parámetros requeridos
-      const result = await subscriptionService.createCheckoutSession(successUrl, cancelUrl);
-      
-      if (result && result.checkout_url) {
+      if (result && result.url) {
         // Redirigir al usuario a la URL de checkout de Stripe
-        window.location.href = result.checkout_url;
+        window.location.href = result.url;
       } else {
         throw new Error('No se pudo obtener la URL de pago');
       }

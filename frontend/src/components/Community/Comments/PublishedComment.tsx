@@ -65,12 +65,11 @@ export const PublishedComment: React.FC<PublishedCommentProps> = ({
                     {/* Acciones */}
                     <div className="flex items-center gap-4">
                         <button
-                            className={`p-1 rounded-full ${isLiked ? 'text-blue-400' : 'text-zinc-400 hover:text-zinc-300'}`}
+                            className={`flex items-center gap-1 ${isLiked ? 'text-blue-400' : 'text-zinc-400 hover:text-zinc-300'}`}
                             onClick={onLike}
-                            aria-label={isLiked ? 'Quitar like' : 'Dar like'}
                         >
                             <ThumbsUp size={14} />
-                            {likes > 0 && <span className="text-xs ml-1">{likes}</span>}
+                            {likes > 0 && <span className="text-xs">{likes}</span>}
                         </button>
 
                         {onReply && (
@@ -78,7 +77,7 @@ export const PublishedComment: React.FC<PublishedCommentProps> = ({
                                 className="text-zinc-400 hover:text-zinc-300 text-xs"
                                 onClick={onReply}
                             >
-                                Responder
+                                Reply
                             </button>
                         )}
                     </div>

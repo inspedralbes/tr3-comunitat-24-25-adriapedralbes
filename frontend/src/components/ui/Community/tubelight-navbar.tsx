@@ -55,15 +55,6 @@ export function NavBar({ items, className }: NavBarProps) {
   // Verificar autenticación al cargar el componente
   useEffect(() => {
     checkAuthAndLoadUser();
-    
-    // Suscribirse a cambios de autenticación
-    const unsubscribe = authService.onAuthChange(() => {
-      checkAuthAndLoadUser();
-    });
-    
-    return () => {
-      unsubscribe();
-    };
   }, []);
 
   // Manejar clics fuera del dropdown para cerrarlo
@@ -114,22 +105,13 @@ export function NavBar({ items, className }: NavBarProps) {
     setIsAuthenticated(false);
     setUser(null);
     setIsDropdownOpen(false);
-    
-    // Forzar una recarga completa de la página en lugar de solo refrescar
-    window.location.reload();
+    // Recargar la página actual para refrescar el estado
+    router.refresh();
   };
 
-  const handleAuthSuccess = async () => {
+  const handleAuthSuccess = () => {
     setIsAuthModalOpen(false);
-    
-    // Immediately check auth and load user data
-    await checkAuthAndLoadUser();
-    
-    // Force UI update without full page refresh
-    setIsAuthenticated(authService.isAuthenticated());
-    
-    // Force a state update by triggering a re-render
-    router.refresh();
+    checkAuthAndLoadUser();
   };
 
   return (

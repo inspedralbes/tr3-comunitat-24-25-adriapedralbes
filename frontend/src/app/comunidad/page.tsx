@@ -62,11 +62,11 @@ function CommunityContent() {
           return { has_subscription: true, subscription_status: 'temp_access', start_date: null, end_date: null };
         });
 
-        console.warn('Estado de suscripción:', subscriptionStatus);
+        console.log('Estado de suscripción:', subscriptionStatus);
 
         // Si no tiene suscripción, redirigir a la página de configuración
         if (!subscriptionStatus.has_subscription) {
-          console.warn('Usuario sin suscripción, redirigiendo a configuración');
+          console.log('Usuario sin suscripción, redirigiendo a configuración');
           router.push('/perfil/configuracion');
           return;
         }
@@ -111,11 +111,10 @@ function CommunityContent() {
 
   // Escuchar evento de refresco para actualizar los posts después de votar en encuestas
   useEffect(() => {
-    const handleRefreshPosts = (event: Event) => {
-      const customEvent = event as CustomEvent<{ postId: string, newResults: any }>;
-      if (customEvent.detail && customEvent.detail.postId) {
-        const postId = customEvent.detail.postId;
-        const newResults = customEvent.detail.newResults;
+    const handleRefreshPosts = (event: any) => {
+      if (event.detail && event.detail.postId) {
+        const postId = event.detail.postId;
+        const newResults = event.detail.newResults;
 
         // Función para actualizar los resultados de encuesta en un array de posts
         const updatePostsArray = (posts: Post[]) => {
@@ -161,11 +160,11 @@ function CommunityContent() {
     };
 
     // Registrar evento personalizado
-    window.addEventListener('refresh-posts', handleRefreshPosts as EventListener);
+    window.addEventListener('refresh-posts', handleRefreshPosts);
 
     // Limpiar evento al desmontar
     return () => {
-      window.removeEventListener('refresh-posts', handleRefreshPosts as EventListener);
+      window.removeEventListener('refresh-posts', handleRefreshPosts);
     };
   }, [pinnedPosts, regularPosts, selectedPost]);
 
@@ -243,15 +242,12 @@ function CommunityContent() {
           const parsedContent = JSON.parse(contentValue);
           if (parsedContent.text && parsedContent.features) {
             processedContent = contentValue; // Mantener el JSON como string para procesar en componentes
-            console.warn("Post con contenido enriquecido detectado:", postId);
+            console.log("Post con contenido enriquecido detectado:", postId);
           }
         } catch (e) {
           // Si no es JSON o no tiene la estructura esperada, usamos como está
           processedContent = contentValue;
         }
-
-        // Buscar si el post existe en las listas para preservar el estado de like
-        const existingPost = [...pinnedPosts, ...regularPosts].find(post => post.id === postId);
 
         const normalizedPost = {
           id: postData.id,
@@ -272,13 +268,10 @@ function CommunityContent() {
           comments_count: postData.comments_count || 0,
           is_pinned: postData.is_pinned,
           timestamp: postData.timestamp || postData.created_at,
-          // Preservar el estado de like si existe, o usar el valor de la API
-          likes: existingPost?.likes || postData.likes || 0,
+          likes: postData.likes || 0,
           comments: postData.comments_count || 0,
           isPinned: postData.is_pinned,
-          imageUrl: postData.image || postData.imageUrl,
-          // Preservar el estado de like si existe, o usar el valor de la API
-          is_liked: existingPost?.is_liked !== undefined ? existingPost.is_liked : postData.is_liked
+          imageUrl: postData.image || postData.imageUrl
         };
 
         // Actualizar las listas si el estado de fijado ha cambiado
@@ -490,24 +483,8 @@ function CommunityContent() {
   // Función para manejar el clic en un post
   const handlePostClick = useCallback(async (postId: string) => {
     try {
-      // Buscar el post en las listas existentes para preservar su estado (como is_liked)
-      let existingPost = [...pinnedPosts, ...regularPosts].find(post => post.id === postId);
-
       // Cargar el post directamente sin cambiar la URL mientras esté en la vista principal
-      const loadedPost = await loadPostContent(postId, false);
-
-      // Si encontramos el post en las listas y tenemos uno cargado, asegurarse de que el estado de like se preserve
-      if (existingPost && loadedPost) {
-        // Actualizar el selectedPost con el estado de like de la lista
-        setSelectedPost(prev => {
-          if (!prev) return loadedPost;
-          return {
-            ...prev,
-            is_liked: existingPost?.is_liked,
-            likes: existingPost?.likes
-          };
-        });
-      }
+      await loadPostContent(postId, false);
 
       // Solo actualizar la URL cuando se está viendo desde la página principal
       if (typeof window !== 'undefined') {
@@ -594,7 +571,7 @@ function CommunityContent() {
     videoUrl?: string,
     linkUrl?: string,
     pollOptions?: { id: number, text: string }[]
-  ): Promise<boolean> => {
+  ) => {
     // Verificar autenticación antes de crear un post
     if (!authService.isAuthenticated()) {
       setIsAuthModalOpen(true);

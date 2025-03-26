@@ -1,7 +1,7 @@
 "use client";
 
-import { Video } from 'lucide-react';
 import React, { useState } from 'react';
+import { Video } from 'lucide-react';
 
 interface VideoButtonProps {
   onInsert: (videoHtml: string) => void;
@@ -101,6 +101,7 @@ export default function VideoButton({ onInsert }: VideoButtonProps) {
                 onChange={(e) => setVideoUrl(e.target.value)}
                 className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-white"
                 placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
+                autoFocus
               />
               {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
             </div>

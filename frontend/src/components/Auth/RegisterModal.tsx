@@ -4,7 +4,8 @@ import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { ProfileConfigurationModal } from '@/components/Profile/ProfileConfigurationModal';
-import { UserProfile, authService } from '@/services/auth';
+
+import { authService } from '@/services/auth';
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showProfileConfig, setShowProfileConfig] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState(null);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

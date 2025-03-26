@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from 'react';
 import { 
   ChevronDown, 
   Bold, 
@@ -15,8 +16,6 @@ import {
   Heading2, 
   Heading3 
 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
-
 import VideoButton from './VideoButton';
 
 interface MarkdownEditorProps {
@@ -76,7 +75,7 @@ export default function MarkdownEditor({
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         // Párrafos simples (evitando que coincida con otros elementos)
-        .replace(/^([^<#`\-*\d].*?)$/gm, '<p class="text-white mb-4">$1</p>')
+        .replace(/^([^<#`\-\*\d].*?)$/gm, '<p class="text-white mb-4">$1</p>')
         // Código inline
         .replace(/`([^`]+)`/g, '<code class="bg-zinc-800 px-1 py-0.5 rounded text-white">$1</code>')
         // Bloques de código
@@ -413,7 +412,7 @@ export default function MarkdownEditor({
             <div>
               <p><code className="bg-zinc-900 px-1 rounded">- elemento</code> → Lista con viñetas</p>
               <p><code className="bg-zinc-900 px-1 rounded">1. elemento</code> → Lista numerada</p>
-              <p><code className="bg-zinc-900 px-1 rounded">[enlace](url)</code> → <button type="button" className="text-blue-400">enlace</button></p>
+              <p><code className="bg-zinc-900 px-1 rounded">[enlace](url)</code> → <a href="#" className="text-blue-400">enlace</a></p>
               <p><code className="bg-zinc-900 px-1 rounded">![alt](url)</code> → Imagen</p>
             </div>
             <div className="col-span-2 md:col-span-1">

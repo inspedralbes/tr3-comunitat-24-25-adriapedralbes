@@ -1,6 +1,6 @@
+import { CalendarEvent } from '@/types/Calendar';
 import { API_URL } from '@/config/constants';
 import { mockEvents } from '@/mockData/calendarEvents';
-import { CalendarEvent } from '@/types/Calendar';
 
 // Convert backend event format to frontend format
 const convertEventFormat = (backendEvent: any): CalendarEvent => {

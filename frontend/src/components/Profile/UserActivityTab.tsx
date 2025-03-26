@@ -1,17 +1,24 @@
 "use client";
 
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { 
   MessageCircle, 
   ThumbsUp, 
+  User, 
   Clock, 
-  Filter
+  Filter, 
+  BookOpen,
+  Award,
+  CornerUpRight
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
+import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { communityService } from '@/services/community';
+import { formatAvatarUrl } from '@/utils/formatUtils';
 
 // Tipos de actividad para filtrado
 type ActivityType = 'all' | 'comments' | 'likes';
@@ -121,8 +128,8 @@ export const UserActivityTab: React.FC<UserActivityTabProps> = ({ userId }) => {
           setActivities([]);
           setHasMore(false);
         }
-      } catch (error) {
-        console.error('Error al cargar la actividad del usuario:', error);
+      } catch (err) {
+        console.error('Error al cargar la actividad del usuario:', err);
         setError('No se pudo cargar la actividad del usuario.');
       } finally {
         setIsLoading(false);

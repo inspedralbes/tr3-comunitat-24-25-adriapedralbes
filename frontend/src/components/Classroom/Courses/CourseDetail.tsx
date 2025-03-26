@@ -3,14 +3,13 @@
 import { Check, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import ProgressIndicator from '../ProgressIndicator';
 import React, { useState, useEffect } from 'react';
-
+import userProgressService from '@/services/userProgress';
+import authService from '@/services/auth';
 import { toast } from '@/components/ui/toast';
-import { default as authService } from '@/services/auth';
-import { default as userProgressService } from '@/services/userProgress';
-import { CourseWithLessons, Lesson } from '@/types/Lesson';
 
-import { default as ProgressIndicator } from '../ProgressIndicator';
+import { CourseWithLessons, Lesson } from '@/types/Lesson';
 
 interface CourseDetailProps {
     course: CourseWithLessons;
@@ -41,8 +40,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                 if (!authService.isAuthenticated()) return;
 
                 // Obtener el progreso guardado para este curso
-                // Convertimos a string para garantizar la compatibilidad de tipos
-                const courseProgress = await userProgressService.getCourseProgress(String(course.id));
+                const courseProgress = await userProgressService.getCourseProgress(course.id);
 
                 // Actualizar las lecciones completadas según el progreso guardado
                 if (courseProgress && courseProgress.completed_lessons) {
@@ -89,9 +87,9 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
 
             // Actualizar en la base de datos
             if (newCompletionStatus) {
-                await userProgressService.markLessonAsCompleted(String(course.id), lessonId);
+                await userProgressService.markLessonAsCompleted(course.id, lessonId);
             } else {
-                await userProgressService.markLessonAsNotCompleted(String(course.id), lessonId);
+                await userProgressService.markLessonAsNotCompleted(course.id, lessonId);
             }
 
             // Actualizar estado local

@@ -1,5 +1,4 @@
 import { ThumbsUp, MessageCircle, Bell, Smile, CornerUpRight } from 'lucide-react';
-import { formatRelativeTime } from '@/utils/dateUtils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { authService, UserProfile } from '@/services/auth';
 import { communityService } from '@/services/community';
-import { Comment } from '@/types/Comment'; // Assuming Comment.ts is in '@/types/Comment'
+import { Comment } from '@/types/Comment';
 import { Post } from '@/types/Post';
 import { formatAvatarUrl, formatImageUrl } from '@/utils/formatUtils';
 
@@ -48,21 +47,15 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     // Variable interna para manejar el post actualizado
     const [selectedPost, setSelectedPost] = useState<Post | null>(post);
 
-    // Actualizar selectedPost y estados de like cuando cambia el prop post
+    // Actualizar selectedPost cuando cambia el prop post
     useEffect(() => {
-        if (post) {
-            setSelectedPost(post);
-            setLiked(post.is_liked || false);
-            setLikesCount(post.likes || 0);
-        }
+        setSelectedPost(post);
     }, [post]);
-
     const _router = useRouter();
     const [comment, setComment] = useState('');
     const [replyToComment, setReplyToComment] = useState<ReplyToInfo | null>(null);
     const [lastRespondedComment, setLastRespondedComment] = useState<ReplyToInfo | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
-    // Ensure liked state is properly tracked from the post prop
     const [liked, setLiked] = useState(post?.is_liked || false);
     const [likesCount, setLikesCount] = useState(post?.likes || 0);
     const [comments, setComments] = useState<EnhancedComment[]>([]);
@@ -84,13 +77,17 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
         fetchCurrentUser();
 
-        // No need to update state here, it's already handled in the post useEffect
+        // Update liked state when post changes
+        if (post) {
+            setLiked(post.is_liked || false);
+            setLikesCount(post.likes || 0);
+        }
 
         // Reiniciar el estado del visor de imágenes al abrir el post
         if (isOpen) {
             setImageViewerOpen(false);
         }
-    }, [isOpen, selectedPost]); // Depend on selectedPost now
+    }, [isOpen, post]);
 
     // Función para confirmar salida si hay comentario pendiente (memoizada para evitar recreación)
     const confirmDiscardComment = useCallback((): boolean => {
@@ -100,25 +97,12 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         return true;
     }, [comment]);
 
-    // Definición de la animación personalizada
-    const animatePulseLight = `
-        @keyframes pulseLight {
-            0% { opacity: 1; }
-            50% { opacity: 0.85; }
-            100% { opacity: 1; }
-        }
-        .animate-pulse-light {
-            animation: pulseLight 2s ease-in-out;
-        }
-    `;
-
     // Close on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
                 if (confirmDiscardComment() && !imageViewerOpen) { // No cerrar si el visor de imagen está abierto
                     setComment('');
-                    cancelReply(); // Also cancel reply on close
                     onClose();
                 }
             }
@@ -140,7 +124,6 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
             if (event.key === 'Escape' && !imageViewerOpen) { // No cerrar si el visor de imagen está abierto
                 if (confirmDiscardComment()) {
                     setComment('');
-                    cancelReply(); // Also cancel reply on close
                     onClose();
                 }
             }
@@ -157,175 +140,143 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
     // Handle like action
     const handleLike = () => {
-        // Use selectedPost here too
-        if (selectedPost && selectedPost.id) {
-            const originalLiked = liked;
-            const originalCount = likesCount;
-
-            // Optimistic update
-            setLiked(!originalLiked);
-            setLikesCount(originalLiked ? originalCount - 1 : originalCount + 1);
-
-            communityService.likePost(selectedPost.id)
+        // Llamar a la API para dar/quitar like
+        if (post && post.id) {
+            communityService.likePost(post.id)
                 .then(response => {
-                    // Confirm update
                     setLiked(response.status === 'liked');
                     setLikesCount(response.likes);
-                    // Update selectedPost state
-                    setSelectedPost(prevPost => prevPost ? { ...prevPost, is_liked: response.status === 'liked', likes: response.likes } : null);
-
-                    // Dispatch event to synchronize like state across the app
-                    const likeUpdateEvent = new CustomEvent('post-like-update', {
-                        detail: {
-                            postId: selectedPost.id,
-                            isLiked: response.status === 'liked',
-                            likesCount: response.likes
-                        }
-                    });
-                    window.dispatchEvent(likeUpdateEvent);
                 })
                 .catch(error => {
                     console.error('Error al dar/quitar like:', error);
-                    // Revert optimistic update on error
-                    setLiked(originalLiked);
-                    setLikesCount(originalCount);
                 });
         }
     };
 
-    // Función para actualizar la caché plana de comentarios (no se usa activamente, podría eliminarse si no es necesaria)
+    // Función para actualizar la caché plana de comentarios
     const updateAllCommentsCache = (commentsArray: EnhancedComment[]) => {
         const cache: { [key: string]: EnhancedComment } = {};
 
         const processComments = (comments: EnhancedComment[], level = 0) => {
             comments.forEach(c => {
-                if (!c) return; // Safety check
                 c.replyLevel = level;
                 cache[c.id] = c;
 
-                if (c.replies && Array.isArray(c.replies) && c.replies.length > 0) {
+                if (c.replies && c.replies.length > 0) {
                     processComments(c.replies as EnhancedComment[], level + 1);
                 }
             });
         };
 
         processComments(commentsArray);
-        // console.log("Updated comment cache:", cache); // For debugging if needed
     };
-
-    // Emitir evento cuando cambie el contador de comentarios
-    useEffect(() => {
-        if (selectedPost) {
-            const commentUpdateEvent = new CustomEvent('post-comment-update', {
-                detail: {
-                    postId: selectedPost.id,
-                    commentCount: selectedPost.comments
-                }
-            });
-            // Usar un pequeño retraso para asegurar que ocurra después del renderizado
-            const timerId = setTimeout(() => {
-                window.dispatchEvent(commentUpdateEvent);
-            }, 0);
-
-            return () => clearTimeout(timerId);
-        }
-    }, [selectedPost?.comments, selectedPost?.id]);
 
     // Cargar comentarios
     useEffect(() => {
-        // Use selectedPost
-        if (selectedPost && isOpen) {
+        if (post && isOpen) {
             const fetchComments = async () => {
                 try {
                     // Cargar comentarios del post seleccionado desde la API
-                    const commentsData = await communityService.getPostComments(selectedPost.id);
+                    const commentsData = await communityService.getPostComments(post.id);
 
+                    // console.log('Comentarios recibidos:', commentsData);
+                    // Normalizar los datos recibidos de la API
                     const commentsArray = Array.isArray(commentsData)
                         ? commentsData
                         : (commentsData.results || []);
 
-                    // Normalizar y estructurar comentarios y respuestas
-                    const processComment = (comment: Comment, level: number = 0, directParentId?: string, rootCommentId?: string): EnhancedComment => {
-                        // Ensure content is string
+                    // console.log('Array de comentarios normalizado:', commentsArray);
+
+                    // Inspección de las URLs de los avatares no es necesaria en prod
+                    commentsArray.forEach((_comment: Comment, _index: number) => {
+                        // la lógica fue comentada
+                    });
+
+                    // Normalizar las propiedades para hacerlas compatibles con nuestra interfaz
+                    const enhancedComments = commentsArray.map((comment: Comment) => {
+                        // Asegurarnos de que content sea un string
                         const content = typeof comment.content === 'string'
                             ? comment.content
                             : JSON.stringify(comment.content);
+                        // console.log('Tipo de content:', typeof comment.content);
 
-                        const authorAvatarUrl = comment.author?.avatar_url || comment.author?.avatarUrl;
-                        // --- FIX IS HERE ---
-                        const mentionedUser = comment.mentionedUser; // Use the existing string property from the interface
-                        // --- END FIX ---
+                        // Asegurar que la URL del avatar está completa
+                        const authorAvatarUrl = comment.author.avatar_url || comment.author.avatarUrl;
 
-                        const enhanced: EnhancedComment = {
+                        return {
                             ...comment,
                             content: content,
-                            replyLevel: level,
-                            parentId: directParentId, // ID of the direct parent
-                            parentCommentId: rootCommentId || (level > 0 ? directParentId : undefined), // ID of the top-level comment
+                            replyLevel: 0,
                             isLiked: comment.is_liked || false,
                             likesCount: comment.likes || 0,
                             author: {
                                 ...comment.author,
-                                id: comment.author?.id || '',
+                                // Asegurar que tenemos el ID del autor
+                                id: comment.author.id || '',
+                                // Normalizar avatar_url a avatarUrl
                                 avatarUrl: authorAvatarUrl
                             },
-                            mentionedUser: mentionedUser, // Assign the extracted string
-                            timestamp: comment.timestamp || comment.created_at || new Date().toISOString(), // Ensure timestamp exists
-                            created_at: comment.created_at || comment.timestamp || new Date().toISOString(), // Guardar created_at original
-                            replies: [], // Initialize replies array
+                            replies: comment.replies?.map((reply: Comment) => {
+                                // Asegurarnos de que el contenido de la respuesta sea string
+                                const replyContent = typeof reply.content === 'string'
+                                    ? reply.content
+                                    : JSON.stringify(reply.content);
+
+                                // Asegurar que la URL del avatar está completa
+                                const replyAuthorAvatarUrl = reply.author.avatar_url || reply.author.avatarUrl;
+
+                                return {
+                                    ...reply,
+                                    content: replyContent,
+                                    replyLevel: 1,  // Nivel 1 para las respuestas directas
+                                    parentId: comment.id, // Guardar referencia al padre
+                                    parentCommentId: comment.id, // Principal es igual al padre para nivel 1
+                                    isLiked: reply.is_liked || false,
+                                    likesCount: reply.likes || 0,
+                                    author: {
+                                        ...reply.author,
+                                        // Asegurar que tenemos el ID del autor
+                                        id: reply.author.id || '',
+                                        // Normalizar avatar_url a avatarUrl para las respuestas
+                                        avatarUrl: replyAuthorAvatarUrl
+                                    }
+                                };
+                            })
                         };
-
-                        // Recursively process replies
-                        if (comment.replies && Array.isArray(comment.replies)) {
-                            enhanced.replies = comment.replies.map(reply =>
-                                processComment(reply, level + 1, comment.id, rootCommentId || comment.id)
-                            );
-                        }
-
-                        return enhanced;
-                    };
-
-                    const enhancedComments = commentsArray.map((comment: Comment) => processComment(comment));
+                    });
 
                     setComments(enhancedComments);
-                    updateAllCommentsCache(enhancedComments); // Update cache if using it
+                    updateAllCommentsCache(enhancedComments);
                 } catch (error) {
                     console.error('Error al cargar comentarios:', error);
-                    setComments([]); // Clear comments on error
                 }
             };
 
             fetchComments();
-        } else if (!isOpen) {
-            // Clear comments when modal closes
-            setComments([]);
-            setComment('');
-            cancelReply();
         }
-    }, [selectedPost, isOpen]); // Depend on selectedPost
+    }, [post, isOpen]);
 
     // Manejar respuesta a un comentario (principal o anidado)
     const handleReplyToComment = (
         commentId: string,
         username: string,
         isNested: boolean = false,
-        directParentId?: string, // ID of the comment being directly replied to
-        replyLevel: number = 0, // Level of the comment being replied to
-        parentCommentId?: string, // ID of the root comment
+        parentId?: string,
+        replyLevel: number = 0,
+        parentCommentId?: string,
         userId?: string
     ) => {
-        // If replying to a nested comment, parentCommentId should already be set.
-        // If replying to a root comment (level 0), the commentId itself is the parentCommentId for the new reply.
-        const rootCommentId = parentCommentId || (replyLevel === 0 ? commentId : undefined);
+        // Si es una respuesta a una respuesta, necesitamos el ID del comentario principal
+        const rootCommentId = parentCommentId || (isNested ? parentId : commentId);
 
         setReplyToComment({
-            id: commentId,          // ID of the comment being replied to
+            id: commentId,
             username,
             isNested,
-            parentId: directParentId, // Keep track of direct parent for potential future use
-            replyLevel: replyLevel + 1, // The level of the *new* reply
-            parentCommentId: rootCommentId, // ID of the root comment thread
-            userId: userId          // ID of the user being replied to (for @mention)
+            parentId,
+            replyLevel: replyLevel + 1,
+            parentCommentId: rootCommentId,
+            userId: userId // ID del usuario para la mención
         });
 
         // Enfocar el campo de comentario
@@ -338,361 +289,258 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     };
 
     // Función recursiva auxiliar para añadir la respuesta al árbol de comentarios
-    const addReplyToCommentTree = (
-        commentsList: EnhancedComment[],
-        targetParentId: string, // The ID of the comment we are replying *to*
+    const addReplyToComment = (
+        comments: EnhancedComment[],
+        parentId: string,
         newReply: EnhancedComment
     ): EnhancedComment[] => {
-        return commentsList.map(c => {
-            if (!c) return c; // Safety check
-
-            // If this comment is the one we're replying to, add the reply to its replies array
-            if (c.id === targetParentId) {
-                // console.log(`Found target parent ${targetParentId}, adding reply.`); // Debugging
+        return comments.map(c => {
+            // Si este es el comentario al que queremos responder
+            if (c.id === parentId) {
                 return {
                     ...c,
-                    // Ensure replies array exists and add the new reply
-                    replies: [...(Array.isArray(c.replies) ? c.replies : []), newReply]
+                    replies: [...(c.replies || []), newReply]
                 };
             }
 
-            // If this comment has replies, search recursively within them
-            if (c.replies && Array.isArray(c.replies) && c.replies.length > 0) {
-                // console.log(`Searching replies of ${c.id} for target ${targetParentId}`); // Debugging
+            // Si este comentario tiene respuestas, buscar recursivamente
+            if (c.replies && c.replies.length > 0) {
                 return {
                     ...c,
-                    replies: addReplyToCommentTree(c.replies as EnhancedComment[], targetParentId, newReply)
+                    replies: addReplyToComment(c.replies as EnhancedComment[], parentId, newReply)
                 };
             }
 
-            // Not the comment or its descendants
+            // No es el comentario que buscamos
             return c;
         });
     };
 
-
-    // Añadir un nuevo comentario o respuesta
-    const addCommentOrReply = async () => {
-        if (comment.trim() === '' || !selectedPost) return; // Ensure post exists
-
-        const commentContent = comment.trim();
-        setComment(''); // Clear input field immediately for better UX
+    // Añadir un nuevo comentario
+    const addComment = async () => {
+        if (comment.trim() === '') return;
 
         try {
-            // Obtener datos del usuario actual
-            const userProfile = currentUser || await authService.getProfile();
-
-            // Crear un ID temporal para el comentario
-            const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-            // Crear un comentario optimista que se mostrará inmediatamente
-            const now = new Date().toISOString(); // Usar una fecha ISO real para evitar errores de parseo
-            const optimisticComment: EnhancedComment = {
-                id: tempId,
-                author: {
-                    id: userProfile?.id || '',
-                    username: userProfile?.username || 'Usuario',
-                    level: userProfile?.level,
-                    avatarUrl: userProfile?.avatar_url || undefined,
-                },
-                content: commentContent,
-                timestamp: 'ahora mismo', // Texto amigable para el usuario
-                created_at: now, // Fecha real para operaciones internas
-                likes: 0,
-                is_liked: false,
-                isLiked: false,
-                likesCount: 0,
-                mentionedUser: replyToComment?.username,
-                replyLevel: replyToComment ? replyToComment.replyLevel : 0,
-                parentId: replyToComment?.id,
-                parentCommentId: replyToComment?.parentCommentId,
-                replies: [],
+            // Datos para el nuevo comentario
+            const commentData = {
+                post_id: post?.id || '',
+                content: comment,
+                parent_id: replyToComment?.id,
+                mentioned_user_id: replyToComment?.userId || undefined // ID del usuario mencionado cuando respondemos
             };
 
-            // Actualizar UI inmediatamente (optimistic update)
-            if (replyToComment) {
-                // Es una respuesta a un comentario existente
-                setComments(prevComments => {
-                    const updatedComments = addReplyToCommentTree(
-                        prevComments,
-                        replyToComment.id,
-                        optimisticComment
-                    );
-                    updateAllCommentsCache(updatedComments);
-                    return updatedComments;
-                });
+            // console.log('Enviando comentario con datos:', commentData);
 
-                // Guardar referencia para "responder de nuevo"
+            // Enviar el comentario a la API
+            const response = await communityService.createComment(commentData);
+
+            // Obtener la información del usuario actual
+            const userProfile = await authService.getProfile();
+
+            // Crear el objeto de comentario con la respuesta y datos del usuario
+            const newComment: EnhancedComment = {
+                ...response,
+                id: response.id,
+                author: {
+                    id: userProfile.id,      // ID del usuario para menciones futuras
+                    username: userProfile.username,
+                    level: userProfile.level,
+                    avatarUrl: userProfile.avatar_url
+                },
+                content: comment,
+                timestamp: 'ahora', // La API deberió devolver esto, pero por si acaso
+                likes: 0,
+                is_liked: false, // Inicialmente no está likeado por el usuario
+                isLiked: false,   // Estado local para el like
+                likesCount: 0,    // Estado local para contador de likes
+                mentionedUser: replyToComment?.username,
+                replyLevel: replyToComment ? replyToComment.replyLevel : 0
+            };
+
+            if (replyToComment) {
+                // Agregar información de relación para mantener la jerarquía
+                newComment.parentId = replyToComment.id;
+                newComment.parentCommentId = replyToComment.parentCommentId;
+
+                // Guardar la referencia del comentario que estamos respondiendo
                 setLastRespondedComment({ ...replyToComment });
+
+                // Cuando respondemos a un comentario raíz
+                if (replyToComment.replyLevel === 1) {
+                    setComments(prevComments => {
+                        return prevComments.map(c => {
+                            if (c.id === replyToComment.parentCommentId) {
+                                return {
+                                    ...c,
+                                    replies: [...(c.replies || []), newComment]
+                                };
+                            }
+                            return c;
+                        });
+                    });
+                }
+                // Cuando respondemos a una respuesta (cualquier nivel)
+                else {
+                    setComments(prevComments => {
+                        const updatedComments = prevComments.map(c => {
+                            // Buscar el comentario principal
+                            if (c.id === replyToComment.parentCommentId) {
+                                return {
+                                    ...c,
+                                    replies: addReplyToComment(
+                                        c.replies as EnhancedComment[],
+                                        replyToComment.id,
+                                        newComment
+                                    )
+                                };
+                            }
+                            return c;
+                        });
+
+                        updateAllCommentsCache(updatedComments);
+                        return updatedComments;
+                    });
+                }
+
                 setReplyToComment(null);
             } else {
-                // Es un comentario nuevo de primer nivel
+                // Añadir como comentario principal
+                newComment.replyLevel = 0;
                 setComments(prevComments => {
-                    const updatedComments = [...prevComments, optimisticComment];
+                    const updatedComments = [...prevComments, newComment];
                     updateAllCommentsCache(updatedComments);
                     return updatedComments;
                 });
                 setLastRespondedComment(null);
             }
 
-            // Actualizar el contador de comentarios del post (optimistic)
-            setSelectedPost(prevPost =>
-                prevPost ? { ...prevPost, comments: (prevPost.comments || 0) + 1 } : null
-            );
-
-            // Preparar datos para la API
-            const commentData = {
-                post_id: selectedPost.id,
-                content: commentContent,
-                parent_id: replyToComment?.id,
-                mentioned_user_id: replyToComment?.userId || undefined
-            };
-
-            // Enviar a la API en segundo plano
-            const response = await communityService.createComment(commentData);
-
-            // Una vez recibida la respuesta, actualizar el comentario temporal con los datos reales
-            setComments(prevComments => {
-                // Función para actualizar un comentario temporal en el árbol de comentarios
-                const updateCommentInTree = (comments: EnhancedComment[]): EnhancedComment[] => {
-                    return comments.map(c => {
-                        if (c.id === tempId) {
-                            // Reemplazar el comentario temporal con el real
-                            return {
-                                ...response,
-                                id: response.id,
-                                author: {
-                                    id: userProfile?.id || '',
-                                    username: userProfile?.username || 'Usuario',
-                                    level: userProfile?.level,
-                                    avatarUrl: userProfile?.avatar_url,
-                                },
-                                content: response.content || commentContent,
-                                timestamp: response.timestamp || response.created_at || 'ahora mismo',
-                                likes: response.likes || 0,
-                                is_liked: response.is_liked || false,
-                                isLiked: response.is_liked || false,
-                                likesCount: response.likes || 0,
-                                mentionedUser: c.mentionedUser,
-                                replyLevel: c.replyLevel,
-                                parentId: c.parentId,
-                                parentCommentId: c.parentCommentId,
-                                replies: c.replies || [],
-                            };
-                        }
-
-                        // Si tiene respuestas, buscar recursivamente
-                        if (c.replies && Array.isArray(c.replies) && c.replies.length > 0) {
-                            return {
-                                ...c,
-                                replies: updateCommentInTree(c.replies as EnhancedComment[])
-                            };
-                        }
-
-                        return c;
-                    });
-                };
-
-                // Actualizar toda la estructura de comentarios
-                const updatedComments = updateCommentInTree(prevComments);
-                updateAllCommentsCache(updatedComments);
-                return updatedComments;
-            });
+            setComment('');
 
         } catch (error) {
-            console.error('Error al añadir comentario/respuesta:', error);
-            // Mostrar mensaje de error y restaurar el comentario al campo de entrada
-            setComment(commentContent);
-            // Opcionalmente mostrar un toast o alerta de error
+            console.error('Error al añadir comentario:', error);
         }
     };
-
 
     // Componente recursivo para renderizar comentarios
     const CommentItem = ({
         comment,
-        isNested = false, // Indicates if it's rendered as part of a reply chain (visual style maybe)
-        nestingLevel = 0 // Actual depth in the tree
+        isNested = false,
+        nestingLevel = 0
     }: {
         comment: EnhancedComment,
-        isNested?: boolean, // May not be needed if using nestingLevel for style
+        isNested?: boolean,
         nestingLevel?: number
     }) => {
-        // State for likes specific to this comment instance
-        const [isCommentLiked, setIsCommentLiked] = useState(comment.isLiked || false);
-        const [commentLikesCount, setCommentLikesCount] = useState(comment.likesCount || 0);
+        // Estado local para el like del comentario
+        const [isCommentLiked, setIsCommentLiked] = useState(comment.is_liked || false);
+        const [commentLikesCount, setCommentLikesCount] = useState(comment.likes || 0);
 
-        // Handle liking/unliking a comment
+        // Manejar like de comentario
         const handleCommentLike = (e: React.MouseEvent) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Evitar propagación del evento
 
-            const originalLiked = isCommentLiked;
-            const originalCount = commentLikesCount;
-
-            // Optimistic update
-            setIsCommentLiked(!originalLiked);
-            setCommentLikesCount(originalLiked ? originalCount - 1 : originalCount + 1);
-
+            // Llamar a la API para dar/quitar like al comentario
             communityService.likeComment(comment.id)
                 .then(response => {
-                    // Confirm update from server
                     setIsCommentLiked(response.status === 'liked');
                     setCommentLikesCount(response.likes);
-                    // Update the comment object in the main state might be complex here.
-                    // Consider refetching or using a more robust state management solution
-                    // For now, local state handles the UI update.
+                    // Actualizar también el objeto del comentario para mantener sincronizados los estados
+                    comment.isLiked = response.status === 'liked';
+                    comment.likesCount = response.likes;
                 })
                 .catch(error => {
                     console.error('Error al dar/quitar like al comentario:', error);
-                    // Revert optimistic update on error
-                    setIsCommentLiked(originalLiked);
-                    setCommentLikesCount(originalCount);
                 });
         };
-
-        // Use nestingLevel to determine indentation
-        const indentationClass = nestingLevel > 0 ? `ml-8` : ''; // Adjust margin based on level
-        const borderClass = nestingLevel > 0 ? `pl-4 border-l-2 border-[#3a3a38]` : '';
-
         return (
-            <div className={`mb-6 ${indentationClass}`}>
-                <div className={` ${borderClass}`}>
-                    <div className="flex gap-2">
-                        {/* Avatar and author details */}
-                        <div className="relative flex-shrink-0 self-start mt-1">
-                            <div className="w-8 h-8 bg-[#444442] rounded-full overflow-hidden border border-white/10">
-                                {comment.author?.avatarUrl ? (
-                                    <Image
-                                        src={formatAvatarUrl(comment.author.avatarUrl) || '/default-avatar.png'} // Provide a fallback avatar
-                                        alt={comment.author.username || 'Avatar'}
-                                        width={32}
-                                        height={32}
-                                        className="w-full h-full object-cover"
-                                        unoptimized={true}
-                                        onError={(e) => (e.currentTarget.src = '/default-avatar.png')} // Fallback on error
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-zinc-400 text-sm font-semibold">
-                                        {(comment.author?.username || '?').charAt(0).toUpperCase()}
-                                    </div>
-                                )}
-                            </div>
-                            {comment.author?.level !== undefined && comment.author.level !== null && (
-                                <div className="absolute -bottom-1 -right-1 z-10">
-                                    <UserLevelBadge level={comment.author.level} size="sm" showTooltip={true} />
+            <div className={`${nestingLevel > 0 ? `mb-3` : 'mb-4'}`}>
+                <div className="flex gap-2">
+                    {/* Avatar y detalles del autor */}
+                    <div className="relative flex-shrink-0 self-start">
+                        <div className="w-8 h-8 bg-[#444442] rounded-full overflow-hidden border border-white/10">
+                            {comment.author.avatarUrl ? (
+                                <Image
+                                    src={formatAvatarUrl(comment.author.avatarUrl) || ''}
+                                    alt={comment.author.username}
+                                    width={32}
+                                    height={32}
+                                    className="w-full h-full object-cover"
+                                    unoptimized={true}
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-zinc-400">
+                                    {comment.author.username.charAt(0).toUpperCase()}
                                 </div>
                             )}
                         </div>
-
-                        {/* Comment content and actions */}
-                        <div className="flex-1">
-                            {/* Comment Header */}
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="font-medium text-white text-sm">{comment.author?.username || 'Usuario'}</span>
-                                <span className="text-xs text-zinc-400">{formatRelativeTime(comment.timestamp)}</span>
+                        {comment.author.level && (
+                            <div className="absolute -bottom-1 -right-1 z-10">
+                                <UserLevelBadge level={comment.author.level} size="sm" showTooltip={true} />
                             </div>
+                        )}
+                    </div>
 
-                            {/* Comment Body */}
-                            <div className="bg-[#2a2a29] rounded-lg px-3 py-2 text-zinc-200 text-sm mb-1 break-words">
-                                {/* Display @mention if present (using the string property) */}
-                                {comment.mentionedUser && comment.replyLevel && comment.replyLevel > 0 && (
-                                    <span className="text-blue-400 font-medium mr-1">@{comment.mentionedUser}</span>
-                                )}
-                                {/* Render content safely */}
-                                {comment.content}
-                            </div>
+                    <div className="flex-1">
+                        {/* Encabezado del comentario */}
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-white">{comment.author.username}</span>
+                            <span className="text-xs text-zinc-400">{comment.timestamp}</span>
+                        </div>
 
-                            {/* Comment Actions */}
-                            <div className="flex items-center gap-4 ml-1 text-xs">
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        className={`p-1 rounded-full transition-all transform hover:scale-110 ${isCommentLiked ? 'text-blue-400 hover:text-blue-500' : 'text-zinc-400 hover:text-zinc-300'}`}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
+                        {/* Contenido del comentario */}
+                        <div className="bg-[#2a2a29] rounded-lg px-3 py-2 text-zinc-200 mb-1">
+                            {comment.mentionedUser && (
+                                <span className="text-blue-400">@{comment.mentionedUser} </span>
+                            )}
+                            {/* Siempre renderizar como string */}
+                            {typeof comment.content === 'string'
+                                ? comment.content
+                                : (comment.content ? JSON.stringify(comment.content) : '')}
+                        </div>
 
-                                            // Crear un elemento temporal para mostrar efecto de animación
-                                            const button = e.currentTarget;
-                                            const rect = button.getBoundingClientRect();
-                                            const tempIcon = document.createElement('div');
-                                            tempIcon.innerHTML = `<svg 
-                                              width="14" 
-                                              height="14" 
-                                              viewBox="0 0 24 24" 
-                                              fill="none" 
-                                              stroke="${!isCommentLiked ? '#3b82f6' : '#9ca3af'}" 
-                                              stroke-width="2" 
-                                              stroke-linecap="round" 
-                                              stroke-linejoin="round"
-                                              class="lucide lucide-thumbs-up"
-                                            >
-                                              <path d="M7 10v12"></path>
-                                              <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
-                                            </svg>`;
-
-                                            tempIcon.style.position = 'fixed';
-                                            tempIcon.style.left = `${rect.left + rect.width / 2 - 7}px`;
-                                            tempIcon.style.top = `${rect.top + rect.height / 2 - 7}px`;
-                                            tempIcon.style.opacity = '1';
-                                            tempIcon.style.transform = 'scale(1)';
-                                            tempIcon.style.transition = 'all 0.5s ease-out';
-                                            tempIcon.style.pointerEvents = 'none';
-                                            tempIcon.style.zIndex = '9999';
-
-                                            document.body.appendChild(tempIcon);
-
-                                            // Animar el elemento
-                                            setTimeout(() => {
-                                                tempIcon.style.opacity = '0';
-                                                tempIcon.style.transform = 'scale(2) translateY(-10px)';
-                                            }, 50);
-
-                                            // Eliminar después de la animación
-                                            setTimeout(() => {
-                                                document.body.removeChild(tempIcon);
-                                            }, 550);
-
-                                            // Llamar al manejador original
-                                            handleCommentLike(e);
-                                        }}
-                                        aria-label={isCommentLiked ? 'Quitar like' : 'Dar like'}
-                                    >
-                                        <ThumbsUp size={14} className={isCommentLiked ? 'transform animate-pulse' : ''} />
-                                    </button>
-                                    {/* Show count only if > 0 */}
-                                    {commentLikesCount > 0 && (
-                                        <span className="text-zinc-400 tabular-nums">{commentLikesCount}</span>
-                                    )}
-                                </div>
+                        {/* Acciones del comentario */}
+                        <div className="flex items-center gap-4 ml-1">
+                            <div className="flex items-center gap-1">
                                 <button
-                                    className="text-zinc-400 hover:text-zinc-300 flex items-center gap-1"
-                                    onClick={() => handleReplyToComment(
-                                        comment.id,
-                                        comment.author?.username || 'Usuario',
-                                        true, // It's nested visually if level > 0
-                                        comment.id, // Direct parent is this comment
-                                        comment.replyLevel || 0, // Pass the level of this comment
-                                        comment.parentCommentId, // Pass the root comment ID
-                                        comment.author?.id || '' // Pass author ID for mention
-                                    )}
-                                    aria-label={`Responder a ${comment.author?.username || 'Usuario'}`}
+                                    className={`p-1 rounded-full ${isCommentLiked ? 'text-blue-400' : 'text-zinc-400 hover:text-zinc-300'}`}
+                                    onClick={handleCommentLike}
+                                    aria-label={isCommentLiked ? 'Quitar like' : 'Dar like'}
                                 >
-                                    <CornerUpRight size={14} />
-                                    Responder
+                                    <ThumbsUp size={14} />
                                 </button>
+                                {commentLikesCount > 0 && (
+                                    <span className="text-xs text-zinc-400">{commentLikesCount}</span>
+                                )}
                             </div>
+                            <button
+                                className="text-zinc-400 hover:text-zinc-300 text-xs flex items-center gap-1"
+                                onClick={() => handleReplyToComment(
+                                    comment.id,
+                                    comment.author.username,
+                                    isNested,
+                                    comment.parentId,
+                                    nestingLevel,
+                                    comment.parentCommentId,
+                                    comment.author.id || '' // Pasamos el ID del autor para la mención
+                                )}
+                                aria-label={`Reply to ${comment.author.username}`}
+                            >
+                                <CornerUpRight size={14} />
+                                Reply
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Render Replies Recursively */}
-                {comment.replies && Array.isArray(comment.replies) && comment.replies.length > 0 && (
-                    <div className={`mt-3`}> {/* No extra border/padding needed here, handled by child's indentation */}
+                {/* Renderizar respuestas anidadas */}
+                {comment.replies && comment.replies.length > 0 && (
+                    <div className={`ml-${Math.min(nestingLevel * 2 + 8, 20)} mt-3 pl-4 border-l-2 border-[#3a3a38]`}>
                         {(comment.replies as EnhancedComment[]).map(reply => (
                             <CommentItem
                                 key={reply.id}
                                 comment={reply}
-                                isNested={true} // All replies are nested relative to their parent
-                                nestingLevel={nestingLevel + 1} // Increment nesting level
+                                isNested={true}
+                                nestingLevel={nestingLevel + 1}
                             />
                         ))}
                     </div>
@@ -701,445 +549,486 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
         );
     };
 
-    // --- Helper Functions for Content Formatting ---
-
-    const getEnrichedContent = (contentStr: string | null | undefined): { text: string; features: any | null } | null => {
-        if (!contentStr) return null;
+    // Extraer contenido enriquecido si el contenido es JSON
+    const getEnrichedContent = (content: string) => {
         try {
-            const parsedContent = JSON.parse(contentStr);
-            // Basic check for enriched content structure
-            if (typeof parsedContent === 'object' && parsedContent !== null) {
-                return {
-                    text: parsedContent.text || '', // Ensure text field exists
-                    features: parsedContent.features || null
-                };
+            const parsedContent = JSON.parse(content);
+            if (parsedContent.text && parsedContent.features) {
+                return parsedContent;
             }
             return null;
         } catch (e) {
-            return null; // Not JSON or invalid structure
+            return null; // No es JSON o no tiene la estructura esperada
         }
     };
 
+    // Format content with title and body
     const formatContent = () => {
         if (!selectedPost) return { title: '', body: '', features: null };
 
+        // Asegurarse de que post.content sea un string
         const contentStr = typeof selectedPost.content === 'string'
             ? selectedPost.content
-            : JSON.stringify(selectedPost.content || '');
+            : (selectedPost.content ? JSON.stringify(selectedPost.content) : '');
 
-        const enriched = getEnrichedContent(contentStr);
+        // Verificar si hay contenido enriquecido
+        const enrichedContent = getEnrichedContent(contentStr);
+        const plainContent = enrichedContent ? enrichedContent.text : contentStr;
+        const contentFeatures = enrichedContent ? enrichedContent.features : null;
 
-        if (enriched) {
-            // If enriched content exists, use its text. The title might still be separate.
+        // Si el post tiene título explícito, usarlo
+        if (selectedPost.title) {
             return {
-                title: selectedPost.title || enriched.text.split('\n')[0] || 'Post', // Use post title or first line of enriched text
-                body: selectedPost.title ? enriched.text : enriched.text.split('\n').slice(1).join('\n'), // Use full enriched text if title exists, else skip first line
-                features: enriched.features
-            };
-        } else {
-            // If not enriched, treat contentStr as plain text
-            const contentLines = contentStr.split('\n');
-            const displayTitle = selectedPost.title || contentLines[0] || 'Post';
-            const displayBody = selectedPost.title ? contentStr : contentLines.slice(1).join('\n');
-            return {
-                title: displayTitle,
-                body: displayBody,
-                features: null // No features for plain text
+                title: selectedPost.title,
+                body: plainContent,
+                features: contentFeatures
             };
         }
+
+        // Si no tiene título, extraerlo de la primera línea del contenido (compatibilidad con posts antiguos)
+        const contentLines = plainContent.split('\n');
+        const title = contentLines[0];
+        const body = contentLines.slice(1).join('\n');
+
+        return { title, body, features: contentFeatures };
     };
 
-    // --- Main Component Render ---
-
-    // Check if modal should be open and if we have a post to display
     if (!isOpen || !selectedPost) return null;
 
-    // Format content after ensuring selectedPost is not null
     const { title, body, features } = formatContent();
-    // Simple check if it looks like a reply based on title prefix (adjust if needed)
-    const isReplyPost = selectedPost.title?.startsWith('Re:') || false;
-
-
-    // Calculate total comments count including nested replies
-    const getTotalCommentsCount = (commentsList: EnhancedComment[]): number => {
-        let count = commentsList.length;
-        commentsList.forEach(comment => {
-            if (comment.replies && Array.isArray(comment.replies)) {
-                count += getTotalCommentsCount(comment.replies as EnhancedComment[]);
-            }
-        });
-        return count;
-    };
-    const totalCommentsCount = getTotalCommentsCount(comments);
-
+    const isReply = typeof selectedPost.content === 'string' && selectedPost.content.startsWith('Re:');
 
     return (
-        <>
-            <style>{animatePulseLight}</style>
-            <div className="fixed inset-0 bg-black/80 z-50 flex items-start justify-center pt-8 sm:pt-12 md:pt-16 pb-8 px-2 sm:px-4 overflow-y-auto" aria-modal="true" role="dialog" aria-labelledby="post-modal-title">
-                <div
-                    ref={modalRef}
-                    className="bg-[#1f1f1e] w-full max-w-3xl rounded-lg border border-white/10 shadow-xl z-50 flex flex-col max-h-[calc(100vh-6rem)] sm:max-h-[calc(100vh-8rem)]" // Allow vertical scrolling
-                >
-                    {/* Header */}
-                    <div className="flex justify-between items-center px-4 sm:px-5 py-2.5 border-b border-white/10 flex-shrink-0">
-                        <div className="flex items-center gap-2">
-                            <Bell size={14} className="text-zinc-400" />
-                            <span className="text-zinc-300 text-xs">
-                                {selectedPost.isPinned ? 'Post fijado' : 'Post de la comunidad'}
-                            </span>
+        <div className="fixed inset-0 bg-black/75 z-50 flex items-start justify-center pt-8 sm:pt-16 overflow-y-auto">
+            <div
+                ref={modalRef}
+                className="bg-[#1f1f1e] w-full max-w-3xl mx-4 rounded-lg border border-white/10 shadow-xl z-50"
+            >
+                {/* Header */}
+                <div className="flex justify-between items-center px-5 py-2.5 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                        <Bell size={14} className="text-zinc-400" />
+                        <span className="text-zinc-300 text-xs">
+                            {post.isPinned ? 'Post fijado' : 'Post de la comunidad'}
+                        </span>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-zinc-400 hover:text-white text-xl"
+                        aria-label="Close dialog"
+                    >
+                        &times;
+                    </button>
+                </div>
+
+                {/* Post Content */}
+                <div className="px-5 py-3">
+                    <UserBadge
+                        username={post.author.username}
+                        level={post.author.level}
+                        avatarUrl={post.author.avatarUrl || post.author.avatar_url}
+                        timestamp={post.timestamp || post.created_at || 'hace un momento'}
+                        category={typeof post.category === 'object' && post.category !== null ? post.category.name : post.category}
+                        categoryColor={post.categoryColor || 'bg-[#444442] border border-white/5'}
+                    />
+
+                    {/* Title */}
+                    {isReply ? (
+                        <div className="mt-2 mb-1 font-medium flex items-center">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                            <h2 id="post-detail-title" className="text-white text-lg">{title}</h2>
                         </div>
-                        <button
-                            onClick={() => {
-                                if (confirmDiscardComment()) {
-                                    setComment('');
-                                    cancelReply();
-                                    onClose();
-                                }
-                            }}
-                            className="text-zinc-400 hover:text-white text-2xl leading-none p-1"
-                            aria-label="Cerrar modal"
-                        >
-                            ×
-                        </button>
+                    ) : (
+                        <h2 id="post-detail-title" className="mt-2 mb-1 font-medium text-white text-lg">{title}</h2>
+                    )}
+
+                    {/* Body */}
+                    <div className="mb-3">
+                        <p className="text-zinc-200">{body}</p>
                     </div>
 
-                    {/* Scrollable Content Area */}
-                    <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4">
-                        {/* --- Post Content --- */}
-                        <UserBadge
-                            username={selectedPost.author.username}
-                            level={selectedPost.author.level}
-                            avatarUrl={selectedPost.author.avatarUrl || selectedPost.author.avatar_url}
-                            timestamp={selectedPost.timestamp || selectedPost.created_at || 'just now'}
-                            category={typeof selectedPost.category === 'object' && selectedPost.category !== null ? selectedPost.category.name : selectedPost.category}
-                            categoryColor={selectedPost.categoryColor || 'bg-[#444442] border border-white/5'}
-                        />
+                    {/* Enlace si existe */}
+                    {features && features.link && (
+                        <div className="mb-4 bg-[#252524] p-3 rounded-lg border border-white/10">
+                            <a
+                                href={features.link.startsWith('http') ? features.link : `https://${features.link}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-400 hover:underline flex items-center gap-2"
+                                onClick={(e) => e.stopPropagation()} // Evitar propagación
+                            >
+                                <div className="bg-blue-500/20 p-1.5 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 015.656 0l4 4a4 4 0 01-5.656 5.656l-1.102-1.101" />
+                                    </svg>
+                                </div>
+                                {features.link}
+                            </a>
+                        </div>
+                    )}
 
-                        {/* Title */}
-                        <h2 id="post-modal-title" className="mt-3 mb-2 font-medium text-white text-lg break-words">
-                            {isReplyPost && <span className="text-blue-400 mr-1">Re:</span>}
-                            {title}
-                        </h2>
+                    {/* Video si existe */}
+                    {features && features.video && (
+                        <div className="mb-4 rounded-lg overflow-hidden border border-white/10">
+                            {(() => {
+                                // Función para extraer el ID de video de YouTube
+                                const getYoutubeVideoId = (url: string) => {
+                                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                                    const match = url.match(regExp);
+                                    return match && match[2].length === 11 ? match[2] : null;
+                                };
 
-                        {/* Body */}
-                        {body && (
-                            <div className="mb-3">
-                                <p className="text-zinc-200 text-sm whitespace-pre-wrap break-words">{body}</p>
-                            </div>
-                        )}
+                                // Función para extraer el ID de video de Vimeo
+                                const getVimeoVideoId = (url: string) => {
+                                    const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
+                                    const match = url.match(regExp);
+                                    return match ? match[5] : null;
+                                };
 
-                        {/* Enlace si existe */}
-                        {features && features.link && (
-                            <div className="mb-4 bg-[#252524] p-3 rounded-lg border border-white/10">
-                                <a
-                                    href={features.link.startsWith('http') ? features.link : `https://${features.link}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-400 hover:underline text-sm flex items-center gap-2 break-all"
-                                    onClick={(e) => e.stopPropagation()} // Evitar propagación
-                                >
-                                    <div className="bg-blue-500/20 p-1 rounded flex-shrink-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
-                                        </svg>
-                                    </div>
-                                    <span>{features.link}</span>
-                                </a>
-                            </div>
-                        )}
+                                const videoUrl = features.video.startsWith('http') ? features.video : `https://${features.video}`;
 
-                        {/* Video si existe */}
-                        {features && features.video && (
-                            <div className="mb-4 rounded-lg overflow-hidden border border-white/10">
-                                {(() => {
-                                    const getYoutubeVideoId = (url: string) => url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)?.[2]?.length === 11 ? url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)?.[2] : null;
-                                    const getVimeoVideoId = (url: string) => url.match(/^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/)?.[5];
-                                    const videoUrl = features.video.startsWith('http') ? features.video : `https://${features.video}`;
-                                    const youtubeId = getYoutubeVideoId(videoUrl);
-                                    const vimeoId = getVimeoVideoId(videoUrl);
-
-                                    if (youtubeId) {
+                                // Detectar tipo de video
+                                if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+                                    const videoId = getYoutubeVideoId(videoUrl);
+                                    if (videoId) {
                                         return (
-                                            <div className="relative pt-[56.25%] w-full"> {/* 16:9 Aspect Ratio */}
-                                                <iframe className="absolute top-0 left-0 w-full h-full" src={`https://www.youtube.com/embed/${youtubeId}`} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
-                                            </div>
-                                        );
-                                    } else if (vimeoId) {
-                                        return (
-                                            <div className="relative pt-[56.25%] w-full"> {/* 16:9 Aspect Ratio */}
-                                                <iframe className="absolute top-0 left-0 w-full h-full" src={`https://player.vimeo.com/video/${vimeoId}`} title="Vimeo video player" frameBorder="0" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen></iframe>
-                                            </div>
-                                        );
-                                    } else {
-                                        return (
-                                            <div className="p-3 bg-[#252524] flex items-center gap-2">
-                                                <div className="bg-red-500/20 p-1 rounded flex-shrink-0">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                </div>
-                                                <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="text-red-400 hover:underline text-sm break-all">Ver video</a>
+                                            <div className="relative pt-[56.25%] w-full">
+                                                <iframe
+                                                    className="absolute top-0 left-0 w-full h-full"
+                                                    src={`https://www.youtube.com/embed/${videoId}`}
+                                                    title="YouTube video"
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                    onClick={(e) => e.stopPropagation()}
+                                                ></iframe>
                                             </div>
                                         );
                                     }
-                                })()}
-                            </div>
-                        )}
-
-                        {/* Encuesta si existe - Use selectedPost for poll results */}
-                        {features && Array.isArray(features.poll) && features.poll.length >= 1 && (
-                            <div className="mb-4 bg-[#252524] p-4 rounded-lg border border-white/10">
-                                <h4 className="text-white font-medium mb-3 text-sm">Encuesta</h4>
-                                <div className="space-y-2">
-                                    {features.poll.map((option: any) => {
-                                        const pollResults = features.poll_results || {}; // Use features from selectedPost
-                                        const totalVotes = Object.values(pollResults).reduce((acc: number, val: unknown) => acc + (Number(val) || 0), 0);
-                                        const optionVotes = Number(pollResults[option.id]) || 0;
-                                        const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
-
+                                } else if (videoUrl.includes('vimeo.com')) {
+                                    const videoId = getVimeoVideoId(videoUrl);
+                                    if (videoId) {
                                         return (
-                                            <button
-                                                key={option.id}
-                                                className="relative w-full bg-[#323230] hover:bg-[#3a3a38] transition-colors rounded-lg p-2.5 text-zinc-200 text-sm cursor-pointer flex items-center gap-3 overflow-hidden text-left"
-                                                onClick={() => {
-                                                    communityService.votePoll(selectedPost.id, option.id)
-                                                        .then(response => {
-                                                            // console.log('Voto registrado:', response); // Debugging
-                                                            // Update selectedPost state with new poll results
-                                                            setSelectedPost(prevPost => {
-                                                                if (!prevPost) return null;
-                                                                // Need to parse, update, and stringify content carefully
-                                                                try {
-                                                                    const contentObj = getEnrichedContent(prevPost.content as string);
-                                                                    if (contentObj && contentObj.features) {
-                                                                        const updatedFeatures = { ...contentObj.features, poll_results: response.poll_results };
-                                                                        const updatedContent = JSON.stringify({ ...contentObj, features: updatedFeatures });
-                                                                        return { ...prevPost, content: updatedContent };
-                                                                    }
-                                                                } catch (e) { console.error("Error updating poll results in state:", e); }
-                                                                return prevPost; // Return previous state on error
-                                                            });
-                                                        })
-                                                        .catch(error => console.error('Error al votar:', error));
-                                                }}
-                                                aria-label={`Votar por ${option.text}`}
-                                            >
-                                                {/* Progress bar */}
-                                                {totalVotes > 0 && (
-                                                    <div className="absolute top-0 left-0 h-full bg-blue-500/20" style={{ width: `${percentage}%` }} aria-hidden="true"></div>
-                                                )}
-                                                {/* Circle indicator */}
-                                                <div className={`w-4 h-4 rounded-full border ${optionVotes > 0 ? 'border-blue-500 bg-blue-500/30' : 'border-zinc-500'} flex-shrink-0 relative z-10`}></div>
-                                                {/* Option text and percentage */}
-                                                <div className="flex flex-1 justify-between items-center relative z-10 gap-2">
-                                                    <span className="break-words">{option.text}</span>
-                                                    {totalVotes > 0 && (
-                                                        <span className="text-xs text-blue-300 flex-shrink-0 tabular-nums">{percentage}%</span>
-                                                    )}
-                                                </div>
-                                            </button>
+                                            <div className="relative pt-[56.25%] w-full">
+                                                <iframe
+                                                    className="absolute top-0 left-0 w-full h-full"
+                                                    src={`https://player.vimeo.com/video/${videoId}`}
+                                                    title="Vimeo video"
+                                                    frameBorder="0"
+                                                    allow="autoplay; fullscreen; picture-in-picture"
+                                                    allowFullScreen
+                                                    onClick={(e) => e.stopPropagation()}
+                                                ></iframe>
+                                            </div>
                                         );
-                                    })}
-                                    {/* Total votes display */}
-                                    {features.poll_results && Object.keys(features.poll_results).length > 0 && (
-                                        <div className="text-xs text-zinc-400 mt-2 text-right">
-                                            {Object.values(features.poll_results).reduce((acc: number, val: unknown) => acc + (Number(val) || 0), 0)} votos totales
+                                    }
+                                }
+
+                                // Si no se reconoce el formato o no se pudo extraer el ID, mostrar enlace
+                                return (
+                                    <div className="p-3 bg-[#252524] flex items-center gap-2">
+                                        <div className="bg-red-500/20 p-1.5 rounded">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                                        <a
+                                            href={videoUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-red-400 hover:underline"
+                                            onClick={(e) => e.stopPropagation()} // Evitar propagación
+                                        >
+                                            Ver video
+                                        </a>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    )}
 
+                    {/* Encuesta si existe */}
+                    {features && features.poll && features.poll.length >= 2 && (
+                        <div className="mb-4 bg-[#252524] p-4 rounded-lg border border-white/10">
+                            <h4 className="text-white font-medium mb-3">Encuesta</h4>
+                            <div className="space-y-3">
+                                {features.poll.map((option: any) => {
+                                    // Obtener resultados de la encuesta si existen
+                                    const pollResults = features.poll_results || {};
+                                    const totalVotes = Object.values(pollResults).reduce((a: number, b: number) => a + (b as number), 0) as number;
+                                    const optionVotes = pollResults[option.id] || 0;
+                                    const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
 
+                                    return (
+                                        <div
+                                            key={option.id}
+                                            className="relative bg-[#323230] hover:bg-[#3a3a38] transition-colors rounded-lg p-3 text-zinc-200 cursor-pointer flex items-center gap-2 overflow-hidden"
+                                            onClick={() => {
+                                                if (!selectedPost) return;
+                                                // Llamar al servicio para votar
+                                                communityService.votePoll(selectedPost.id, option.id)
+                                                    .then(response => {
+                                                        console.log('Voto registrado:', response);
 
-                        {/* Imágenes para el post */}
-                        {selectedPost.imageUrl && (
-                            <div className="mt-2 mb-4">
-                                {/* Image Display Logic (Simplified) */}
-                                <button
-                                    className="cursor-pointer hover:opacity-90 transition-opacity block w-full"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setImageViewerOpen(true);
-                                    }}
-                                    aria-label="Ver imagen a tamaño completo"
-                                >
-                                    <Image
-                                        src={formatImageUrl(selectedPost.imageUrl) || '/placeholder-image.png'} // Fallback image
-                                        alt={`Imagen para ${title}`}
-                                        width={600} // Provide appropriate defaults or calculate based on container
-                                        height={400}
-                                        className="rounded-lg w-full max-h-80 object-contain border border-white/10 bg-black" // Use object-contain
-                                        priority={selectedPost.isPinned} // Prioritize if pinned
-                                        unoptimized={process.env.NODE_ENV !== 'production'}
-                                        onError={(e) => (e.currentTarget.style.display = 'none')} // Optionally hide on error
-                                    />
-                                </button>
-                                {/* Add logic for multiple images if needed, similar to PostCard */}
-                            </div>
-                        )}
+                                                        // Actualizar el post con los nuevos resultados
+                                                        if (selectedPost && typeof selectedPost.content === 'string') {
+                                                            try {
+                                                                const contentObj = JSON.parse(selectedPost.content);
+                                                                if (contentObj.features) {
+                                                                    contentObj.features.poll_results = response.poll_results;
+                                                                    // Crear una copia del post con el contenido actualizado
+                                                                    const updatedPost = {
+                                                                        ...selectedPost,
+                                                                        content: JSON.stringify(contentObj)
+                                                                    };
+                                                                    // Actualizar el estado
+                                                                    setSelectedPost(updatedPost);
+                                                                }
+                                                            } catch (e) {
+                                                                console.error('Error al actualizar resultados:', e);
+                                                            }
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Error al votar:', error);
+                                                    });
+                                            }}
+                                        >
+                                            {/* Barra de progreso */}
+                                            {totalVotes > 0 && (
+                                                <div
+                                                    className="absolute top-0 left-0 h-full bg-blue-500/20"
+                                                    style={{ width: `${percentage}%` }}
+                                                ></div>
+                                            )}
 
-                        {/* Interactions */}
-                        <div className="flex items-center gap-4 pt-3 pb-3 border-b border-white/10 text-zinc-300">
-                            <div className="flex items-center gap-1">
-                                <button
-                                    className={`p-1 rounded-full transition-all transform hover:scale-110 ${liked ? 'text-blue-400 hover:text-blue-500' : 'text-zinc-400 hover:text-zinc-300'}`}
-                                    onClick={(e) => {
-                                        // Crear un elemento temporal para mostrar efecto de animación
-                                        const button = e.currentTarget;
-                                        const rect = button.getBoundingClientRect();
-                                        const tempIcon = document.createElement('div');
-                                        tempIcon.innerHTML = `<svg 
-                                      width="16" 
-                                      height="16" 
-                                      viewBox="0 0 24 24" 
-                                      fill="none" 
-                                      stroke="${!liked ? '#3b82f6' : '#9ca3af'}" 
-                                      stroke-width="2" 
-                                      stroke-linecap="round" 
-                                      stroke-linejoin="round"
-                                      class="lucide lucide-thumbs-up"
-                                    >
-                                      <path d="M7 10v12"></path>
-                                      <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
-                                    </svg>`;
+                                            <div className={`w-5 h-5 rounded-full border ${totalVotes > 0 && optionVotes > 0 ? 'border-blue-500 bg-blue-500/20' : 'border-zinc-500'} flex-shrink-0 relative z-10`}></div>
 
-                                        tempIcon.style.position = 'fixed';
-                                        tempIcon.style.left = `${rect.left + rect.width / 2 - 8}px`;
-                                        tempIcon.style.top = `${rect.top + rect.height / 2 - 8}px`;
-                                        tempIcon.style.opacity = '1';
-                                        tempIcon.style.transform = 'scale(1)';
-                                        tempIcon.style.transition = 'all 0.5s ease-out';
-                                        tempIcon.style.pointerEvents = 'none';
-                                        tempIcon.style.zIndex = '9999';
+                                            {/* Contenido de la opción con el porcentaje */}
+                                            <div className="flex flex-1 justify-between items-center relative z-10">
+                                                <span>{option.text}</span>
+                                                {totalVotes > 0 && (
+                                                    <span className="text-sm text-blue-300 ml-2">{percentage}%</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
 
-                                        document.body.appendChild(tempIcon);
-
-                                        // Animar el elemento
-                                        setTimeout(() => {
-                                            tempIcon.style.opacity = '0';
-                                            tempIcon.style.transform = 'scale(2) translateY(-10px)';
-                                        }, 50);
-
-                                        // Eliminar después de la animación
-                                        setTimeout(() => {
-                                            document.body.removeChild(tempIcon);
-                                        }, 550);
-
-                                        // Llamar al manejador original
-                                        handleLike();
-                                    }}
-                                    aria-label={liked ? 'Quitar like' : 'Dar like'}
-                                >
-                                    <ThumbsUp size={14} className={liked ? 'transform animate-pulse' : ''} />
-                                </button>
-                                <span className="text-sm tabular-nums">{likesCount}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                {/* Icon can be non-interactive if just showing count */}
-                                <span className="p-1 text-zinc-400">
-                                    <MessageCircle size={16} />
-                                </span>
-                                {/* Use calculated total comments count */}
-                                <span className="text-sm tabular-nums">{totalCommentsCount}</span>
+                                {/* Mostrar total de votos si hay resultados */}
+                                {features.poll_results && Object.keys(features.poll_results).length > 0 && (
+                                    <div className="text-sm text-zinc-400 mt-2 text-right">
+                                        {Object.values(features.poll_results).reduce((a: number, b: number) => a + (b as number), 0)} votos
+                                    </div>
+                                )}
                             </div>
                         </div>
+                    )}
 
-                        {/* --- Comments Section --- */}
-                        <div className="mt-5">
-                            <h3 className="text-white font-medium mb-4 text-sm">Comentarios ({totalCommentsCount})</h3>
+                    {/* Imágenes para el post */}
+                    {post.imageUrl && (
+                        <div className="mt-2 mb-3">
+                            {/* Verificar si hay múltiples imágenes en el contenido */}
+                            {(() => {
+                                try {
+                                    if (typeof selectedPost?.content === 'string' && selectedPost.content.includes('multi_image')) {
+                                        const contentObj = JSON.parse(selectedPost.content);
+                                        if (contentObj.features && contentObj.features.multi_image) {
+                                            const imagesCount = contentObj.features.images_count || 1;
 
-                            {/* Lista de comentarios */}
-                            {comments.length > 0 ? (
-                                <div className="space-y-2 mb-6"> {/* Increased space-y for better separation */}
-                                    {comments.map((comment, index) => (
-                                        <div
-                                            key={comment.id}
-                                            className={`transition-all duration-300 ease-in-out ${comment.id.startsWith('temp-') ? 'animate-pulse-light' : ''
-                                                }`}
-                                        >
-                                            <CommentItem comment={comment} nestingLevel={0} />
-                                            {index < comments.length - 1 && (
-                                                <div className="border-b border-zinc-800/50 mt-5 mb-1"></div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-zinc-500 text-sm text-center py-8 border border-dashed border-zinc-800 rounded-lg">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <MessageCircle size={20} className="opacity-50" />
-                                        <p>Aún no hay comentarios. ¡Sé el primero!</p>
-                                    </div>
-                                </div>
-                            )}
+                                            // Preparar URLs para todas las imágenes
+                                            const baseImageUrl = formatImageUrl(post.imageUrl) || '';
+
+                                            // Si hay 2 imágenes
+                                            if (imagesCount === 2) {
+                                                return (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <button
+                                                            className="cursor-pointer hover:opacity-90 transition-opacity"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setImageViewerOpen(true);
+                                                            }}
+                                                            aria-label="Ver primera imagen a tamaño completo"
+                                                        >
+                                                            <Image
+                                                                src={baseImageUrl}
+                                                                alt={`Imagen 1 de ${title}`}
+                                                                width={300}
+                                                                height={300}
+                                                                className="rounded-lg w-full h-56 object-cover border border-white/10"
+                                                                unoptimized={true}
+                                                            />
+                                                        </button>
+                                                        <div className="w-full h-56 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                            <span>+1 imagen más</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            // Si hay 3 imágenes
+                                            if (imagesCount === 3) {
+                                                return (
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <button
+                                                            className="cursor-pointer hover:opacity-90 transition-opacity"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setImageViewerOpen(true);
+                                                            }}
+                                                            aria-label="Ver primera imagen a tamaño completo"
+                                                        >
+                                                            <Image
+                                                                src={baseImageUrl}
+                                                                alt={`Imagen 1 de ${title}`}
+                                                                width={200}
+                                                                height={200}
+                                                                className="rounded-lg w-full h-40 object-cover border border-white/10"
+                                                                unoptimized={true}
+                                                            />
+                                                        </button>
+                                                        <div className="w-full h-40 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                            <span>+1</span>
+                                                        </div>
+                                                        <div className="w-full h-40 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                            <span>+1</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.log("Error parsing content for multiple images in modal", e);
+                                }
+
+                                // Por defecto, mostrar solo la imagen principal
+                                return (
+                                    <button
+                                        className="cursor-pointer hover:opacity-90 transition-opacity block w-full"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setImageViewerOpen(true);
+                                        }}
+                                        aria-label="Ver imagen a tamaño completo"
+                                    >
+                                        <Image
+                                            src={formatImageUrl(post.imageUrl) || ''}
+                                            alt={`Contenido de ${title}`}
+                                            width={600}
+                                            height={400}
+                                            className="rounded-lg max-h-72 object-cover border border-white/10"
+                                            unoptimized={true}
+                                        />
+                                    </button>
+                                );
+                            })()}
+                        </div>
+                    )}
+
+                    {/* Interactions */}
+                    <div className="flex items-center gap-4 mt-3 pb-3 border-b border-white/10 text-zinc-300">
+                        <div className="flex items-center gap-1">
+                            <button
+                                className={`p-1 rounded-full ${liked ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-[#444442]'}`}
+                                onClick={handleLike}
+                                aria-label={liked ? "Unlike post" : "Like post"}
+                                aria-pressed={liked}
+                            >
+                                <ThumbsUp size={16} />
+                            </button>
+                            <span className="text-sm">{likesCount}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <button
+                                className="p-1 hover:bg-[#444442] rounded-full"
+                                aria-label="View comments"
+                            >
+                                <MessageCircle size={16} />
+                            </button>
+                            <span className="text-sm">{post.comments}</span>
                         </div>
                     </div>
 
+                    {/* Comments Section */}
+                    <div className="mt-5">
+                        <h3 className="text-white font-medium mb-4 text-sm">Comentarios ({comments.length})</h3>
 
-                    {/* --- Add Comment Footer (Sticky) --- */}
-                    <div className="px-4 sm:px-5 py-3 border-t border-white/10 bg-[#1f1f1e] flex-shrink-0">
-                        <div className="flex gap-2 items-start">
-                            {/* Current User Avatar */}
-                            <div className="relative flex-shrink-0 self-start mt-1">
+                        {/* Lista de comentarios existentes - Renderizado recursivo */}
+                        {comments.length > 0 ? (
+                            <div className="space-y-4 mb-5">
+                                {comments.map(comment => (
+                                    <CommentItem key={comment.id} comment={comment} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-zinc-500 text-sm mb-4">
+                                Aún no hay comentarios. ¡Sé el primero en comentar!
+                            </div>
+                        )}
+
+                        {/* Add Comment */}
+                        <div className="flex gap-2 mt-4 border-t border-white/10 pt-4">
+                            <div className="relative flex-shrink-0 self-start">
                                 <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
                                     {currentUser?.avatar_url ? (
                                         <Image
-                                            src={formatAvatarUrl(currentUser.avatar_url) || '/default-avatar.png'}
+                                            src={formatAvatarUrl(currentUser.avatar_url) || ''}
                                             alt={currentUser.username || 'Tu avatar'}
                                             width={32}
                                             height={32}
                                             className="w-full h-full object-cover"
                                             unoptimized={true}
-                                            onError={(e) => (e.currentTarget.src = '/default-avatar.png')}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-zinc-400 text-sm font-semibold">
-                                            {(currentUser?.username || '?').charAt(0).toUpperCase()}
+                                        <div className="w-full h-full flex items-center justify-center text-zinc-400">
+                                            {currentUser?.username ? currentUser.username.charAt(0).toUpperCase() : 'T'}
                                         </div>
                                     )}
                                 </div>
-                                {currentUser?.level !== undefined && currentUser.level !== null && (
+                                {currentUser?.level && (
                                     <div className="absolute -bottom-1 -right-1 z-10">
                                         <UserLevelBadge level={currentUser.level} size="sm" showTooltip={true} />
                                     </div>
                                 )}
                             </div>
-
-                            {/* Comment Input Area */}
                             <div className="flex-1">
-                                {/* Replying To Indicator */}
+                                {/* Indicador de respuesta - Mejorado para mostrar nivel */}
                                 {replyToComment && (
-                                    <div className="flex items-center justify-between gap-2 mb-1.5 text-xs text-blue-400">
-                                        <div className="flex items-center gap-1">
-                                            <CornerUpRight size={14} />
-                                            <span>Respondiendo a {replyToComment.username}</span>
-                                        </div>
+                                    <div className="flex items-center gap-2 mb-2 text-xs text-blue-400">
+                                        <CornerUpRight size={14} />
+                                        <span>
+                                            Respondiendo a {replyToComment.username}
+                                            {replyToComment.replyLevel > 1 ? ` (respuesta anidada)` : ''}
+                                        </span>
                                         <button
                                             onClick={cancelReply}
-                                            className="text-zinc-400 hover:text-zinc-300 p-0.5 rounded-full leading-none"
-                                            aria-label="Cancelar respuesta"
+                                            className="text-zinc-400 hover:text-zinc-300 ml-2"
+                                            aria-label="Cancel reply"
                                         >
                                             ×
                                         </button>
                                     </div>
                                 )}
 
-                                {/* Quick Reply Again Button */}
+                                {/* Botón de respuesta rápida */}
                                 {!replyToComment && lastRespondedComment && comment.trim() === '' && (
-                                    <div className="flex items-center gap-2 mb-1.5">
+                                    <div className="flex items-center gap-2 mb-2">
                                         <button
                                             onClick={() => handleReplyToComment(
                                                 lastRespondedComment.id,
                                                 lastRespondedComment.username,
                                                 lastRespondedComment.isNested,
-                                                lastRespondedComment.parentId, // Use parentId (direct parent)
-                                                lastRespondedComment.replyLevel - 1, // Level of the comment being replied to
-                                                lastRespondedComment.parentCommentId, // Root comment ID
-                                                lastRespondedComment.userId
+                                                lastRespondedComment.parentId,
+                                                lastRespondedComment.replyLevel - 1,
+                                                lastRespondedComment.parentCommentId,
+                                                lastRespondedComment.userId // Pasamos el ID del usuario para la mención
                                             )}
                                             className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                            aria-label={`Reply again to ${lastRespondedComment.username}`}
                                         >
                                             <CornerUpRight size={14} />
                                             Responder de nuevo a {lastRespondedComment.username}
@@ -1147,91 +1036,70 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                     </div>
                                 )}
 
-                                {/* Input Field */}
-                                <div className="bg-[#2a2a29] rounded-full flex items-center border border-white/10 focus-within:border-amber-400/50 focus-within:ring-1 focus-within:ring-amber-400/30 transition-all">
+                                <div className="bg-[#252524] rounded-full flex items-center border border-white/5 mb-2">
                                     <input
                                         id="comment-input"
                                         type="text"
                                         value={comment}
                                         onChange={(e) => setComment(e.target.value)}
-                                        placeholder={replyToComment ? `Responder a ${replyToComment.username}...` : "Añadir un comentario..."}
-                                        className="flex-1 bg-transparent text-zinc-200 outline-none px-4 py-2.5 text-sm rounded-full placeholder-zinc-500"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey && comment.trim()) {
-                                                e.preventDefault();
-
-                                                // Efecto visual de enfoque
-                                                const input = e.currentTarget;
-                                                const originalBg = input.style.backgroundColor;
-                                                input.style.backgroundColor = 'rgba(251, 191, 36, 0.05)';
-
-                                                setTimeout(() => {
-                                                    input.style.backgroundColor = originalBg;
-                                                    addCommentOrReply();
-                                                }, 150);
-                                            }
-                                        }}
+                                        placeholder="Your comment"
+                                        className="flex-1 bg-transparent text-zinc-200 outline-none px-3 py-1.5 text-sm rounded-full"
+                                        aria-label="Write a comment"
                                     />
-                                    {/* Optional: Emoji/GIF buttons */}
-                                    {/* <div className="flex items-center mr-3 space-x-1">
-                                    <button className="p-1 text-zinc-500 hover:text-zinc-300">
-                                        <Smile size={16} />
-                                    </button>
-                                </div> */}
+                                    <div className="flex items-center mr-3 space-x-1">
+                                        <button
+                                            className="p-1 text-zinc-500 hover:text-zinc-300"
+                                            aria-label="Add GIF"
+                                        >
+                                            <span className="text-xs font-bold">GIF</span>
+                                        </button>
+                                        <button
+                                            className="p-1 text-zinc-500 hover:text-zinc-300"
+                                            aria-label="Add emoji"
+                                        >
+                                            <Smile size={16} />
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {/* Action Buttons */}
                                 {comment.trim() !== '' && (
-                                    <div className="flex justify-end mt-2 space-x-2">
-                                        <Button
-                                            variant="ghost" // Use ghost variant for cancel
-                                            size="sm"
+                                    <div className="flex justify-end mt-1.5 space-x-2">
+                                        <button
                                             onClick={() => {
-                                                // No confirmation needed for just clearing text?
-                                                setComment('');
-                                                cancelReply(); // Also cancel reply state
+                                                if (confirmDiscardComment()) {
+                                                    setComment('');
+                                                    setReplyToComment(null);
+                                                }
                                             }}
-                                            className="text-zinc-400 hover:text-zinc-100 px-3 py-1.5 h-auto" // Adjust padding/height
+                                            className="text-zinc-400 hover:text-zinc-300 text-xs font-medium px-3 py-2"
                                         >
-                                            Cancelar
-                                        </Button>
+                                            CANCEL
+                                        </button>
                                         <Button
-                                            variant="default" // Keep default for primary action
+                                            variant="default"
                                             size="sm"
-                                            onClick={(e) => {
-                                                // Efecto visual de botón pulsado
-                                                const button = e.currentTarget;
-                                                button.classList.add("scale-95");
-
-                                                setTimeout(() => {
-                                                    button.classList.remove("scale-95");
-                                                    addCommentOrReply();
-                                                }, 150);
-                                            }}
-                                            disabled={comment.trim() === ''} // Disable if empty
-                                            className="rounded-full font-medium text-sm bg-amber-500 hover:bg-amber-600 text-black px-4 py-1.5 h-auto transition-all transform active:scale-95" // Adjust padding/height
+                                            onClick={addComment}
+                                            className="rounded-full font-medium text-sm bg-amber-400 hover:bg-amber-500 text-black"
                                         >
-                                            {replyToComment ? 'Responder' : 'Comentar'}
+                                            Comentar
                                         </Button>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
-
                 </div>
-
-                {/* Image Viewer Modal */}
-                {selectedPost.imageUrl && imageViewerOpen && (
-                    <ImageViewerModal
-                        imageUrl={selectedPost.imageUrl}
-                        isOpen={imageViewerOpen}
-                        onClose={() => setImageViewerOpen(false)}
-                        altText={`Imagen de ${selectedPost.author.username}: ${title}`}
-                    />
-                )}
-
             </div>
-        </>
+
+            {/* Modal de visualización de imagen completa */}
+            {post.imageUrl && imageViewerOpen && (
+                <ImageViewerModal
+                    imageUrl={post.imageUrl}
+                    isOpen={imageViewerOpen}
+                    onClose={() => setImageViewerOpen(false)}
+                    altText={`Imagen de ${post.author.username}: ${title}`}
+                />
+            )}
+        </div>
     );
 };

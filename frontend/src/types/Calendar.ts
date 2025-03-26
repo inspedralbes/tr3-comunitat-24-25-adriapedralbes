@@ -1,5 +1,5 @@
 export interface CalendarEvent {
-    id: number | string;
+    id: number;
     title: string;
     start: Date;
     end?: Date;
@@ -8,7 +8,6 @@ export interface CalendarEvent {
     allDay?: boolean;
     description?: string;
     meetingUrl?: string;
-    location?: string;
 }
 
 export type ViewMode = 'month' | 'week' | 'day' | 'list';
