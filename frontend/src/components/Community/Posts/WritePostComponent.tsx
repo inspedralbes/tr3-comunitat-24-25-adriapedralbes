@@ -2,9 +2,8 @@ import { User, Paperclip, Link2, Video, BarChart2, Smile, X } from 'lucide-react
 import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
 
-import UserLevelBadge from '@/components/ui/UserLevelBadge';
-
 import { AuthModal, AuthModalType } from '@/components/Auth';
+import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { authService } from '@/services/auth';
 
 interface Category {
@@ -101,6 +100,15 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         };
 
         fetchUserProfile();
+        
+        // Suscribirse a cambios de autenticación
+        const unsubscribe = authService.onAuthChange(() => {
+            fetchUserProfile();
+        });
+        
+        return () => {
+            unsubscribe();
+        };
     }, [isAuthModalOpen]); // Refetch cuando el modal se cierra
 
     // Cerrar dropdown de categorías al hacer clic fuera
@@ -150,9 +158,20 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         setIsExpanded(true);
     };
 
-    const handleAuthSuccess = () => {
+    const handleAuthSuccess = async () => {
         setIsAuthModalOpen(false);
-        // Refrescar info de usuario y expandir el editor
+        
+        // Inmediatamente cargar el perfil del usuario tras el login exitoso
+        try {
+            if (authService.isAuthenticated()) {
+                const userProfile = await authService.getProfile();
+                setUser(userProfile);
+            }
+        } catch (error) {
+            console.error('Error al obtener perfil de usuario:', error);
+        }
+        
+        // Expandir el editor después de actualizar el estado
         setIsExpanded(true);
     };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from 'react';
+
 import userProgressService, { CourseProgress, LessonProgress } from '@/services/userProgress';
 
 export const useUserProgress = (courseId?: string) => {

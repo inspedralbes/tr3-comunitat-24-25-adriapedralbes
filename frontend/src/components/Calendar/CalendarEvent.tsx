@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import { CalendarEvent as CalendarEventType } from '@/types/Calendar';
 import { formatTime, getEventColor } from '@/utils/calendarUtils';
 

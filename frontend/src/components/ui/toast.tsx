@@ -1,28 +1,42 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+// Extend Window interface to include toast property
+interface ToastFunctions {
+  success: (message: string) => void;
+  error: (message: string) => void;
+  warning: (message: string) => void;
+  info: (message: string) => void;
+}
+
+declare global {
+  interface Window {
+    toast?: ToastFunctions;
+  }
+}
 
 // Helper functions para acceder a la API global de toast
 export const toast = {
   success: (message: string) => {
-    if (typeof window !== 'undefined' && (window as any).toast) {
-      (window as any).toast.success(message);
+    if (typeof window !== 'undefined' && window.toast) {
+      window.toast.success(message);
     }
   },
   error: (message: string) => {
-    if (typeof window !== 'undefined' && (window as any).toast) {
-      (window as any).toast.error(message);
+    if (typeof window !== 'undefined' && window.toast) {
+      window.toast.error(message);
     }
   },
   warning: (message: string) => {
-    if (typeof window !== 'undefined' && (window as any).toast) {
-      (window as any).toast.warning(message);
+    if (typeof window !== 'undefined' && window.toast) {
+      window.toast.warning(message);
     }
   },
   info: (message: string) => {
-    if (typeof window !== 'undefined' && (window as any).toast) {
-      (window as any).toast.info(message);
+    if (typeof window !== 'undefined' && window.toast) {
+      window.toast.info(message);
     }
   }
 };
@@ -104,7 +118,7 @@ export const ToastProvider = () => {
   // Exponemos las funciones al contexto global
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).toast = {
+      window.toast = {
         success: (message: string) => addToast(message, 'success'),
         error: (message: string) => addToast(message, 'error'),
         warning: (message: string) => addToast(message, 'warning'),

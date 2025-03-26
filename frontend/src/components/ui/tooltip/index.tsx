@@ -3,7 +3,7 @@ import React, { useState, Children, isValidElement } from 'react';
 
 interface TooltipProviderProps {
   children: React.ReactNode;
-  delayDuration?: number;
+  _delayDuration?: number;
 }
 
 const TooltipProvider: React.FC<TooltipProviderProps> = ({ 
@@ -15,9 +15,9 @@ const TooltipProvider: React.FC<TooltipProviderProps> = ({
 
 interface TooltipProps {
   children: React.ReactNode;
-  delayDuration?: number;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  _delayDuration?: number;
+  _open?: boolean;
+  _onOpenChange?: (open: boolean) => void;
 }
 
 const TooltipComponent: React.FC<TooltipProps> = ({
@@ -75,9 +75,9 @@ interface TooltipContentProps {
   children: React.ReactNode;
   className?: string;
   sideOffset?: number;
-  alignOffset?: number;
+  _alignOffset?: number;
   side?: 'top' | 'right' | 'bottom' | 'left';
-  align?: 'start' | 'center' | 'end';
+  _align?: 'start' | 'center' | 'end';
 }
 
 const TooltipContent: React.FC<TooltipContentProps> = ({ 

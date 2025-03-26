@@ -28,16 +28,16 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
     };
 
     return (
-      <div
-        ref={ref}
-        className={cn("tabs", className)}
-        data-value={selectedValue}
-        {...props}
-      >
-        <TabsProvider value={selectedValue} onValueChange={handleValueChange}>
+      <TabsProvider value={selectedValue} onValueChange={handleValueChange}>
+        <div
+          ref={ref}
+          className={cn("tabs", className)}
+          data-value={selectedValue}
+          {...props}
+        >
           {children}
-        </TabsProvider>
-      </div>
+        </div>
+      </TabsProvider>
     );
   }
 );

@@ -1,10 +1,12 @@
 "use client";
 
 import { Lock, BookOpen } from "lucide-react";
-import SafeImage from '../ui/safe-image';
-import ProgressIndicator from './ProgressIndicator';
 import React, { useEffect, useState } from 'react';
-import useUserProgress from '@/hooks/useUserProgress';
+
+import { default as useUserProgress } from '@/hooks/useUserProgress';
+
+import { default as ProgressIndicator } from './ProgressIndicator';
+import { default as SafeImage } from '../ui/safe-image';
 
 interface CourseCardProps {
     title: string;

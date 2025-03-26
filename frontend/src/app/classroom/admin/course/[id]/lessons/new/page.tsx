@@ -1,13 +1,14 @@
 "use client";
 
-import React, { use } from 'react';
-import MainLayout from '@/components/layouts/MainLayout';
-import LessonEditor from '@/components/Classroom/Admin/LessonEditor';
+import { useParams } from 'next/navigation';
+import React from 'react';
 
-export default function NewLessonPage({ params }: { params: { id: string } }) {
-  // Usando React.use para desenvolver el objeto params
-  const unwrappedParams = use(params);
-  const courseId = unwrappedParams.id;
+import LessonEditor from '@/components/Classroom/Admin/LessonEditor';
+import MainLayout from '@/components/layouts/MainLayout';
+
+export default function NewLessonPage() {
+  const params = useParams();
+  const courseId = params.id as string;
 
   return (
     <MainLayout activeTab="classroom">

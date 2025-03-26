@@ -49,11 +49,16 @@ export function formatPostDate(dateString: string): string {
 /**
  * Formatea una fecha en formato relativo (hace X minutos, horas, días, etc.)
  * @param dateString - String de fecha ISO, timestamp Unix, o formato Django
- * @returns String formateado como "Xm ago", "Xh ago", "Xd ago"
+ * @returns String formateado como "hace Xm", "hace Xh", "hace Xd"
  */
 export function formatRelativeTime(dateString: string): string {
   // Si la fecha está vacía, retornar una cadena vacía
   if (!dateString) return '';
+
+  // Detectar si es nuestro texto "ahora mismo" (caso especial para actualizaciones optimistas)
+  if (dateString === 'ahora mismo') {
+    return dateString;
+  }
 
   // Intentar parsear la fecha en diferentes formatos
   let date: Date;
@@ -71,9 +76,8 @@ export function formatRelativeTime(dateString: string): string {
     date = new Date(dateString);
   }
   
-  // Si la fecha es inválida, mostrar el string original por depuración
+  // Si la fecha es inválida, mostrar el string original pero no generar error en consola
   if (isNaN(date.getTime())) {
-    console.error('Invalid date format:', dateString);
     return dateString;
   }
   
@@ -82,36 +86,36 @@ export function formatRelativeTime(dateString: string): string {
   
   // Menos de un minuto
   if (diffInSeconds < 60) {
-    return 'just now';
+    return 'ahora mismo';
   }
   
   // Menos de una hora
   if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes}m ago`;
+    return `hace ${minutes}m`;
   }
   
   // Menos de un día
   if (diffInSeconds < 86400) {
     const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours}h ago`;
+    return `hace ${hours}h`;
   }
   
   // Menos de una semana
   if (diffInSeconds < 604800) {
     const days = Math.floor(diffInSeconds / 86400);
-    return `${days}d ago`;
+    return `hace ${days}d`;
   }
   
   // Menos de un mes (aproximadamente)
   if (diffInSeconds < 2592000) {
     const weeks = Math.floor(diffInSeconds / 604800);
-    return `${weeks}w ago`;
+    return `hace ${weeks}sem`;
   }
   
   // Más de un mes
   const months = Math.floor(diffInSeconds / 2592000);
-  return `${months}mo ago`;
+  return `hace ${months}mes`;
 }
 
 /**

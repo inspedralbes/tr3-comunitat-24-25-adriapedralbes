@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import authService from '@/services/auth';
+import { useEffect, useState } from 'react';
+
+import { default as authService } from '@/services/auth';
 
 interface AdminRouteProps {
   children: React.ReactNode;

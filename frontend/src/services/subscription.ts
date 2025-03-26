@@ -37,7 +37,9 @@ export const subscriptionService = {
       return response;
     } catch (error) {
       console.error('Error en createCheckoutSession:', error);
-      throw new Error(error.message || 'Ocurrió un error en el servidor');
+      throw new Error(
+        error instanceof Error ? error.message : 'Ocurrió un error en el servidor'
+      );
     }
   },
 
@@ -86,7 +88,7 @@ export const subscriptionService = {
    * Cancela la suscripción del usuario actual
    */
   cancelSubscription: async (): Promise<any> => {
-    return api.post('subscription/cancel/');
+    return api.post('subscription/cancel/', {});
   }
 };
 

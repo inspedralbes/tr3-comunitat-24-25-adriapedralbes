@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+
 import { Lesson } from '@/types/Course';
 
 interface LessonViewerProps {

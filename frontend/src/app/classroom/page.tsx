@@ -6,18 +6,28 @@ import Link from 'next/link';
 import { CourseGrid } from '@/components/Classroom/CourseGrid';
 import { CourseDetail } from '@/components/Classroom/Courses/CourseDetail';
 import MainLayout from '@/components/layouts/MainLayout';
-import courseService from '@/services/courses';
-import authService from '@/services/auth';
-import userProgressService from '@/services/userProgress';
+import { default as authService, UserProfile } from '@/services/auth';
+import { default as courseService } from '@/services/courses';
+import { default as userProgressService } from '@/services/userProgress';
 import { Course } from '@/types/Course';
 import { CourseWithLessons, Lesson } from '@/types/Lesson';
-import { UserProfile } from '@/services/auth';
 
 export default function ClassroomPage() {
     // Estado para el usuario
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     // Estado para los cursos
-    const [courses, setCourses] = useState<any[]>([]);
+    // Definimos un tipo para los cursos formateados que usamos internamente
+    type FormattedCourse = {
+        id: string;
+        title: string;
+        description: string;
+        imageUrl: string;
+        progress: number;
+        lessonsCount: number;
+        isPrivate: boolean;
+    };
+    
+    const [courses, setCourses] = useState<FormattedCourse[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     // Estado para manejar el curso seleccionado
@@ -66,7 +76,7 @@ export default function ClassroomPage() {
                                     return {
                                         ...course,
                                         progress: courseProgress.progress_percentage || 0
-                                    };
+                                    } as FormattedCourse;
                                 }
                                 return course;
                             });
@@ -110,7 +120,7 @@ export default function ClassroomPage() {
                     isPrivate: false // Todos los cursos son públicos según el requerimiento
                 }));
                 
-                setCourses(formattedCourses);
+                setCourses(formattedCourses as FormattedCourse[]);
             } catch (error) {
                 console.error('Error fetching courses:', error);
             } finally {
@@ -122,19 +132,23 @@ export default function ClassroomPage() {
     }, []);
 
     // Manejador para cuando un curso es seleccionado
-    const handleCourseClick = async (courseId: string) => {
+    const handleCourseClick = (courseId: string | number): void => {
+        // Convertimos courseId a string si es un número
+        const courseIdStr = courseId.toString();
+        
+        (async () => {
         try {
             setLoading(true);
             
             // Obtener detalle del curso
-            const courseDetail = await courseService.getCourseById(courseId);
+            const courseDetail = await courseService.getCourseById(courseIdStr);
             
             // Verificar que tenemos lecciones
             const lessons = Array.isArray(courseDetail.lessons) ? courseDetail.lessons : [];
             
             // Formatear las lecciones para el componente CourseDetail
-            const formattedLessons: Lesson[] = lessons.map((lesson: any) => {
-                console.log('Contenido de lección:', lesson.content);
+            const formattedLessons: Lesson[] = lessons.map((lesson) => {
+                console.warn('Contenido de lección:', lesson.content);
                 return {
                     id: lesson.id,
                     title: lesson.title,
@@ -161,10 +175,11 @@ export default function ClassroomPage() {
             
             setSelectedCourse(courseWithLessons);
         } catch (error) {
-            console.error(`Error fetching course ${courseId}:`, error);
+            console.error(`Error fetching course ${courseIdStr}:`, error);
         } finally {
             setLoading(false);
         }
+        })();
     };
 
     // Manejador para volver a la lista de cursos

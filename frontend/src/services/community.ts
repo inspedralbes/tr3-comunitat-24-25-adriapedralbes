@@ -91,7 +91,7 @@ export const communityService = {
     // Crear estructura de contenido enriquecido para almacenar todo en el campo content
     let enrichedContent = {
       text: data.content,  // Texto original
-      features: {}
+      features: {} as Record<string, any>
     };
 
     // Añadir URL de enlace si existe

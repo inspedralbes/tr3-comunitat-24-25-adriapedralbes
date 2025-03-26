@@ -1,8 +1,9 @@
 "use client";
 
-import React from 'react';
 import { BookOpen, CheckCircle, Clock } from 'lucide-react';
-import ProgressBar from '../ui/progress-bar';
+import React from 'react';
+
+import { default as ProgressBar } from '../ui/progress-bar';
 
 interface ProgressIndicatorProps {
   progress: number;
