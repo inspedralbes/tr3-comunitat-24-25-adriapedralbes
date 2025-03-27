@@ -68,18 +68,35 @@ export default function CalendarPage() {
             setUsingMockData(false);
 
             console.log("Fetching calendar events...");
+            
+            // Verificamos primero la suscripción
+            const subscriptionStatus = await subscriptionService.getSubscriptionStatus();
+            console.log("Subscription status:", subscriptionStatus);
+            
+            if (!subscriptionStatus.has_subscription) {
+                console.error("User doesn't have an active subscription");
+                setError("No tienes una suscripción activa. Por favor, activa tu suscripción para acceder al calendario.");
+                setUsingMockData(true);
+                setEvents(mockEvents);
+                setIsLoading(false);
+                return;
+            }
+            
             // Auto-use mock data on failure
             const fetchedEvents = await fetchEvents(undefined, undefined, undefined, true);
 
             // If fetchEvents returns mockEvents (due to API failure), we're using mock data
             if (fetchedEvents === mockEvents) {
+                console.warn("Using mock events data - API request failed");
                 setUsingMockData(true);
+            } else {
+                console.log("Successfully fetched events from API:", fetchedEvents.length);
             }
 
             setEvents(fetchedEvents);
         } catch (err) {
             console.error("Failed to fetch events:", err);
-            setError("Failed to load events. Please try again later.");
+            setError("Error al cargar los eventos. Por favor, inténtalo de nuevo más tarde.");
             setUsingMockData(true);
             setEvents(mockEvents); // Fallback to mock data
         } finally {

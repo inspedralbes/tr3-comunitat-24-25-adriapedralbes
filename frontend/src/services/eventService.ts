@@ -50,16 +50,24 @@ export const fetchEvents = async (
     }
     
     console.log(`Attempting to fetch events from: ${url}`);
+
+    // Obtener el token de autenticación
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      console.warn('No authentication token found, using mock data');
+      return mockEvents;
+    }
     
     // Use a timeout to prevent long waiting times
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // Aumentado a 12 segundos
     
     try {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         signal: controller.signal
       });

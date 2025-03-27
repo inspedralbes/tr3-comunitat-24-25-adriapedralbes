@@ -33,9 +33,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     try {
       await authService.login({ username, password });
       onSuccess();
-      
-      // Redirigir a la comunidad después del login
-      router.push('/comunidad');
+
+      // Give the UI a moment to update before reloading the page
+      setTimeout(() => {
+        // Recargar la página después del login para asegurar que el estado se actualiza completamente
+        window.location.reload();
+      }, 300);
     } catch (err: unknown) {
       const error = err as Error;
       setError(error.message || 'Credenciales inválidas. Por favor, intenta de nuevo.');
@@ -48,7 +51,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-      <div 
+      <div
         className="relative bg-[#323230] p-6 rounded-lg w-full max-w-md mx-4 md:mx-auto shadow-xl border border-white/10"
         role="dialog"
         aria-labelledby="login-dialog-title"
@@ -56,7 +59,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         {/* Botón de cierre eliminado para forzar la autenticación */}
 
         <h2 id="login-dialog-title" className="text-2xl font-bold text-white mb-6">Iniciar sesión</h2>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 text-red-200 rounded-md text-sm">
             {error}
@@ -94,9 +97,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
           <button
             type="submit"
-            className={`w-full py-2 px-4 rounded-md font-medium text-white transition-colors ${
-              isLoading ? 'bg-blue-700/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+            className={`w-full py-2 px-4 rounded-md font-medium text-white transition-colors ${isLoading ? 'bg-blue-700/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+              }`}
             disabled={isLoading}
           >
             {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
