@@ -401,6 +401,7 @@ function CommunityContent() {
                            (leaderboardData.results ? leaderboardData.results : []));
       } catch (err) {
         console.error('Error al cargar datos:', err);
+        // Seguimos guardando el error en el estado pero no lo mostraremos en la UI
         setError('Hubo un error al cargar los datos. Por favor, intenta nuevamente.');
       } finally {
         setIsLoadingInitial(false);
@@ -643,11 +644,7 @@ function CommunityContent() {
       
       {/* Contenido principal con dos columnas */}
       <div className="container mx-auto px-4 max-w-6xl pt-6 sm:pt-8">
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
+        {/* Error mensaje eliminado */}
         
         <div className="flex flex-col md:flex-row gap-6">
           {/* Columna principal (izquierda) */}

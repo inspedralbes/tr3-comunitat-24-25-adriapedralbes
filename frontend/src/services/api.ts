@@ -42,7 +42,7 @@ const handleResponse = async (response: Response) => {
       const errorData = await response.json().catch(() => null);
       
       if (errorData) {
-        console.error('API Error Response:', errorData);
+        // Mensaje de error eliminado
         
         if (errorData.error) {
           errorMessage = errorData.error;
@@ -67,13 +67,13 @@ const handleResponse = async (response: Response) => {
       } else {
         // Si no es JSON, obtener texto
         const errorText = await response.text().catch(() => '');
-        console.error('API Error Response (text):', errorText);
+        // Mensaje de error eliminado
         if (errorText) {
           errorMessage = errorText;
         }
       }
     } catch (e) {
-      console.error('Error extrayendo detalle del error:', e);
+      // Error de depuración eliminado
     }
     
     throw new Error(errorMessage);
@@ -81,10 +81,10 @@ const handleResponse = async (response: Response) => {
   
   try {
     const data = await response.json();
-    console.log('API Success Response:', data);
+    // Log de respuesta exitosa eliminado
     return data;
   } catch (e) {
-    console.error('Error parsing JSON response:', e);
+    // Error de parsing eliminado
     return {};
   }
 };

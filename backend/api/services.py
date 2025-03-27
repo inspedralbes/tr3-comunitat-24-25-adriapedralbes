@@ -1,4 +1,199 @@
+import logging
 import stripe
+from django.conf import settings
+from datetime import datetime
+
+# Configurar logging
+logger = logging.getLogger(__name__)
+
+class StripeService:
+    """
+    Servicio para interactuar con la API de Stripe.
+    """
+    
+    @staticmethod
+    def get_or_create_price():
+        """
+        Obtener o crear un price_id válido para la suscripción.
+        """
+        try:
+            # Configurar API de Stripe
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            
+            # Intentar obtener el price_id de la configuración
+            price_id = settings.STRIPE_PRICE_ID
+            
+            # Verificar si el price_id existe
+            try:
+                stripe.Price.retrieve(price_id)
+                return price_id
+            except stripe.error.InvalidRequestError:
+                # Si no existe, creamos un nuevo producto y price
+                product = stripe.Product.create(
+                    name="Suscripción Premium",
+                    description="Acceso completo a todas las funcionalidades premium"
+                )
+                
+                price = stripe.Price.create(
+                    product=product.id,
+                    unit_amount=settings.STRIPE_MONTHLY_PLAN_AMOUNT * 100,  # En centavos
+                    currency="eur",
+                    recurring={"interval": "month"}
+                )
+                
+                return price.id
+                
+        except Exception as e:
+            logger.error(f"Error en get_or_create_price: {str(e)}")
+            raise
+    
+    @staticmethod
+    def create_checkout_session(user, price_id, success_url, cancel_url):
+        """
+        Crear una sesión de checkout de Stripe para un usuario.
+        """
+        try:
+            # Configurar API de Stripe
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            
+            # Si el usuario no tiene customer_id, creamos uno
+            if not user.stripe_customer_id:
+                customer = stripe.Customer.create(
+                    email=user.email,
+                    name=f"{user.first_name} {user.last_name}".strip() or user.username,
+                    metadata={
+                        "user_id": str(user.id),
+                        "username": user.username
+                    }
+                )
+                
+                # Guardar el customer_id en el modelo de usuario
+                user.stripe_customer_id = customer.id
+                user.save(update_fields=['stripe_customer_id'])
+                
+                customer_id = customer.id
+            else:
+                customer_id = user.stripe_customer_id
+            
+            # Crear la sesión de checkout
+            session = stripe.checkout.Session.create(
+                customer=customer_id,
+                payment_method_types=['card'],
+                line_items=[
+                    {
+                        'price': price_id,
+                        'quantity': 1,
+                    },
+                ],
+                mode='subscription',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                metadata={
+                    "user_id": str(user.id),
+                    "username": user.username
+                }
+            )
+            
+            return session
+            
+        except Exception as e:
+            logger.error(f"Error en create_checkout_session: {str(e)}")
+            raise
+    
+    @staticmethod
+    def check_subscription_status(user):
+        """
+        Verificar si un usuario tiene una suscripción activa en Stripe.
+        Actualiza el estado del usuario en la base de datos si es necesario.
+        Retorna True si tiene suscripción activa, False en caso contrario.
+        """
+        # Si el usuario es superusuario, siempre devolver True
+        if user.is_superuser:
+            logger.info(f"Superusuario {user.username} - acceso premium garantizado")
+            return True
+            
+        # Si no tiene customer_id o subscription_id, no puede tener suscripción activa
+        if not user.stripe_customer_id or not user.subscription_id:
+            logger.info(f"Usuario {user.username} sin customer_id o subscription_id")
+            
+            # Actualizar estado en la base de datos
+            if user.has_active_subscription or user.is_premium:
+                user.has_active_subscription = False
+                user.is_premium = False
+                user.save(update_fields=['has_active_subscription', 'is_premium'])
+                
+            return False
+        
+        try:
+            # Configurar API de Stripe
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            
+            # Obtener la suscripción
+            subscription = stripe.Subscription.retrieve(user.subscription_id)
+            
+            # Verificar si la suscripción está activa
+            is_active = subscription.status == 'active'
+            
+            # Si el estado en la base de datos no coincide, actualizarlo
+            if user.has_active_subscription != is_active or user.is_premium != is_active:
+                user.has_active_subscription = is_active
+                user.is_premium = is_active
+                user.subscription_status = subscription.status
+                
+                # Actualizar fechas de suscripción
+                if hasattr(subscription, 'current_period_start'):
+                    user.subscription_start_date = datetime.fromtimestamp(subscription.current_period_start)
+                
+                if hasattr(subscription, 'current_period_end'):
+                    user.subscription_end_date = datetime.fromtimestamp(subscription.current_period_end)
+                
+                user.save(update_fields=[
+                    'has_active_subscription', 
+                    'is_premium', 
+                    'subscription_status',
+                    'subscription_start_date',
+                    'subscription_end_date'
+                ])
+            
+            logger.info(f"Estado de suscripción de {user.username}: {is_active} ({subscription.status})")
+            return is_active
+            
+        except Exception as e:
+            logger.error(f"Error al verificar suscripción de {user.username}: {str(e)}")
+            
+            # En caso de error, mantenemos el estado actual
+            return user.has_active_subscription
+    
+    @staticmethod
+    def cancel_subscription(user):
+        """
+        Cancelar la suscripción de un usuario.
+        Retorna True si se canceló correctamente, False en caso contrario.
+        """
+        if not user.subscription_id:
+            logger.warning(f"Usuario {user.username} no tiene subscription_id")
+            return False
+        
+        try:
+            # Configurar API de Stripe
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            
+            # Cancelar la suscripción
+            stripe.Subscription.delete(user.subscription_id)
+            
+            # Actualizar estado del usuario
+            user.has_active_subscription = False
+            user.is_premium = False
+            user.subscription_status = 'canceled'
+            user.save(update_fields=['has_active_subscription', 'is_premium', 'subscription_status'])
+            
+            logger.info(f"Suscripción de {user.username} cancelada correctamente")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error al cancelar suscripción de {user.username}: {str(e)}")
+            return False
+
 import json
 import logging
 from django.conf import settings

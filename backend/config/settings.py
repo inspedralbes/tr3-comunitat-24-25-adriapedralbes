@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'api.middleware.PremiumContentMiddleware',  # Verificador de suscripción premium
 ]
 
 ROOT_URLCONF = 'config.urls'
