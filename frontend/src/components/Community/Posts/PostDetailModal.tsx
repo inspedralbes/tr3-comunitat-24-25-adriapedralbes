@@ -1,4 +1,4 @@
-import { ThumbsUp, MessageCircle, Bell, CornerUpRight } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Bell, CornerUpRight, X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
@@ -97,7 +97,7 @@ export const PostDetailModal = ({
         
         // Obtener usuario actual
         if (isOpen && authService.isAuthenticated()) {
-            authService.getUserProfile()
+            authService.getProfile()
                 .then(profile => setCurrentUser(profile))
                 .catch(err => console.error('Error al obtener perfil de usuario:', err));
         }
@@ -202,11 +202,12 @@ export const PostDetailModal = ({
         
         try {
             const commentData = {
+                post_id: selectedPost.id,
                 content: comment,
                 parent_id: replyToComment?.id || null
             };
             
-            const newComment = await communityService.createComment(selectedPost.id, commentData);
+            const newComment = await communityService.createComment(commentData);
             
             // Limpiar campo de comentario y estado de respuesta
             setComment('');
@@ -341,10 +342,10 @@ export const PostDetailModal = ({
                         {/* Avatar del autor */}
                         <div className="mr-3 flex-shrink-0">
                             <UserBadge 
-                                userId={selectedPost.author?.id} 
                                 username={selectedPost.author?.username || 'Usuario'} 
                                 avatarUrl={selectedPost.author?.avatarUrl || selectedPost.author?.avatar_url}
                                 level={selectedPost.author?.level}
+                                timestamp={selectedPost.created_at || new Date().toISOString()}
                             />
                         </div>
                         
@@ -360,13 +361,22 @@ export const PostDetailModal = ({
                                     )}
                                 </div>
                                 <span className="text-gray-400 text-sm">
-                                    {new Date(selectedPost.created_at).toLocaleDateString('es-ES', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })}
+                                    {selectedPost.created_at ? 
+                                        new Date(selectedPost.created_at).toLocaleDateString('es-ES', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        }) : 
+                                        new Date().toLocaleDateString('es-ES', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })
+                                    }
                                 </span>
                             </div>
                         </div>
@@ -458,10 +468,10 @@ export const PostDetailModal = ({
                                     <div className="flex items-start">
                                         <div className="mr-3 flex-shrink-0">
                                             <UserBadge 
-                                                userId={comment.user?.id} 
                                                 username={comment.user?.username || 'Usuario'} 
                                                 avatarUrl={comment.user?.avatarUrl || comment.user?.avatar_url}
                                                 level={comment.user?.level}
+                                                timestamp={comment.created_at || comment.timestamp || new Date().toISOString()}
                                             />
                                         </div>
                                         
@@ -475,13 +485,22 @@ export const PostDetailModal = ({
                                                 )}
                                             </div>
                                             <span className="text-gray-400 text-xs">
-                                                {new Date(comment.created_at).toLocaleDateString('es-ES', {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
+                                                {comment.created_at ? 
+                                                    new Date(comment.created_at).toLocaleDateString('es-ES', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    }) : 
+                                                    new Date().toLocaleDateString('es-ES', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })
+                                                }
                                             </span>
                                         </div>
                                     </div>
@@ -544,7 +563,7 @@ export const PostDetailModal = ({
                                 {currentUser && (
                                     <div className="flex-shrink-0">
                                         <Image
-                                            src={formatAvatarUrl(currentUser.avatarUrl) || '/avatar-placeholder.png'}
+                                            src={formatAvatarUrl(currentUser.avatar_url) || '/avatar-placeholder.png'}
                                             alt="Tu avatar"
                                             width={40}
                                             height={40}

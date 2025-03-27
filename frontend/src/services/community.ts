@@ -39,7 +39,7 @@ export interface CreatePostData {
 export interface CreateCommentData {
   post_id: string;
   content: string;
-  parent_id?: string;
+  parent_id?: string | null;
   mentioned_user_id?: string;
 }
 
@@ -256,6 +256,10 @@ export const communityService = {
 
   likePost: async (id: string) => {
     return api.post(`posts/${id}/like/`, {});
+  },
+
+  unlikePost: async (id: string) => {
+    return api.delete(`posts/${id}/like/`);
   },
 
   votePoll: async (postId: string, optionId: number) => {
