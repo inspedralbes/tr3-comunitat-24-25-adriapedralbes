@@ -10,6 +10,7 @@ import NoNavbarLayout from '@/components/layouts/NoNavbarLayout';
 import { ProfileSettings } from '@/components/Profile/ProfileSettings';
 import { RequiredSubscriptionModal } from '@/components/Subscription';
 import { UserProfile, authService } from '@/services/auth';
+import subscriptionService, { SubscriptionStatus } from '@/services/subscription';
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
