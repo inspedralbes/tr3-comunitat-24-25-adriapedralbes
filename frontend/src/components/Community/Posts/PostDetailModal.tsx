@@ -342,10 +342,10 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 ...response,
                 id: response.id,
                 author: {
-                    id: userProfile.id,      // ID del usuario para menciones futuras
-                    username: userProfile.username,
-                    level: userProfile.level,
-                    avatarUrl: userProfile.avatar_url
+                    id: userProfile?.id || '',
+                    username: userProfile?.username || 'Usuario',
+                    level: userProfile?.level,
+                    avatarUrl: userProfile?.avatar_url || undefined,
                 },
                 content: comment,
                 timestamp: 'ahora', // La API deberió devolver esto, pero por si acaso
@@ -599,507 +599,509 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     const isReply = typeof selectedPost.content === 'string' && selectedPost.content.startsWith('Re:');
 
     return (
-        <div className="fixed inset-0 bg-black/75 z-50 flex items-start justify-center pt-8 sm:pt-16 overflow-y-auto">
-            <div
-                ref={modalRef}
-                className="bg-[#1f1f1e] w-full max-w-3xl mx-4 rounded-lg border border-white/10 shadow-xl z-50"
-            >
-                {/* Header */}
-                <div className="flex justify-between items-center px-5 py-2.5 border-b border-white/10">
-                    <div className="flex items-center gap-2">
-                        <Bell size={14} className="text-zinc-400" />
-                        <span className="text-zinc-300 text-xs">
-                            {post?.isPinned ? 'Post fijado' : 'Post de la comunidad'}
-                        </span>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="text-zinc-400 hover:text-white text-xl"
-                        aria-label="Close dialog"
-                    >
-                        &times;
-                    </button>
-                </div>
-
-                {/* Post Content */}
-                <div className="px-5 py-3">
-                    <UserBadge
-                        username={selectedPost.author.username}
-                        level={selectedPost.author.level}
-                        avatarUrl={selectedPost.author.avatarUrl || selectedPost.author.avatar_url}
-                        timestamp={selectedPost.timestamp || selectedPost.created_at || 'hace un momento'}
-                        category={typeof selectedPost.category === 'object' && selectedPost.category !== null ? selectedPost.category.name : selectedPost.category}
-                        categoryColor={selectedPost.categoryColor || 'bg-[#444442] border border-white/5'}
-                    />
-
-                    {/* Title */}
-                    {isReply ? (
-                        <div className="mt-2 mb-1 font-medium flex items-center">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                            <h2 id="post-detail-title" className="text-white text-lg">{title}</h2>
+        <>
+            <style>{animatePulseLight}</style>
+            <div className="fixed inset-0 bg-black/80 z-50 flex items-start justify-center pt-8 sm:pt-12 md:pt-16 pb-8 px-2 sm:px-4 overflow-y-auto" aria-modal="true" role="dialog" aria-labelledby="post-modal-title">
+                <div
+                    ref={modalRef}
+                    className="bg-[#1f1f1e] w-full max-w-3xl mx-4 rounded-lg border border-white/10 shadow-xl z-50"
+                >
+                    {/* Header */}
+                    <div className="flex justify-between items-center px-5 py-2.5 border-b border-white/10">
+                        <div className="flex items-center gap-2">
+                            <Bell size={14} className="text-zinc-400" />
+                            <span className="text-zinc-300 text-xs">
+                                {post?.isPinned ? 'Post fijado' : 'Post de la comunidad'}
+                            </span>
                         </div>
-                    ) : (
-                        <h2 id="post-detail-title" className="mt-2 mb-1 font-medium text-white text-lg">{title}</h2>
-                    )}
-
-                    {/* Body */}
-                    <div className="mb-3">
-                        <p className="text-zinc-200">{body}</p>
+                        <button
+                            onClick={onClose}
+                            className="text-zinc-400 hover:text-white text-xl"
+                            aria-label="Close dialog"
+                        >
+                            &times;
+                        </button>
                     </div>
 
-                    {/* Enlace si existe */}
-                    {features && features.link && (
-                        <div className="mb-4 bg-[#252524] p-3 rounded-lg border border-white/10">
-                            <a
-                                href={features.link.startsWith('http') ? features.link : `https://${features.link}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-400 hover:underline flex items-center gap-2"
-                                onClick={(e) => e.stopPropagation()} // Evitar propagación
-                            >
-                                <div className="bg-blue-500/20 p-1.5 rounded">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 015.656 0l4 4a4 4 0 01-5.656 5.656l-1.102-1.101" />
-                                    </svg>
-                                </div>
-                                {features.link}
-                            </a>
-                        </div>
-                    )}
+                    {/* Post Content */}
+                    <div className="px-5 py-3">
+                        <UserBadge
+                            username={selectedPost.author.username}
+                            level={selectedPost.author.level}
+                            avatarUrl={selectedPost.author.avatarUrl || selectedPost.author.avatar_url}
+                            timestamp={selectedPost.timestamp || selectedPost.created_at || 'hace un momento'}
+                            category={typeof selectedPost.category === 'object' && selectedPost.category !== null ? selectedPost.category.name : selectedPost.category}
+                            categoryColor={selectedPost.categoryColor || 'bg-[#444442] border border-white/5'}
+                        />
 
-                    {/* Video si existe */}
-                    {features && features.video && (
-                        <div className="mb-4 rounded-lg overflow-hidden border border-white/10">
-                            {(() => {
-                                // Función para extraer el ID de video de YouTube
-                                const getYoutubeVideoId = (url: string) => {
-                                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-                                    const match = url.match(regExp);
-                                    return match && match[2].length === 11 ? match[2] : null;
-                                };
-
-                                // Función para extraer el ID de video de Vimeo
-                                const getVimeoVideoId = (url: string) => {
-                                    const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
-                                    const match = url.match(regExp);
-                                    return match ? match[5] : null;
-                                };
-
-                                const videoUrl = features.video.startsWith('http') ? features.video : `https://${features.video}`;
-
-                                // Detectar tipo de video
-                                if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
-                                    const videoId = getYoutubeVideoId(videoUrl);
-                                    if (videoId) {
-                                        return (
-                                            <div className="relative pt-[56.25%] w-full">
-                                                <iframe
-                                                    className="absolute top-0 left-0 w-full h-full"
-                                                    src={`https://www.youtube.com/embed/${videoId}`}
-                                                    title="YouTube video"
-                                                    frameBorder="0"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                    onClick={(e) => e.stopPropagation()}
-                                                ></iframe>
-                                            </div>
-                                        );
-                                    }
-                                } else if (videoUrl.includes('vimeo.com')) {
-                                    const videoId = getVimeoVideoId(videoUrl);
-                                    if (videoId) {
-                                        return (
-                                            <div className="relative pt-[56.25%] w-full">
-                                                <iframe
-                                                    className="absolute top-0 left-0 w-full h-full"
-                                                    src={`https://player.vimeo.com/video/${videoId}`}
-                                                    title="Vimeo video"
-                                                    frameBorder="0"
-                                                    allow="autoplay; fullscreen; picture-in-picture"
-                                                    allowFullScreen
-                                                    onClick={(e) => e.stopPropagation()}
-                                                ></iframe>
-                                            </div>
-                                        );
-                                    }
-                                }
-
-                                // Si no se reconoce el formato o no se pudo extraer el ID, mostrar enlace
-                                return (
-                                    <div className="p-3 bg-[#252524] flex items-center gap-2">
-                                        <div className="bg-red-500/20 p-1.5 rounded">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <a
-                                            href={videoUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-red-400 hover:underline"
-                                            onClick={(e) => e.stopPropagation()} // Evitar propagación
-                                        >
-                                            Ver video
-                                        </a>
-                                    </div>
-                                );
-                            })()}
-                        </div>
-                    )}
-
-                    {/* Encuesta si existe */}
-                    {features && features.poll && features.poll.length >= 2 && (
-                        <div className="mb-4 bg-[#252524] p-4 rounded-lg border border-white/10">
-                            <h4 className="text-white font-medium mb-3">Encuesta</h4>
-                            <div className="space-y-3">
-                                {features.poll.map((option: any) => {
-                                    // Obtener resultados de la encuesta si existen
-                                    const pollResults = features.poll_results || {};
-                                    const totalVotes = Object.values(pollResults).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0);
-                                    const optionVotes = pollResults[option.id] || 0;
-                                    const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
-
-                                    return (
-                                        <div
-                                            key={option.id}
-                                            className="relative bg-[#323230] hover:bg-[#3a3a38] transition-colors rounded-lg p-3 text-zinc-200 cursor-pointer flex items-center gap-2 overflow-hidden"
-                                            onClick={() => {
-                                                if (!selectedPost) return;
-                                                // Llamar al servicio para votar
-                                                communityService.votePoll(selectedPost.id, option.id)
-                                                    .then(response => {
-                                                        console.log('Voto registrado:', response);
-
-                                                        // Actualizar el post con los nuevos resultados
-                                                        if (selectedPost && typeof selectedPost.content === 'string') {
-                                                            try {
-                                                                const contentObj = JSON.parse(selectedPost.content);
-                                                                if (contentObj.features) {
-                                                                    contentObj.features.poll_results = response.poll_results;
-                                                                    // Crear una copia del post con el contenido actualizado
-                                                                    const updatedPost = {
-                                                                        ...selectedPost,
-                                                                        content: JSON.stringify(contentObj)
-                                                                    };
-                                                                    // Actualizar el estado
-                                                                    setSelectedPost(updatedPost);
-                                                                }
-                                                            } catch (e) {
-                                                                console.error('Error al actualizar resultados:', e);
-                                                            }
-                                                        }
-                                                    })
-                                                    .catch(error => {
-                                                        console.error('Error al votar:', error);
-                                                    });
-                                            }}
-                                        >
-                                            {/* Barra de progreso */}
-                                            {totalVotes > 0 && (
-                                                <div
-                                                    className="absolute top-0 left-0 h-full bg-blue-500/20"
-                                                    style={{ width: `${percentage}%` }}
-                                                ></div>
-                                            )}
-
-                                            <div className={`w-5 h-5 rounded-full border ${totalVotes > 0 && optionVotes > 0 ? 'border-blue-500 bg-blue-500/20' : 'border-zinc-500'} flex-shrink-0 relative z-10`}></div>
-
-                                            {/* Contenido de la opción con el porcentaje */}
-                                            <div className="flex flex-1 justify-between items-center relative z-10">
-                                                <span>{option.text}</span>
-                                                {totalVotes > 0 && (
-                                                    <span className="text-sm text-blue-300 ml-2">{percentage}%</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-
-                                {/* Mostrar total de votos si hay resultados */}
-                                {features.poll_results && Object.keys(features.poll_results).length > 0 && (
-                                    <div className="text-sm text-zinc-400 mt-2 text-right">
-                                        {Object.values(features.poll_results).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0)} votos
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Imágenes para el post */}
-                    {selectedPost.imageUrl && (
-                        <div className="mt-2 mb-3">
-                            {/* Verificar si hay múltiples imágenes en el contenido */}
-                            {(() => {
-                                try {
-                                    if (typeof selectedPost?.content === 'string' && selectedPost.content.includes('multi_image')) {
-                                        const contentObj = JSON.parse(selectedPost.content);
-                                        if (contentObj.features && contentObj.features.multi_image) {
-                                            const imagesCount = contentObj.features.images_count || 1;
-
-                                            // Preparar URLs para todas las imágenes
-                                            const baseImageUrl = formatImageUrl(post?.imageUrl) || '';
-
-                                            // Si hay 2 imágenes
-                                            if (imagesCount === 2) {
-                                                return (
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        <button
-                                                            className="cursor-pointer hover:opacity-90 transition-opacity"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setImageViewerOpen(true);
-                                                            }}
-                                                            aria-label="Ver primera imagen a tamaño completo"
-                                                        >
-                                                            <Image
-                                                                src={baseImageUrl}
-                                                                alt={`Imagen 1 de ${title}`}
-                                                                width={300}
-                                                                height={300}
-                                                                className="rounded-lg w-full h-56 object-cover border border-white/10"
-                                                                unoptimized={true}
-                                                            />
-                                                        </button>
-                                                        <div className="w-full h-56 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
-                                                            <span>+1 imagen más</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            }
-
-                                            // Si hay 3 imágenes
-                                            if (imagesCount === 3) {
-                                                return (
-                                                    <div className="grid grid-cols-3 gap-2">
-                                                        <button
-                                                            className="cursor-pointer hover:opacity-90 transition-opacity"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setImageViewerOpen(true);
-                                                            }}
-                                                            aria-label="Ver primera imagen a tamaño completo"
-                                                        >
-                                                            <Image
-                                                                src={baseImageUrl}
-                                                                alt={`Imagen 1 de ${title}`}
-                                                                width={200}
-                                                                height={200}
-                                                                className="rounded-lg w-full h-40 object-cover border border-white/10"
-                                                                unoptimized={true}
-                                                            />
-                                                        </button>
-                                                        <div className="w-full h-40 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
-                                                            <span>+1</span>
-                                                        </div>
-                                                        <div className="w-full h-40 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
-                                                            <span>+1</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            }
-                                        }
-                                    }
-                                } catch (e) {
-                                    console.log("Error parsing content for multiple images in modal", e);
-                                }
-
-                                // Por defecto, mostrar solo la imagen principal
-                                return (
-                                    <button
-                                        className="cursor-pointer hover:opacity-90 transition-opacity block w-full"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setImageViewerOpen(true);
-                                        }}
-                                        aria-label="Ver imagen a tamaño completo"
-                                    >
-                                        <Image
-                                            src={formatImageUrl(selectedPost.imageUrl) || ''}
-                                            alt={`Contenido de ${title}`}
-                                            width={600}
-                                            height={400}
-                                            className="rounded-lg max-h-72 object-cover border border-white/10"
-                                            unoptimized={true}
-                                        />
-                                    </button>
-                                );
-                            })()}
-                        </div>
-                    )}
-
-                    {/* Interactions */}
-                    <div className="flex items-center gap-4 mt-3 pb-3 border-b border-white/10 text-zinc-300">
-                        <div className="flex items-center gap-1">
-                            <button
-                                className={`p-1 rounded-full ${liked ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-[#444442]'}`}
-                                onClick={handleLike}
-                                aria-label={liked ? "Unlike post" : "Like post"}
-                                aria-pressed={liked}
-                            >
-                                <ThumbsUp size={16} />
-                            </button>
-                            <span className="text-sm">{likesCount}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <button
-                                className="p-1 hover:bg-[#444442] rounded-full"
-                                aria-label="View comments"
-                            >
-                                <MessageCircle size={16} />
-                            </button>
-                            <span className="text-sm">{selectedPost.comments}</span>
-                        </div>
-                    </div>
-
-                    {/* Comments Section */}
-                    <div className="mt-5">
-                        <h3 className="text-white font-medium mb-4 text-sm">Comentarios ({comments.length})</h3>
-
-                        {/* Lista de comentarios existentes - Renderizado recursivo */}
-                        {comments.length > 0 ? (
-                            <div className="space-y-4 mb-5">
-                                {comments.map(comment => (
-                                    <CommentItem key={comment.id} comment={comment} />
-                                ))}
+                        {/* Title */}
+                        {isReply ? (
+                            <div className="mt-2 mb-1 font-medium flex items-center">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                <h2 id="post-detail-title" className="text-white text-lg">{title}</h2>
                             </div>
                         ) : (
-                            <div className="text-zinc-500 text-sm mb-4">
-                                Aún no hay comentarios. ¡Sé el primero en comentar!
+                            <h2 id="post-detail-title" className="mt-2 mb-1 font-medium text-white text-lg">{title}</h2>
+                        )}
+
+                        {/* Body */}
+                        <div className="mb-3">
+                            <p className="text-zinc-200">{body}</p>
+                        </div>
+
+                        {/* Enlace si existe */}
+                        {features && features.link && (
+                            <div className="mb-4 bg-[#252524] p-3 rounded-lg border border-white/10">
+                                <a
+                                    href={features.link.startsWith('http') ? features.link : `https://${features.link}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-400 hover:underline flex items-center gap-2"
+                                    onClick={(e) => e.stopPropagation()} // Evitar propagación
+                                >
+                                    <div className="bg-blue-500/20 p-1.5 rounded">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 015.656 0l4 4a4 4 0 01-5.656 5.656l-1.102-1.101" />
+                                        </svg>
+                                    </div>
+                                    {features.link}
+                                </a>
                             </div>
                         )}
 
-                        {/* Add Comment */}
-                        <div className="flex gap-2 mt-4 border-t border-white/10 pt-4">
-                            <div className="relative flex-shrink-0 self-start">
-                                <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
-                                    {currentUser?.avatar_url ? (
-                                        <Image
-                                            src={formatAvatarUrl(currentUser.avatar_url) || ''}
-                                            alt={currentUser.username || 'Tu avatar'}
-                                            width={32}
-                                            height={32}
-                                            className="w-full h-full object-cover"
-                                            unoptimized={true}
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-zinc-400">
-                                            {currentUser?.username ? currentUser.username.charAt(0).toUpperCase() : 'T'}
+                        {/* Video si existe */}
+                        {features && features.video && (
+                            <div className="mb-4 rounded-lg overflow-hidden border border-white/10">
+                                {(() => {
+                                    // Función para extraer el ID de video de YouTube
+                                    const getYoutubeVideoId = (url: string) => {
+                                        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                                        const match = url.match(regExp);
+                                        return match && match[2].length === 11 ? match[2] : null;
+                                    };
+
+                                    // Función para extraer el ID de video de Vimeo
+                                    const getVimeoVideoId = (url: string) => {
+                                        const regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
+                                        const match = url.match(regExp);
+                                        return match ? match[5] : null;
+                                    };
+
+                                    const videoUrl = features.video.startsWith('http') ? features.video : `https://${features.video}`;
+
+                                    // Detectar tipo de video
+                                    if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+                                        const videoId = getYoutubeVideoId(videoUrl);
+                                        if (videoId) {
+                                            return (
+                                                <div className="relative pt-[56.25%] w-full">
+                                                    <iframe
+                                                        className="absolute top-0 left-0 w-full h-full"
+                                                        src={`https://www.youtube.com/embed/${videoId}`}
+                                                        title="YouTube video"
+                                                        frameBorder="0"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowFullScreen
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    ></iframe>
+                                                </div>
+                                            );
+                                        }
+                                    } else if (videoUrl.includes('vimeo.com')) {
+                                        const videoId = getVimeoVideoId(videoUrl);
+                                        if (videoId) {
+                                            return (
+                                                <div className="relative pt-[56.25%] w-full">
+                                                    <iframe
+                                                        className="absolute top-0 left-0 w-full h-full"
+                                                        src={`https://player.vimeo.com/video/${videoId}`}
+                                                        title="Vimeo video"
+                                                        frameBorder="0"
+                                                        allow="autoplay; fullscreen; picture-in-picture"
+                                                        allowFullScreen
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    ></iframe>
+                                                </div>
+                                            );
+                                        }
+                                    }
+
+                                    // Si no se reconoce el formato o no se pudo extraer el ID, mostrar enlace
+                                    return (
+                                        <div className="p-3 bg-[#252524] flex items-center gap-2">
+                                            <div className="bg-red-500/20 p-1.5 rounded">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <a
+                                                href={videoUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-red-400 hover:underline"
+                                                onClick={(e) => e.stopPropagation()} // Evitar propagación
+                                            >
+                                                Ver video
+                                            </a>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        )}
+
+                        {/* Encuesta si existe */}
+                        {features && features.poll && features.poll.length >= 2 && (
+                            <div className="mb-4 bg-[#252524] p-4 rounded-lg border border-white/10">
+                                <h4 className="text-white font-medium mb-3">Encuesta</h4>
+                                <div className="space-y-3">
+                                    {features.poll.map((option: any) => {
+                                        // Obtener resultados de la encuesta si existen
+                                        const pollResults = features.poll_results || {};
+                                        const totalVotes = Object.values(pollResults).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0);
+                                        const optionVotes = pollResults[option.id] || 0;
+                                        const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
+
+                                        return (
+                                            <div
+                                                key={option.id}
+                                                className="relative bg-[#323230] hover:bg-[#3a3a38] transition-colors rounded-lg p-3 text-zinc-200 cursor-pointer flex items-center gap-2 overflow-hidden"
+                                                onClick={() => {
+                                                    if (!selectedPost) return;
+                                                    // Llamar al servicio para votar
+                                                    communityService.votePoll(selectedPost.id, option.id)
+                                                        .then(response => {
+                                                            console.log('Voto registrado:', response);
+
+                                                            // Actualizar el post con los nuevos resultados
+                                                            if (selectedPost && typeof selectedPost.content === 'string') {
+                                                                try {
+                                                                    const contentObj = JSON.parse(selectedPost.content);
+                                                                    if (contentObj.features) {
+                                                                        contentObj.features.poll_results = response.poll_results;
+                                                                        // Crear una copia del post con el contenido actualizado
+                                                                        const updatedPost = {
+                                                                            ...selectedPost,
+                                                                            content: JSON.stringify(contentObj)
+                                                                        };
+                                                                        // Actualizar el estado
+                                                                        setSelectedPost(updatedPost);
+                                                                    }
+                                                                } catch (e) {
+                                                                    console.error('Error al actualizar resultados:', e);
+                                                                }
+                                                            }
+                                                        })
+                                                        .catch(error => {
+                                                            console.error('Error al votar:', error);
+                                                        });
+                                                }}
+                                            >
+                                                {/* Barra de progreso */}
+                                                {totalVotes > 0 && (
+                                                    <div
+                                                        className="absolute top-0 left-0 h-full bg-blue-500/20"
+                                                        style={{ width: `${percentage}%` }}
+                                                    ></div>
+                                                )}
+
+                                                <div className={`w-5 h-5 rounded-full border ${totalVotes > 0 && optionVotes > 0 ? 'border-blue-500 bg-blue-500/20' : 'border-zinc-500'} flex-shrink-0 relative z-10`}></div>
+
+                                                {/* Contenido de la opción con el porcentaje */}
+                                                <div className="flex flex-1 justify-between items-center relative z-10">
+                                                    <span>{option.text}</span>
+                                                    {totalVotes > 0 && (
+                                                        <span className="text-sm text-blue-300 ml-2">{percentage}%</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* Mostrar total de votos si hay resultados */}
+                                    {features.poll_results && Object.keys(features.poll_results).length > 0 && (
+                                        <div className="text-sm text-zinc-400 mt-2 text-right">
+                                            {Object.values(features.poll_results).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0)} votos
                                         </div>
                                     )}
                                 </div>
-                                {currentUser?.level && (
-                                    <div className="absolute -bottom-1 -right-1 z-10">
-                                        <UserLevelBadge level={currentUser.level} size="sm" showTooltip={true} />
-                                    </div>
-                                )}
                             </div>
-                            <div className="flex-1">
-                                {/* Indicador de respuesta - Mejorado para mostrar nivel */}
-                                {replyToComment && (
-                                    <div className="flex items-center gap-2 mb-2 text-xs text-blue-400">
-                                        <CornerUpRight size={14} />
-                                        <span>
-                                            Respondiendo a {replyToComment.username}
-                                            {replyToComment.replyLevel > 1 ? ` (respuesta anidada)` : ''}
-                                        </span>
-                                        <button
-                                            onClick={cancelReply}
-                                            className="text-zinc-400 hover:text-zinc-300 ml-2"
-                                            aria-label="Cancel reply"
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                )}
+                        )}
 
-                                {/* Botón de respuesta rápida */}
-                                {!replyToComment && lastRespondedComment && comment.trim() === '' && (
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <button
-                                            onClick={() => handleReplyToComment(
-                                                lastRespondedComment.id,
-                                                lastRespondedComment.username,
-                                                lastRespondedComment.isNested,
-                                                lastRespondedComment.parentId,
-                                                lastRespondedComment.replyLevel - 1,
-                                                lastRespondedComment.parentCommentId,
-                                                lastRespondedComment.userId // Pasamos el ID del usuario para la mención
-                                            )}
-                                            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                                            aria-label={`Reply again to ${lastRespondedComment.username}`}
-                                        >
-                                            <CornerUpRight size={14} />
-                                            Responder de nuevo a {lastRespondedComment.username}
-                                        </button>
-                                    </div>
-                                )}
+                        {/* Imágenes para el post */}
+                        {selectedPost.imageUrl && (
+                            <div className="mt-2 mb-3">
+                                {/* Verificar si hay múltiples imágenes en el contenido */}
+                                {(() => {
+                                    try {
+                                        if (typeof selectedPost?.content === 'string' && selectedPost.content.includes('multi_image')) {
+                                            const contentObj = JSON.parse(selectedPost.content);
+                                            if (contentObj.features && contentObj.features.multi_image) {
+                                                const imagesCount = contentObj.features.images_count || 1;
 
-                                <div className="bg-[#252524] rounded-full flex items-center border border-white/5 mb-2">
-                                    <input
-                                        id="comment-input"
-                                        type="text"
-                                        value={comment}
-                                        onChange={(e) => setComment(e.target.value)}
-                                        placeholder="Your comment"
-                                        className="flex-1 bg-transparent text-zinc-200 outline-none px-3 py-1.5 text-sm rounded-full"
-                                        aria-label="Write a comment"
-                                    />
-                                    <div className="flex items-center mr-3 space-x-1">
-                                        <button
-                                            className="p-1 text-zinc-500 hover:text-zinc-300"
-                                            aria-label="Add GIF"
-                                        >
-                                            <span className="text-xs font-bold">GIF</span>
-                                        </button>
-                                        <button
-                                            className="p-1 text-zinc-500 hover:text-zinc-300"
-                                            aria-label="Add emoji"
-                                        >
-                                            <Smile size={16} />
-                                        </button>
-                                    </div>
-                                </div>
+                                                // Preparar URLs para todas las imágenes
+                                                const baseImageUrl = formatImageUrl(post?.imageUrl) || '';
 
-                                {comment.trim() !== '' && (
-                                    <div className="flex justify-end mt-1.5 space-x-2">
-                                        <button
-                                            onClick={() => {
-                                                if (confirmDiscardComment()) {
-                                                    setComment('');
-                                                    setReplyToComment(null);
+                                                // Si hay 2 imágenes
+                                                if (imagesCount === 2) {
+                                                    return (
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <button
+                                                                className="cursor-pointer hover:opacity-90 transition-opacity"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setImageViewerOpen(true);
+                                                                }}
+                                                                aria-label="Ver primera imagen a tamaño completo"
+                                                            >
+                                                                <Image
+                                                                    src={baseImageUrl}
+                                                                    alt={`Imagen 1 de ${title}`}
+                                                                    width={300}
+                                                                    height={300}
+                                                                    className="rounded-lg w-full h-56 object-cover border border-white/10"
+                                                                    unoptimized={true}
+                                                                />
+                                                            </button>
+                                                            <div className="w-full h-56 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                                <span>+1 imagen más</span>
+                                                            </div>
+                                                        </div>
+                                                    );
                                                 }
+
+                                                // Si hay 3 imágenes
+                                                if (imagesCount === 3) {
+                                                    return (
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <button
+                                                                className="cursor-pointer hover:opacity-90 transition-opacity"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setImageViewerOpen(true);
+                                                                }}
+                                                                aria-label="Ver primera imagen a tamaño completo"
+                                                            >
+                                                                <Image
+                                                                    src={baseImageUrl}
+                                                                    alt={`Imagen 1 de ${title}`}
+                                                                    width={200}
+                                                                    height={200}
+                                                                    className="rounded-lg w-full h-40 object-cover border border-white/10"
+                                                                    unoptimized={true}
+                                                                />
+                                                            </button>
+                                                            <div className="w-full h-40 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                                <span>+1</span>
+                                                            </div>
+                                                            <div className="w-full h-40 bg-gray-700 rounded-lg border border-white/10 flex items-center justify-center text-white/70">
+                                                                <span>+1</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.log("Error parsing content for multiple images in modal", e);
+                                    }
+
+                                    // Por defecto, mostrar solo la imagen principal
+                                    return (
+                                        <button
+                                            className="cursor-pointer hover:opacity-90 transition-opacity block w-full"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setImageViewerOpen(true);
                                             }}
-                                            className="text-zinc-400 hover:text-zinc-300 text-xs font-medium px-3 py-2"
+                                            aria-label="Ver imagen a tamaño completo"
                                         >
-                                            CANCEL
+                                            <Image
+                                                src={formatImageUrl(selectedPost.imageUrl) || ''}
+                                                alt={`Contenido de ${title}`}
+                                                width={600}
+                                                height={400}
+                                                className="rounded-lg max-h-72 object-cover border border-white/10"
+                                                unoptimized={true}
+                                            />
                                         </button>
-                                        <Button
-                                            variant="default"
-                                            size="sm"
-                                            onClick={addComment}
-                                            className="rounded-full font-medium text-sm bg-amber-400 hover:bg-amber-500 text-black"
-                                        >
-                                            Comentar
-                                        </Button>
+                                    );
+                                })()}
+                            </div>
+                        )}
+
+                        {/* Interactions */}
+                        <div className="flex items-center gap-4 mt-3 pb-3 border-b border-white/10 text-zinc-300">
+                            <div className="flex items-center gap-1">
+                                <button
+                                    className={`p-1 rounded-full ${liked ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-[#444442]'}`}
+                                    onClick={handleLike}
+                                    aria-label={liked ? "Unlike post" : "Like post"}
+                                    aria-pressed={liked}
+                                >
+                                    <ThumbsUp size={16} />
+                                </button>
+                                <span className="text-sm">{likesCount}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    className="p-1 hover:bg-[#444442] rounded-full"
+                                    aria-label="View comments"
+                                >
+                                    <MessageCircle size={16} />
+                                </button>
+                                <span className="text-sm">{selectedPost.comments}</span>
+                            </div>
+                        </div>
+
+                        {/* Comments Section */}
+                        <div className="mt-5">
+                            <h3 className="text-white font-medium mb-4 text-sm">Comentarios ({comments.length})</h3>
+
+                            {/* Lista de comentarios existentes - Renderizado recursivo */}
+                            {comments.length > 0 ? (
+                                <div className="space-y-4 mb-5">
+                                    {comments.map(comment => (
+                                        <CommentItem key={comment.id} comment={comment} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-zinc-500 text-sm mb-4">
+                                    Aún no hay comentarios. ¡Sé el primero en comentar!
+                                </div>
+                            )}
+
+                            {/* Add Comment */}
+                            <div className="flex gap-2 mt-4 border-t border-white/10 pt-4">
+                                <div className="relative flex-shrink-0 self-start">
+                                    <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
+                                        {currentUser?.avatar_url ? (
+                                            <Image
+                                                src={formatAvatarUrl(currentUser.avatar_url) || ''}
+                                                alt={currentUser.username || 'Tu avatar'}
+                                                width={32}
+                                                height={32}
+                                                className="w-full h-full object-cover"
+                                                unoptimized={true}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-zinc-400">
+                                                {currentUser?.username ? currentUser.username.charAt(0).toUpperCase() : 'T'}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                    {currentUser?.level && (
+                                        <div className="absolute -bottom-1 -right-1 z-10">
+                                            <UserLevelBadge level={currentUser.level} size="sm" showTooltip={true} />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-1">
+                                    {/* Indicador de respuesta - Mejorado para mostrar nivel */}
+                                    {replyToComment && (
+                                        <div className="flex items-center gap-2 mb-2 text-xs text-blue-400">
+                                            <CornerUpRight size={14} />
+                                            <span>
+                                                Respondiendo a {replyToComment.username}
+                                                {replyToComment.replyLevel > 1 ? ` (respuesta anidada)` : ''}
+                                            </span>
+                                            <button
+                                                onClick={cancelReply}
+                                                className="text-zinc-400 hover:text-zinc-300 ml-2"
+                                                aria-label="Cancel reply"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Botón de respuesta rápida */}
+                                    {!replyToComment && lastRespondedComment && comment.trim() === '' && (
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <button
+                                                onClick={() => handleReplyToComment(
+                                                    lastRespondedComment.id,
+                                                    lastRespondedComment.username,
+                                                    lastRespondedComment.isNested,
+                                                    lastRespondedComment.parentId,
+                                                    lastRespondedComment.replyLevel - 1,
+                                                    lastRespondedComment.parentCommentId,
+                                                    lastRespondedComment.userId // Pasamos el ID del usuario para la mención
+                                                )}
+                                                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                                aria-label={`Reply again to ${lastRespondedComment.username}`}
+                                            >
+                                                <CornerUpRight size={14} />
+                                                Responder de nuevo a {lastRespondedComment.username}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <div className="bg-[#252524] rounded-full flex items-center border border-white/5 mb-2">
+                                        <input
+                                            id="comment-input"
+                                            type="text"
+                                            value={comment}
+                                            onChange={(e) => setComment(e.target.value)}
+                                            placeholder="Your comment"
+                                            className="flex-1 bg-transparent text-zinc-200 outline-none px-3 py-1.5 text-sm rounded-full"
+                                            aria-label="Write a comment"
+                                        />
+                                        <div className="flex items-center mr-3 space-x-1">
+                                            <button
+                                                className="p-1 text-zinc-500 hover:text-zinc-300"
+                                                aria-label="Add GIF"
+                                            >
+                                                <span className="text-xs font-bold">GIF</span>
+                                            </button>
+                                            <button
+                                                className="p-1 text-zinc-500 hover:text-zinc-300"
+                                                aria-label="Add emoji"
+                                            >
+                                                <Smile size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {comment.trim() !== '' && (
+                                        <div className="flex justify-end mt-1.5 space-x-2">
+                                            <button
+                                                onClick={() => {
+                                                    if (confirmDiscardComment()) {
+                                                        setComment('');
+                                                        setReplyToComment(null);
+                                                    }
+                                                }}
+                                                className="text-zinc-400 hover:text-zinc-300 text-xs font-medium px-3 py-2"
+                                            >
+                                                CANCEL
+                                            </button>
+                                            <Button
+                                                variant="default"
+                                                size="sm"
+                                                onClick={addComment}
+                                                className="rounded-full font-medium text-sm bg-amber-400 hover:bg-amber-500 text-black"
+                                            >
+                                                Comentar
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Modal de visualización de imagen completa */}
-            {selectedPost.imageUrl && imageViewerOpen && (
-                <ImageViewerModal
-                    imageUrl={selectedPost.imageUrl}
-                    isOpen={imageViewerOpen}
-                    onClose={() => setImageViewerOpen(false)}
-                    altText={`Imagen de ${selectedPost.author.username}: ${title}`}
-                />
-            )}
-        </div>
-    );
+                {/* Modal de visualización de imagen completa */}
+                {selectedPost.imageUrl && imageViewerOpen && (
+                    <ImageViewerModal
+                        imageUrl={selectedPost.imageUrl}
+                        isOpen={imageViewerOpen}
+                        onClose={() => setImageViewerOpen(false)}
+                        altText={`Imagen de ${selectedPost.author.username}: ${title}`}
+                    />
+                )}
+            </div>
+            );
 };

@@ -148,7 +148,7 @@ export default function UserProfilePage() {
 
   if (isLoading) {
     return (
-      <MainLayout activeTab="members">
+      <MainLayout activeTab="profile">
         <div className="container mx-auto px-4 max-w-5xl pt-6 animate-pulse">
           <div className="h-48 bg-[#323230] rounded-lg mb-6" />
           <div className="h-12 bg-[#323230] rounded-lg mb-6" />
@@ -160,7 +160,7 @@ export default function UserProfilePage() {
 
   if (error || !userProfile) {
     return (
-      <MainLayout activeTab="members">
+      <MainLayout activeTab="profile">
         <div className="container mx-auto px-4 max-w-5xl pt-6">
           <div className="bg-red-900/30 border border-red-500/50 text-red-200 p-6 rounded-lg text-center">
             <p className="mb-4">{error || 'No se encontró el perfil de usuario.'}</p>
@@ -177,7 +177,7 @@ export default function UserProfilePage() {
   }
 
   return (
-    <MainLayout activeTab="members">
+    <MainLayout activeTab="profile">
       <div className="container mx-auto px-4 max-w-5xl pt-6 pb-12">
         {/* Header del perfil */}
         <div className="flex justify-between items-start mb-6">

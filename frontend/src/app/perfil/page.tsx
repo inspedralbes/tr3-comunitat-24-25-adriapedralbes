@@ -37,7 +37,7 @@ export default function ProfileRedirectPage() {
   }, [router]);
 
   return (
-    <MainLayout activeTab="members">
+    <MainLayout activeTab="profile">
       <div className="container mx-auto px-4 max-w-5xl pt-6 animate-pulse">
         <div className="h-48 bg-[#323230] rounded-lg mb-6" />
         <div className="h-12 bg-[#323230] rounded-lg mb-6" />

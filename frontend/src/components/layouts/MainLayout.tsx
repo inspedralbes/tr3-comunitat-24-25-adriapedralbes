@@ -7,7 +7,7 @@ import { NavBar } from "@/components/ui/Community/tubelight-navbar";
 
 interface MainLayoutProps {
     children: ReactNode;
-    activeTab: 'community' | 'classroom' | 'calendar' | 'members' | 'ranking' | 'about';
+    activeTab: 'community' | 'classroom' | 'calendar' | 'members' | 'ranking' | 'about' | 'profile';
 }
 
 export default function MainLayout({ children, activeTab }: MainLayoutProps) {

@@ -60,11 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
-    # Middleware de seguridad
-    'axes.middleware.AxesMiddleware',  # Debe ir después de AuthenticationMiddleware
-    'csp.middleware.CSPMiddleware',  # Content Security Policy
-    'django_ratelimit.middleware.RatelimitMiddleware',  # Rate limiting
+    'api.middleware.PremiumContentMiddleware',  # Verificador de suscripción premium
 ]
 
 ROOT_URLCONF = 'config.urls'

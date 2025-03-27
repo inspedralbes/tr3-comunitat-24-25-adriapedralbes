@@ -198,8 +198,52 @@ export function NavBar({ items, className }: NavBarProps) {
           <div className="ml-0 sm:ml-2 relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center justify-center overflow-hidden rounded-full w-10 h-10 hover:ring-2 hover:ring-white/30 transition-all bg-[#323230] border border-white/10"
+              className={cn(
+                "flex items-center justify-center overflow-hidden rounded-full w-10 h-10 hover:ring-2 hover:ring-white/30 transition-all bg-[#323230] border border-white/10",
+                !items.some(item => item.active) ? "ring-2 ring-white/30" : "" // Highlight when profile is active
+              )}
             >
+              {/* Active tab indicator for profile - only show when no other tab is active */}
+              {!items.some(item => item.active) && (
+                <motion.div
+                  layoutId="lamp"
+                  className="absolute inset-0 w-full h-full rounded-full -z-10"
+                  initial={false}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 28,
+                  }}
+                >
+                  {/* Glow effect on profile avatar when active */}
+                  <motion.div
+                    className="absolute -top-2 left-0 right-0 mx-auto w-8 h-1 bg-white rounded-t-full"
+                    layoutId="glow"
+                    animate={{
+                      boxShadow: [
+                        "0 0 5px 2px rgba(255, 255, 255, 0.3)",
+                        "0 0 15px 5px rgba(255, 255, 255, 0.5)",
+                        "0 0 5px 2px rgba(255, 255, 255, 0.3)",
+                      ],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      repeatType: "reverse",
+                      layout: {
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 25,
+                      },
+                    }}
+                  >
+                    <div className="absolute w-12 h-6 bg-white/30 rounded-full blur-md -top-2 left-1/2 -translate-x-1/2" />
+                    <div className="absolute w-8 h-6 bg-white/40 rounded-full blur-md -top-1 left-1/2 -translate-x-1/2" />
+                    <div className="absolute w-4 h-4 bg-white/50 rounded-full blur-sm top-0 left-1/2 -translate-x-1/2" />
+                  </motion.div>
+                </motion.div>
+              )}
               {isAuthenticated && user?.avatar_url ? (
                 <Image
                   src={user.avatar_url}

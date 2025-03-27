@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import MainLayout from "@/components/layouts/MainLayout";
 import { MembersList } from "@/components/Members/MembersList";
 import { MembersTabs } from "@/components/Members/MembersTabs";
+import { authService } from "@/services/auth";
+import subscriptionService from "@/services/subscription";
 import { userService, User } from "@/services/user";
 
 // Definición del tipo para un miembro con los datos que espera el componente
@@ -23,6 +26,7 @@ interface Member {
 }
 
 export default function MiembrosPage() {
+    const router = useRouter();
     const [filter, setFilter] = useState<"all" | "admins" | "online">("all");
     const [members, setMembers] = useState<Member[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -33,17 +37,55 @@ export default function MiembrosPage() {
         online: 0
     });
 
-    // Cargar usuarios cuando se monta el componente
+    // Verificar autenticación y suscripción
     useEffect(() => {
-        const fetchMembers = async () => {
+        // Función para verificar autenticación y suscripción al cargar la página
+        const checkAuth = async () => {
             setIsLoading(true);
-            setError("");
+            
+            // Verificar si está autenticado
+            if (!authService.isAuthenticated()) {
+                router.push('/perfil');
+                return;
+            }
             
             try {
-                const usersData = await userService.getAllUsers();
-                // Datos de usuarios recibidos
-                const users = Array.isArray(usersData) ? usersData : 
-                             (usersData.results ? usersData.results : []);
+                // Verificar suscripción
+                const subscriptionStatus = await subscriptionService.getSubscriptionStatus().catch(error => {
+                    console.error('Error al verificar suscripción:', error);
+                    // En caso de error, permitimos acceso temporal
+                    return { has_subscription: true, subscription_status: 'temp_access', start_date: null, end_date: null };
+                });
+                
+                console.warn('Estado de suscripción:', subscriptionStatus);
+                
+                // Si no tiene suscripción, redirigir a la página de perfil
+                if (!subscriptionStatus.has_subscription) {
+                    console.warn('Usuario sin suscripción, redirigiendo al perfil');
+                    router.push('/perfil');
+                    return;
+                }
+                
+                // Continuar con la carga de datos
+                fetchMembers();
+            } catch (error) {
+                console.error('Error general al verificar acceso:', error);
+                setIsLoading(false);
+            }
+        };
+        
+        checkAuth();
+    }, [router]);
+
+    // Cargar usuarios cuando se monta el componente
+    const fetchMembers = async () => {
+        setError("");
+        
+        try {
+            const usersData = await userService.getAllUsers();
+            // Datos de usuarios recibidos
+            const users = Array.isArray(usersData) ? usersData : 
+                         (usersData.results ? usersData.results : []);
                 
                 // Para los usuarios que no tienen fecha de registro, intentar obtener detalles adicionales
                 for (let i = 0; i < users.length; i++) {
@@ -128,9 +170,6 @@ export default function MiembrosPage() {
                 setIsLoading(false);
             }
         };
-        
-        fetchMembers();
-    }, []);
 
     // Filtrar miembros basado en el filtro activo
     const filteredMembers = members.filter(member => {

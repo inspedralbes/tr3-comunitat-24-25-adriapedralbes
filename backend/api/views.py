@@ -776,9 +776,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class LeaderboardView(generics.ListAPIView):
     """
     Vista para obtener el leaderboard de usuarios.
+    Requiere suscripción premium para acceder.
     """
     serializer_class = UserShortSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]  # Cambiado de AllowAny a IsAuthenticated
 
     def get_queryset(self):
         # Obtener el período del leaderboard (all, month, week) desde la URL
@@ -824,9 +825,13 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
+# Importamos el decorador para proteger vistas premium
+from .decorators import premium_required
+
 class PostViewSet(viewsets.ModelViewSet):
     """
     API endpoint para Posts.
+    Requiere suscripción premium para acceder.
     """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -1142,6 +1147,7 @@ class PollVoteView(APIView):
 class CourseViewSet(viewsets.ModelViewSet):
     """
     API endpoint para Cursos.
+    Requiere suscripción premium para acceder.
     """
     queryset = Course.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -1251,9 +1257,10 @@ class LessonViewSet(viewsets.ModelViewSet):
 
 class EventListView(APIView):
     """
-    Vista para listar eventos
+    Vista para listar eventos.
+    Requiere suscripción premium para acceder.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]  # Cambiado de AllowAny a IsAuthenticated
     
     def get(self, request, format=None):
         """
