@@ -142,7 +142,7 @@ export default function ProfileSettingsPage() {
 
   // Elegir el layout adecuado según el estado de suscripción
   const Layout = hasSubscription ? MainLayout : NoNavbarLayout;
-  const layoutProps = hasSubscription ? { activeTab: "profile" as const } : {};
+  const layoutProps = hasSubscription ? { activeTab: "profile" as const } : { activeTab: "profile" as const };
 
   return (
     <Layout {...layoutProps}>
