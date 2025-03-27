@@ -1,13 +1,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import MainLayout from '@/components/layouts/MainLayout';
 import { LeaderboardTable, LeaderboardUser } from '@/components/Ranking/LeaderboardTable';
 import { ProfileLevelComponent } from '@/components/Ranking/ProfileLevelComponent';
+import { authService } from '@/services/auth';
 import { rankingService } from '@/services/ranking';
+import subscriptionService from '@/services/subscription';
 
 export default function RankingPage() {
+    const router = useRouter();
     // Estados para almacenar los datos de los leaderboards
     const [weeklyUsers, setWeeklyUsers] = useState<LeaderboardUser[]>([]);
     const [monthlyUsers, setMonthlyUsers] = useState<LeaderboardUser[]>([]);
@@ -21,43 +25,77 @@ export default function RankingPage() {
     const [lastUpdated, setLastUpdated] = useState('');
     const [loading, setLoading] = useState(true);
 
-    // Efecto para cargar los datos cuando el componente se monta
+    // Verificar autenticación y suscripción
     useEffect(() => {
-        const fetchData = async () => {
+        // Función para verificar autenticación y suscripción al cargar la página
+        const checkAuth = async () => {
+            setLoading(true);
+            
+            // Verificar si está autenticado
+            if (!authService.isAuthenticated()) {
+                router.push('/perfil');
+                return;
+            }
+            
             try {
-                setLoading(true);
-
-                // Cargar datos de los leaderboards
-                const [weekly, monthly, allTime] = await Promise.all([
-                    rankingService.getWeeklyLeaderboard(),
-                    rankingService.getMonthlyLeaderboard(),
-                    rankingService.getAllTimeLeaderboard()
-                ]);
-
-                setWeeklyUsers(weekly);
-                setMonthlyUsers(monthly);
-                setAllTimeUsers(allTime);
-
-                // Intentar cargar datos del usuario actual
-                try {
-                    const profileData = await rankingService.getCurrentUserProfile();
-                    setUserProfile(profileData);
-                } catch {
-                    console.warn('No se pudo cargar el perfil del usuario');
-                    // Si falla, mantener los valores por defecto
+                // Verificar suscripción
+                const subscriptionStatus = await subscriptionService.getSubscriptionStatus().catch(error => {
+                    console.error('Error al verificar suscripción:', error);
+                    // En caso de error, permitimos acceso temporal
+                    return { has_subscription: true, subscription_status: 'temp_access', start_date: null, end_date: null };
+                });
+                
+                console.warn('Estado de suscripción:', subscriptionStatus);
+                
+                // Si no tiene suscripción, redirigir a la página de perfil
+                if (!subscriptionStatus.has_subscription) {
+                    console.warn('Usuario sin suscripción, redirigiendo al perfil');
+                    router.push('/perfil');
+                    return;
                 }
-
-                // Actualizar la fecha de última actualización
-                setLastUpdated(new Date().toLocaleString());
-            } catch (_err) {
-                console.error('Error cargando datos de ranking:', _err);
-            } finally {
+                
+                // Continuar con la carga de datos
+                fetchData();
+            } catch (error) {
+                console.error('Error general al verificar acceso:', error);
                 setLoading(false);
             }
         };
+        
+        checkAuth();
+    }, [router]);
 
-        fetchData();
-    }, []);
+    // Función para cargar los datos
+    const fetchData = async () => {
+        try {
+            // Cargar datos de los leaderboards
+            const [weekly, monthly, allTime] = await Promise.all([
+                rankingService.getWeeklyLeaderboard(),
+                rankingService.getMonthlyLeaderboard(),
+                rankingService.getAllTimeLeaderboard()
+            ]);
+
+            setWeeklyUsers(weekly);
+            setMonthlyUsers(monthly);
+            setAllTimeUsers(allTime);
+
+            // Intentar cargar datos del usuario actual
+            try {
+                const profileData = await rankingService.getCurrentUserProfile();
+                setUserProfile(profileData);
+            } catch {
+                console.warn('No se pudo cargar el perfil del usuario');
+                // Si falla, mantener los valores por defecto
+            }
+
+            // Actualizar la fecha de última actualización
+            setLastUpdated(new Date().toLocaleString());
+        } catch (_err) {
+            console.error('Error cargando datos de ranking:', _err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <MainLayout activeTab="ranking">

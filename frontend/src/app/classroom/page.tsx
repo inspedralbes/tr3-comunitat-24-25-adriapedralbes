@@ -2,17 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { CourseGrid } from '@/components/Classroom/CourseGrid';
 import { CourseDetail } from '@/components/Classroom/Courses/CourseDetail';
 import MainLayout from '@/components/layouts/MainLayout';
 import { default as authService, UserProfile } from '@/services/auth';
 import { default as courseService } from '@/services/courses';
+import { default as subscriptionService } from '@/services/subscription';
 import { default as userProgressService } from '@/services/userProgress';
 import { Course } from '@/types/Course';
 import { CourseWithLessons, Lesson } from '@/types/Lesson';
 
 export default function ClassroomPage() {
+    const router = useRouter();
+    
     // Estado para el usuario
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     // Estado para los cursos
@@ -33,24 +37,47 @@ export default function ClassroomPage() {
     // Estado para manejar el curso seleccionado
     const [selectedCourse, setSelectedCourse] = useState<CourseWithLessons | null>(null);
 
-    // Obtener datos del usuario e inicializar la página
+    // Verificar autenticación y suscripción
     useEffect(() => {
-        const initPage = async () => {
+        // Función para verificar autenticación y suscripción al cargar la página
+        const checkAuth = async () => {
+            setLoading(true);
+            
+            // Verificar si está autenticado
+            if (!authService.isAuthenticated()) {
+                router.push('/perfil');
+                return;
+            }
+            
             try {
-                // Verificar si el usuario está autenticado
-                if (authService.isAuthenticated()) {
-                    // Obtener perfil del usuario
-                    const profile = await authService.getProfile();
-                    setUserProfile(profile);
-                    setIsAdmin(profile.is_staff || profile.is_superuser || false);
+                // Obtener perfil del usuario
+                const profile = await authService.getProfile();
+                setUserProfile(profile);
+                setIsAdmin(profile.is_staff || profile.is_superuser || false);
+                
+                // Verificar suscripción
+                const subscriptionStatus = await subscriptionService.getSubscriptionStatus().catch(error => {
+                    console.error('Error al verificar suscripción:', error);
+                    // En caso de error, permitimos acceso temporal
+                    return { has_subscription: true, subscription_status: 'temp_access', start_date: null, end_date: null };
+                });
+                
+                console.warn('Estado de suscripción:', subscriptionStatus);
+                
+                // Si no tiene suscripción, redirigir a la página de perfil
+                if (!subscriptionStatus.has_subscription) {
+                    console.warn('Usuario sin suscripción, redirigiendo al perfil');
+                    router.push('/perfil');
+                    return;
                 }
             } catch (error) {
-                console.error('Error fetching user profile:', error);
+                console.error('Error general al verificar acceso:', error);
             }
+            // No establecemos loading en false aquí, lo hará el efecto de carga de datos
         };
-
-        initPage();
-    }, []);
+        
+        checkAuth();
+    }, [router]);
     
     // Cargar progreso del usuario para todos los cursos
     useEffect(() => {
