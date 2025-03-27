@@ -267,6 +267,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             author: {
                                 ...comment.author,
                                 id: comment.author?.id || '',
+                                username: comment.author?.username || '', // Ensure username is never undefined
                                 avatarUrl: authorAvatarUrl
                             },
                             mentionedUser: mentionedUser, // Assign the extracted string
