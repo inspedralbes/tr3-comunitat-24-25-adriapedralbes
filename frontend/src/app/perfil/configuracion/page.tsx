@@ -74,7 +74,7 @@ export default function ProfileSettingsPage() {
 
   if (isLoading) {
     return (
-      <MainLayout activeTab="members">
+      <MainLayout activeTab="profile">
         <div className="container mx-auto px-4 max-w-5xl pt-6 animate-pulse">
           <div className="h-8 bg-[#323230] w-40 rounded-lg mb-6" />
           <div className="h-96 bg-[#323230] rounded-lg" />
@@ -85,7 +85,7 @@ export default function ProfileSettingsPage() {
 
   if (error || !userProfile) {
     return (
-      <MainLayout activeTab="members">
+      <MainLayout activeTab="profile">
         <div className="container mx-auto px-4 max-w-5xl pt-6">
           <div className="bg-red-900/30 border border-red-500/50 text-red-200 p-6 rounded-lg">
             <p>{error || 'No se encontró el perfil de usuario.'}</p>
@@ -138,7 +138,7 @@ export default function ProfileSettingsPage() {
   };
 
   return (
-    <MainLayout activeTab="members">
+    <MainLayout activeTab="profile">
       {/* Modal de suscripción obligatoria */}
       {isSubscriptionRequired && !subscriptionStatus?.has_subscription && (
         <RequiredSubscriptionModal
