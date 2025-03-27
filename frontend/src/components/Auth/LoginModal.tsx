@@ -40,11 +40,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       // Call onSuccess only after we've retrieved the user profile
       onSuccess();
       
-      // Give the UI a moment to update before redirecting
+      // Give the UI a moment to update before reloading the page
       setTimeout(() => {
-        // Redirigir a la comunidad después del login
-        router.push('/comunidad');
-      }, 100);
+        // Recargar la página después del login para asegurar que el estado se actualiza completamente
+        window.location.reload();
+      }, 300);
     } catch (err: unknown) {
       const error = err as Error;
       setError(error.message || 'Credenciales inválidas. Por favor, intenta de nuevo.');

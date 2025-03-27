@@ -74,12 +74,20 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const handleProfileConfigSuccess = () => {
     setShowProfileConfig(false);
     onSuccess();
+    // Recargar la página para asegurar que todos los datos se actualizan
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
   };
   
   // Función para cerrar el modal de configuración
   const handleProfileConfigClose = () => {
     setShowProfileConfig(false);
     onSuccess();
+    // Recargar la página para asegurar que todos los datos se actualizan
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
   };
   
   return (

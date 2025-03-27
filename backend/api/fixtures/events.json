@@ -8,7 +8,7 @@
       "end_date": "2024-04-12T16:00:00Z",
       "type": "english",
       "description": "Advanced English class for improving conversation and vocabulary",
-      "location": "Online (Zoom)",
+      "meeting_url": "https://zoom.us/j/1234567890",
       "all_day": false,
       "created_at": "2024-03-20T10:00:00Z",
       "updated_at": "2024-03-20T10:00:00Z"
@@ -23,7 +23,7 @@
       "end_date": "2024-04-15T19:00:00Z",
       "type": "mockinterview",
       "description": "Practice interviewing skills with real-world scenarios",
-      "location": "Online (Google Meet)",
+      "meeting_url": "https://meet.google.com/abc-defg-hij",
       "all_day": false,
       "created_at": "2024-03-20T10:00:00Z",
       "updated_at": "2024-03-20T10:00:00Z"
@@ -38,7 +38,7 @@
       "end_date": "2024-04-18T20:30:00Z",
       "type": "workshop",
       "description": "Learn the latest techniques in full-stack development with React and Django",
-      "location": "Campus Barcelona",
+      "meeting_url": "https://zoom.us/j/9876543210",
       "all_day": false,
       "created_at": "2024-03-20T10:00:00Z",
       "updated_at": "2024-03-20T10:00:00Z"
@@ -53,7 +53,7 @@
       "end_date": "2024-04-20T18:00:00Z",
       "type": "masterclass",
       "description": "Introduction to AI and machine learning concepts with practical examples",
-      "location": "Online (YouTube Live)",
+      "meeting_url": "https://youtu.be/live/abcdefg",
       "all_day": false,
       "created_at": "2024-03-20T10:00:00Z",
       "updated_at": "2024-03-20T10:00:00Z"
@@ -68,7 +68,7 @@
       "end_date": "2024-04-22T16:00:00Z",
       "type": "english",
       "description": "Intermediate English class focusing on conversation and grammar",
-      "location": "Online (Zoom)",
+      "meeting_url": "https://zoom.us/j/2468101214",
       "all_day": false,
       "created_at": "2024-03-20T10:00:00Z",
       "updated_at": "2024-03-20T10:00:00Z"
@@ -83,7 +83,7 @@
       "end_date": "2024-04-25T19:00:00Z",
       "type": "mockinterview",
       "description": "Technical interview practice with industry professionals",
-      "location": "Online (Google Meet)",
+      "meeting_url": "https://meet.google.com/xyz-mnop-qrs",
       "all_day": false,
       "created_at": "2024-03-20T10:00:00Z",
       "updated_at": "2024-03-20T10:00:00Z"
@@ -98,7 +98,7 @@
       "end_date": "2024-04-29T16:00:00Z",
       "type": "english",
       "description": "Beginner English class focusing on basic conversation",
-      "location": "Online (Zoom)",
+      "meeting_url": "https://zoom.us/j/1357924680",
       "all_day": false,
       "created_at": "2024-03-20T10:00:00Z",
       "updated_at": "2024-03-20T10:00:00Z"
