@@ -75,7 +75,7 @@ export default function MarkdownEditor({
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         // Párrafos simples (evitando que coincida con otros elementos)
-        .replace(/^([^<#`\-\*\d].*?)$/gm, '<p class="text-white mb-4">$1</p>')
+        .replace(/^([^<#`\-*\d].*?)$/gm, '<p class="text-white mb-4">$1</p>')
         // Código inline
         .replace(/`([^`]+)`/g, '<code class="bg-zinc-800 px-1 py-0.5 rounded text-white">$1</code>')
         // Bloques de código
