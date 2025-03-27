@@ -5,11 +5,13 @@ import { useRouter, useParams, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 import MainLayout from '@/components/layouts/MainLayout';
+import NoNavbarLayout from '@/components/layouts/NoNavbarLayout';
 import { ProfileHeader } from '@/components/Profile/ProfileHeader';
 import { UserActivityTab } from '@/components/Profile/UserActivityTab';
 import { UserPostsTab } from '@/components/Profile/UserPostsTab';
 import { Button } from '@/components/ui/button';
 import { UserProfile, authService } from '@/services/auth';
+import { default as subscriptionService, SubscriptionStatus } from '@/services/subscription';
 import { getUserByUsername } from '@/services/users';
 
 type TabType = 'posts' | 'activity' | 'info';
@@ -23,6 +25,7 @@ export default function UserProfilePage() {
   
   const [activeTab, setActiveTab] = useState<TabType>('posts');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isCurrentUser, setIsCurrentUser] = useState(false);
@@ -33,6 +36,10 @@ export default function UserProfilePage() {
       setError('');
 
       try {
+        // Obtener el estado de suscripción
+        const subscription = await subscriptionService.getSubscriptionStatus();
+        setSubscriptionStatus(subscription);
+        
         // Check if the user is looking at their own profile
         let profile: UserProfile | null = null;
         let isOwnProfile = false;
@@ -72,6 +79,24 @@ export default function UserProfilePage() {
       fetchUserProfile();
     }
   }, [username, router]);
+
+  // Iniciar proceso de suscripción
+  const handleStartSubscription = async () => {
+    try {
+      // URLs para Stripe
+      const successUrl = `${window.location.origin}/comunidad`;
+      const cancelUrl = `${window.location.origin}/perfil/${username}`;
+
+      // Crear sesión de checkout
+      const session = await subscriptionService.createCheckoutSession(successUrl, cancelUrl);
+
+      // Redirigir a la página de Stripe
+      window.location.href = session.checkout_url;
+    } catch (err) {
+      console.error('Error creating checkout session:', err);
+      setError('No se pudo iniciar el proceso de suscripción.');
+    }
+  };
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -146,21 +171,28 @@ export default function UserProfilePage() {
     }
   };
 
+  // Determinar si el usuario tiene una suscripción activa
+  const hasSubscription = subscriptionStatus?.has_subscription || false;
+  
+  // Elegir el layout adecuado según el estado de suscripción
+  const Layout = hasSubscription ? MainLayout : NoNavbarLayout;
+  const layoutProps = hasSubscription ? { activeTab: "profile" as const } : { activeTab: "profile" as const };
+
   if (isLoading) {
     return (
-      <MainLayout activeTab="profile">
+      <NoNavbarLayout>
         <div className="container mx-auto px-4 max-w-5xl pt-6 animate-pulse">
           <div className="h-48 bg-[#323230] rounded-lg mb-6" />
           <div className="h-12 bg-[#323230] rounded-lg mb-6" />
           <div className="h-96 bg-[#323230] rounded-lg" />
         </div>
-      </MainLayout>
+      </NoNavbarLayout>
     );
   }
 
   if (error || !userProfile) {
     return (
-      <MainLayout activeTab="profile">
+      <NoNavbarLayout>
         <div className="container mx-auto px-4 max-w-5xl pt-6">
           <div className="bg-red-900/30 border border-red-500/50 text-red-200 p-6 rounded-lg text-center">
             <p className="mb-4">{error || 'No se encontró el perfil de usuario.'}</p>
@@ -172,22 +204,61 @@ export default function UserProfilePage() {
             </Button>
           </div>
         </div>
-      </MainLayout>
+      </NoNavbarLayout>
     );
   }
 
   return (
-    <MainLayout activeTab="profile">
+    <Layout {...layoutProps}>
+      {/* Barra de suscripción - siempre visible cuando no hay suscripción */}
+      {!hasSubscription && (
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 shadow-md">
+          <div className="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center">
+            <p className="font-medium mb-2 sm:mb-0">
+              ¡Activa tu membresía y desbloquea todo el contenido exclusivo!
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                    authService.logout();
+                    router.push('/');
+                  }
+                }}
+                className="px-4 py-1 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors text-sm font-medium"
+              >
+                Cerrar sesión
+              </button>
+              <button
+                onClick={handleStartSubscription}
+                className="px-4 py-1 bg-white text-blue-600 rounded-md hover:bg-blue-50 transition-colors text-sm font-medium"
+              >
+                Suscribirme ahora
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="container mx-auto px-4 max-w-5xl pt-6 pb-12">
         {/* Header del perfil */}
-        <div className="flex justify-between items-start mb-6">
-          <h1 className="text-2xl font-bold text-white">
-            {isCurrentUser ? 'Mi perfil' : `Perfil de ${userProfile.username}`}
-          </h1>
+        <div className="flex flex-col sm:flex-row justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <h1 className="text-2xl font-bold text-white">
+              {isCurrentUser ? 'Mi perfil' : `Perfil de ${userProfile.username}`}
+            </h1>
+            
+            {!hasSubscription && (
+              <div className="py-1 px-3 bg-yellow-600/30 text-yellow-300 rounded-full text-sm font-medium">
+                Estado: Suscripción inactiva
+              </div>
+            )}
+          </div>
+          
           {isCurrentUser && (
             <Button
               onClick={() => router.push('/perfil/configuracion')}
-              className="bg-[#444442] hover:bg-[#505050] text-white"
+              className="bg-[#444442] hover:bg-[#505050] text-white mt-4 sm:mt-0"
             >
               Editar perfil
             </Button>
@@ -247,6 +318,6 @@ export default function UserProfilePage() {
           {renderTabContent()}
         </div>
       </div>
-    </MainLayout>
+    </Layout>
   );
 }
