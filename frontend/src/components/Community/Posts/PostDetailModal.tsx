@@ -393,7 +393,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     id: userProfile?.id || '',
                     username: userProfile?.username || 'Usuario',
                     level: userProfile?.level,
-                    avatarUrl: userProfile?.avatar_url,
+                    avatarUrl: userProfile?.avatar_url || undefined,
                 },
                 content: commentContent,
                 timestamp: 'ahora mismo', // Texto amigable para el usuario
@@ -775,7 +775,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
     return (
         <>
-        <style jsx>{animatePulseLight}</style>
+        <style>{animatePulseLight}</style>
         <div className="fixed inset-0 bg-black/80 z-50 flex items-start justify-center pt-8 sm:pt-12 md:pt-16 pb-8 px-2 sm:px-4 overflow-y-auto" aria-modal="true" role="dialog" aria-labelledby="post-modal-title">
             <div
                 ref={modalRef}
