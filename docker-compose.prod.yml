@@ -1,4 +1,5 @@
 services:
+  # Usar --remove-orphans para eliminar contenedores huérfanos
   traefik:
     image: traefik:v3.0
     container_name: traefik
