@@ -46,14 +46,14 @@ function CommunityContent() {
     // Función para verificar autenticación y suscripción al cargar la página
     const checkAuth = async () => {
       setIsLoadingInitial(true);
-
+      
       // Verificar si está autenticado
       if (!authService.isAuthenticated()) {
         setIsAuthModalOpen(true);
         setIsLoadingInitial(false);
         return;
       }
-
+      
       try {
         // Verificar suscripción
         const subscriptionStatus = await subscriptionService.getSubscriptionStatus().catch(error => {
@@ -61,12 +61,12 @@ function CommunityContent() {
           // En caso de error, permitimos acceso temporal
           return { has_subscription: true, subscription_status: 'temp_access', start_date: null, end_date: null };
         });
-
-        console.log('Estado de suscripción:', subscriptionStatus);
-
+        
+        console.warn('Estado de suscripción:', subscriptionStatus);
+        
         // Si no tiene suscripción, redirigir a la página de configuración
         if (!subscriptionStatus.has_subscription) {
-          console.log('Usuario sin suscripción, redirigiendo a configuración');
+          console.warn('Usuario sin suscripción, redirigiendo a configuración');
           router.push('/perfil/configuracion');
           return;
         }
@@ -75,7 +75,7 @@ function CommunityContent() {
       }
       // No establecemos isLoadingInitial en false aquí, lo hará el efecto de carga de datos
     };
-
+    
     checkAuth();
   }, [router]);
 
@@ -96,7 +96,7 @@ function CommunityContent() {
             const viewedPostsArray = JSON.parse(storedViewedPosts);
             setViewedPosts(new Set(viewedPostsArray));
           }
-
+          
           // Cargar registros de vistas con timestamps
           const viewsRecord = getPostViewsRecord();
           setPostViewsRecord(viewsRecord);
@@ -105,17 +105,18 @@ function CommunityContent() {
         console.error('Error al cargar posts vistos:', error);
       }
     };
-
+    
     loadViewedPosts();
   }, []);
-
+  
   // Escuchar evento de refresco para actualizar los posts después de votar en encuestas
   useEffect(() => {
-    const handleRefreshPosts = (event: any) => {
-      if (event.detail && event.detail.postId) {
-        const postId = event.detail.postId;
-        const newResults = event.detail.newResults;
-
+    const handleRefreshPosts = (event: Event) => {
+      const customEvent = event as CustomEvent<{postId: string, newResults: any}>;
+      if (customEvent.detail && customEvent.detail.postId) {
+        const postId = customEvent.detail.postId;
+        const newResults = customEvent.detail.newResults;
+        
         // Función para actualizar los resultados de encuesta en un array de posts
         const updatePostsArray = (posts: Post[]) => {
           return posts.map(post => {
@@ -136,11 +137,11 @@ function CommunityContent() {
             return post;
           });
         };
-
+        
         // Actualizar posts fijados y regulares
         setPinnedPosts(updatePostsArray(pinnedPosts));
         setRegularPosts(updatePostsArray(regularPosts));
-
+        
         // Si el post seleccionado es el que se actualizó, también actualizarlo
         if (selectedPost && selectedPost.id === postId) {
           communityService.getPostById(postId)
@@ -158,13 +159,13 @@ function CommunityContent() {
         }
       }
     };
-
+    
     // Registrar evento personalizado
-    window.addEventListener('refresh-posts', handleRefreshPosts);
-
+    window.addEventListener('refresh-posts', handleRefreshPosts as EventListener);
+    
     // Limpiar evento al desmontar
     return () => {
-      window.removeEventListener('refresh-posts', handleRefreshPosts);
+      window.removeEventListener('refresh-posts', handleRefreshPosts as EventListener);
     };
   }, [pinnedPosts, regularPosts, selectedPost]);
 
@@ -181,7 +182,7 @@ function CommunityContent() {
         ...prev,
         [postId]: commentsArray
       }));
-
+      
       return commentsArray;
     } catch (error) {
       console.error(`Error al cargar comentarios para el post ${postId}:`, error);
@@ -193,11 +194,11 @@ function CommunityContent() {
   const fetchCommentsForPosts = useCallback(async (posts: Post[]) => {
     // Limitar a 10 posts para evitar demasiadas peticiones simultáneas
     const postsToFetch = posts.slice(0, 10);
-
+    
     try {
       // Crear un array de promesas para las peticiones
       const commentPromises = postsToFetch.map(post => fetchPostComments(post.id));
-
+      
       // Esperar a que todas las promesas se resuelvan
       await Promise.all(commentPromises);
     } catch (error) {
@@ -212,13 +213,13 @@ function CommunityContent() {
       const updatedViewedPosts = new Set(viewedPosts);
       updatedViewedPosts.add(postId);
       setViewedPosts(updatedViewedPosts);
-
+      
       // Registrar la visualización con timestamp
       recordPostView(postId);
-
+      
       // Actualizar el estado de postViewsRecord
       setPostViewsRecord(getPostViewsRecord());
-
+      
       // Guardar en localStorage (retrocompatibilidad)
       if (typeof window !== 'undefined') {
         localStorage.setItem('viewedPosts', JSON.stringify([...updatedViewedPosts]));
@@ -226,14 +227,14 @@ function CommunityContent() {
 
       // Obtener los detalles del post directamente de la API
       const postData = await communityService.getPostById(postId);
-
+      
       if (postData) {
         // Normalizar el post para asegurar que tiene la estructura esperada
         // Manejar el contenido - podría ser JSON o string
-        const contentValue = typeof postData.content === 'string'
-          ? postData.content
+        const contentValue = typeof postData.content === 'string' 
+          ? postData.content 
           : JSON.stringify(postData.content);
-
+        
         // Intentar detectar contenido enriquecido (JSON con features)
         let processedContent = contentValue;
         try {
@@ -242,13 +243,16 @@ function CommunityContent() {
           const parsedContent = JSON.parse(contentValue);
           if (parsedContent.text && parsedContent.features) {
             processedContent = contentValue; // Mantener el JSON como string para procesar en componentes
-            console.log("Post con contenido enriquecido detectado:", postId);
+            console.warn("Post con contenido enriquecido detectado:", postId);
           }
         } catch (e) {
           // Si no es JSON o no tiene la estructura esperada, usamos como está
           processedContent = contentValue;
         }
-
+        
+        // Buscar si el post existe en las listas para preservar el estado de like
+        const existingPost = [...pinnedPosts, ...regularPosts].find(post => post.id === postId);
+        
         const normalizedPost = {
           id: postData.id,
           author: {
@@ -268,12 +272,15 @@ function CommunityContent() {
           comments_count: postData.comments_count || 0,
           is_pinned: postData.is_pinned,
           timestamp: postData.timestamp || postData.created_at,
-          likes: postData.likes || 0,
+          // Preservar el estado de like si existe, o usar el valor de la API
+          likes: existingPost?.likes || postData.likes || 0,
           comments: postData.comments_count || 0,
           isPinned: postData.is_pinned,
-          imageUrl: postData.image || postData.imageUrl
+          imageUrl: postData.image || postData.imageUrl,
+          // Preservar el estado de like si existe, o usar el valor de la API
+          is_liked: existingPost?.is_liked !== undefined ? existingPost.is_liked : postData.is_liked
         };
-
+        
         // Actualizar las listas si el estado de fijado ha cambiado
         if (postData.is_pinned) {
           // Si el post está fijado, asegurarse de que está en la lista de posts fijados
@@ -292,7 +299,7 @@ function CommunityContent() {
             setRegularPosts([normalizedPost, ...regularPosts]);
           }
         }
-
+        
         setSelectedPost(normalizedPost);
         setIsModalOpen(true);
         return normalizedPost;
@@ -309,34 +316,34 @@ function CommunityContent() {
   useEffect(() => {
     // Solo se ejecuta una vez (evita ciclos y parpadeos)
     if (initialLoadComplete.current) return;
-
+  
     const checkUrlForPostId = async () => {
       // Solo en cliente y si no está ya abierto el modal
       if (typeof window === 'undefined' || isModalOpen) return;
-
+      
       initialLoadComplete.current = true;
-
+      
       // Comprobar si estamos en una URL de post específico
       const path = window.location.pathname;
       const match = path.match(/\/comunidad\/([\w-]+)/);
-
+      
       if (match) {
-        // Extraer solo el ID (los UUIDs tienen 36 caracteres)
+      // Extraer solo el ID (los UUIDs tienen 36 caracteres)
         const pathSegment = match[1];
         const postId = pathSegment.length > 36 ? pathSegment.substring(0, 36) : pathSegment;
-
+        
         try {
           // Cargamos el post directamente
-          await loadPostContent(postId, false);
+        await loadPostContent(postId, false);
           return;
         } catch (err) {
           console.error('Error al cargar post desde URL:', err);
         }
       }
-
-      // Comprobar parámetros de consulta (compatibilidad hacia atrás)
+    
+    // Comprobar parámetros de consulta (compatibilidad hacia atrás)
       const queryPostId = searchParams.get('post');
-      if (queryPostId) {
+    if (queryPostId) {
         try {
           await loadPostContent(queryPostId, false);
         } catch (err) {
@@ -344,7 +351,7 @@ function CommunityContent() {
         }
       }
     };
-
+    
     checkUrlForPostId();
   }, [isModalOpen, loadPostContent, searchParams]);
 
@@ -353,24 +360,24 @@ function CommunityContent() {
     const fetchInitialData = async () => {
       setIsLoadingInitial(true);
       setError('');
-
+      
       try {
         // Obtener categorías
         const categoriesData = await communityService.getAllCategories();
         // Asegurarnos de que categories sea un array
-        setCategories(Array.isArray(categoriesData) ? categoriesData :
-          (categoriesData.results ? categoriesData.results : []));
-
+        setCategories(Array.isArray(categoriesData) ? categoriesData : 
+                      (categoriesData.results ? categoriesData.results : []));
+        
         // Obtener posts fijados
         const pinnedData = await communityService.getPinnedPosts();
-        const pinnedPostsArray = Array.isArray(pinnedData) ? pinnedData :
-          (pinnedData.results ? pinnedData.results : []);
+        const pinnedPostsArray = Array.isArray(pinnedData) ? pinnedData : 
+                                (pinnedData.results ? pinnedData.results : []);
         setPinnedPosts(pinnedPostsArray);
-
+        
         // Obtener posts regulares con el tipo de ordenamiento activo
         const postsData = await communityService.getAllPosts(undefined, 1, activeSortType);
         const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
-
+        
         // Filtrar los posts regulares para eliminar los que ya están fijados
         // Solo si no estamos en el tipo de ordenamiento 'pinned'
         let filteredRegularPosts;
@@ -383,15 +390,15 @@ function CommunityContent() {
           filteredRegularPosts = allPostsArray;
           setRegularPosts(filteredRegularPosts);
         }
-
+        
         // Cargar comentarios para los posts
         const allPosts = [...pinnedPostsArray, ...filteredRegularPosts];
         await fetchCommentsForPosts(allPosts);
-
+        
         // Obtener leaderboard
         const leaderboardData = await communityService.getLeaderboard();
-        setLeaderboardUsers(Array.isArray(leaderboardData) ? leaderboardData :
-          (leaderboardData.results ? leaderboardData.results : []));
+        setLeaderboardUsers(Array.isArray(leaderboardData) ? leaderboardData : 
+                           (leaderboardData.results ? leaderboardData.results : []));
       } catch (err) {
         console.error('Error al cargar datos:', err);
         // Seguimos guardando el error en el estado pero no lo mostraremos en la UI
@@ -400,7 +407,7 @@ function CommunityContent() {
         setIsLoadingInitial(false);
       }
     };
-
+    
     fetchInitialData();
   }, [activeSortType, fetchCommentsForPosts]);
 
@@ -410,10 +417,10 @@ function CommunityContent() {
       if (!activeCategory || activeCategory === 'all') {
         // No cargar datos nuevamente si es la categoría 'all' - usar los datos iniciales
         if (isLoadingInitial) return; // No hacer nada si todavía estamos cargando datos iniciales
-
+        
         const postsData = await communityService.getAllPosts(undefined, 1, activeSortType);
         const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
-
+        
         // Filtrar los posts fijados si no estamos en vista de 'pinned'
         let filteredRegularPosts;
         if (activeSortType !== 'pinned') {
@@ -426,26 +433,26 @@ function CommunityContent() {
 
         // Cargar comentarios para los posts
         await fetchCommentsForPosts(filteredRegularPosts);
-
+        
         setRegularPosts(filteredRegularPosts);
         return;
       }
-
+      
       setIsLoadingPosts(true);
       try {
         const postsData = await communityService.getAllPosts(activeCategory, 1, activeSortType);
         const categoryPostsArray = postsData.results || postsData;
-
+        
         // Filtrar los posts fijados si no estamos en vista de 'pinned'
         let filteredPosts = categoryPostsArray;
         if (activeSortType !== 'pinned') {
           const pinnedIds = pinnedPosts.map((post: Post) => post.id);
           filteredPosts = categoryPostsArray.filter((post: Post) => !pinnedIds.includes(post.id));
         }
-
+        
         // Cargar comentarios para los posts filtrados
         await fetchCommentsForPosts(filteredPosts);
-
+        
         // Usar un timeout para suavizar la transición
         setTimeout(() => {
           setRegularPosts(filteredPosts);
@@ -456,17 +463,9 @@ function CommunityContent() {
         setIsLoadingPosts(false);
       }
     };
-
+    
     fetchFilteredPosts();
   }, [activeCategory, isLoadingInitial, pinnedPosts, activeSortType, fetchCommentsForPosts]);
-
-  // Añadir console.log para depurar los posts regulares cada vez que cambian
-  useEffect(() => {
-    console.log('Posts regulares actualizados:', regularPosts.length, 'posts');
-    if (regularPosts.length > 0) {
-      console.log('Ejemplo primer post:', regularPosts[0]);
-    }
-  }, [regularPosts]);
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
@@ -484,9 +483,25 @@ function CommunityContent() {
   // Función para manejar el clic en un post
   const handlePostClick = useCallback(async (postId: string) => {
     try {
+      // Buscar el post en las listas existentes para preservar su estado (como is_liked)
+      let existingPost = [...pinnedPosts, ...regularPosts].find(post => post.id === postId);
+      
       // Cargar el post directamente sin cambiar la URL mientras esté en la vista principal
-      await loadPostContent(postId, false);
-
+      const loadedPost = await loadPostContent(postId, false);
+      
+      // Si encontramos el post en las listas y tenemos uno cargado, asegurarse de que el estado de like se preserve
+      if (existingPost && loadedPost) {
+        // Actualizar el selectedPost con el estado de like de la lista
+        setSelectedPost(prev => {
+          if (!prev) return loadedPost;
+          return {
+            ...prev,
+            is_liked: existingPost?.is_liked,
+            likes: existingPost?.likes
+          };
+        });
+      }
+      
       // Solo actualizar la URL cuando se está viendo desde la página principal
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
@@ -494,8 +509,8 @@ function CommunityContent() {
         if (currentPath === '/comunidad') {
           // Modificar el historial sin navegar (evita recargas)
           window.history.replaceState(
-            { postId },
-            '',
+            { postId }, 
+            '', 
             `/comunidad/${postId}${selectedPost?.title ? `-${selectedPost.title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/--+/g, '-').substring(0, 50)}` : ''}`
           );
         }
@@ -517,12 +532,12 @@ function CommunityContent() {
               communityService.getPinnedPosts(),
               communityService.getAllPosts(activeCategory !== 'all' ? activeCategory : undefined, 1, activeSortType)
             ]);
-
-            const pinnedPostsArray = Array.isArray(pinnedData) ? pinnedData :
-              (pinnedData.results ? pinnedData.results : []);
-
+            
+            const pinnedPostsArray = Array.isArray(pinnedData) ? pinnedData : 
+                              (pinnedData.results ? pinnedData.results : []);
+            
             const allPostsArray = postsData.results || (Array.isArray(postsData) ? postsData : []);
-
+            
             if (activeSortType !== 'pinned') {
               const pinnedIds = pinnedPostsArray.map((post: Post) => post.id);
               const filteredRegularPosts = allPostsArray.filter((post: Post) => !pinnedIds.includes(post.id));
@@ -539,7 +554,7 @@ function CommunityContent() {
 
         silentRefresh();
       }, 30000); // Actualizar cada 30 segundos
-
+      
       return () => clearInterval(refreshInterval);
     }
   }, [isModalOpen, isLoadingInitial, activeCategory, activeSortType]);
@@ -547,16 +562,16 @@ function CommunityContent() {
   const closeModal = () => {
     // Activar el flag para evitar cualquier skeleton
     setSkipLoadingIndicator(true);
-
+    
     // Restaurar URL original
     if (typeof window !== 'undefined') {
       window.history.replaceState({}, '', '/comunidad');
     }
-
+    
     // Cerrar el modal inmediatamente
     setSelectedPost(null);
     setIsModalOpen(false);
-
+    
     // Mantener el flag activo por un tiempo suficiente
     setTimeout(() => {
       setSkipLoadingIndicator(false);
@@ -565,22 +580,22 @@ function CommunityContent() {
 
   // Función para crear un nuevo post
   const handleCreatePost = async (
-    content: string,
-    title?: string,
-    categoryId?: number,
-    attachments?: File[],
-    videoUrl?: string,
+    content: string, 
+    title?: string, 
+    categoryId?: number, 
+    attachments?: File[], 
+    videoUrl?: string, 
     linkUrl?: string,
     pollOptions?: { id: number, text: string }[]
-  ) => {
+  ): Promise<boolean> => {
     // Verificar autenticación antes de crear un post
     if (!authService.isAuthenticated()) {
       setIsAuthModalOpen(true);
       return false;
     }
-
+    
     try {
-      const newPostResponse = await communityService.createPost({
+      await communityService.createPost({
         title,
         content,
         category_id: categoryId,
@@ -589,51 +604,31 @@ function CommunityContent() {
         link_url: linkUrl,
         poll_options: pollOptions
       });
-
-      console.log('Respuesta de creación de post:', newPostResponse);
-
+      
       // Recargar posts después de crear uno nuevo
       const postsData = await communityService.getAllPosts(
-        activeCategory !== 'all' ? activeCategory : undefined,
-        1,
+        activeCategory !== 'all' ? activeCategory : undefined, 
+        1, 
         activeSortType
       );
-
-      console.log('Datos de posts después de crear:', postsData);
-
       const newPostsArray = postsData.results || postsData;
-
+      
       // Filtrar los posts fijados para evitar duplicados (excepto en vista 'pinned')
       if (activeSortType !== 'pinned') {
         const pinnedIds = pinnedPosts.map((post: Post) => post.id);
         const filteredNewPosts = newPostsArray.filter((post: Post) => !pinnedIds.includes(post.id));
-        console.log('Posts filtrados para mostrar:', filteredNewPosts.length);
         setRegularPosts(filteredNewPosts);
-
-        // Forzar actualización después de un breve retraso para asegurar que los cambios se apliquen
-        setTimeout(async () => {
-          const refreshData = await communityService.getAllPosts(
-            activeCategory !== 'all' ? activeCategory : undefined,
-            1,
-            activeSortType
-          );
-          const refreshPostsArray = refreshData.results || refreshData;
-          const refreshFilteredPosts = refreshPostsArray.filter(
-            (post: Post) => !pinnedIds.includes(post.id)
-          );
-          setRegularPosts(refreshFilteredPosts);
-        }, 1000);
       } else {
         setRegularPosts(newPostsArray);
       }
-
+      
       return true;
     } catch (err) {
       console.error('Error al crear post:', err);
       return false;
     }
   };
-
+  
   // Manejar la autenticación exitosa
   const handleAuthSuccess = () => {
     setIsAuthModalOpen(false);
@@ -646,11 +641,11 @@ function CommunityContent() {
       {isAuthModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 pointer-events-none" />
       )}
-
+      
       {/* Contenido principal con dos columnas */}
       <div className="container mx-auto px-4 max-w-6xl pt-6 sm:pt-8">
         {/* Error mensaje eliminado */}
-
+        
         <div className="flex flex-col md:flex-row gap-6">
           {/* Columna principal (izquierda) */}
           <div className="flex-1">
@@ -667,24 +662,24 @@ function CommunityContent() {
             />
 
             {/* Publicaciones fijadas */}
-            <PinnedPostsSection
-              pinnedPosts={pinnedPosts}
-              onPostClick={handlePostClick}
-              isLoading={isLoadingInitial && !selectedPost && !skipLoadingIndicator}
-              postComments={postComments}
-              viewedPosts={viewedPosts}
-              postViewsRecord={postViewsRecord}
+            <PinnedPostsSection 
+            pinnedPosts={pinnedPosts} 
+            onPostClick={handlePostClick} 
+            isLoading={isLoadingInitial && !selectedPost && !skipLoadingIndicator}
+            postComments={postComments}
+            viewedPosts={viewedPosts}
+            postViewsRecord={postViewsRecord}
             />
 
             {/* Feed de publicaciones */}
-            <PostFeed
-              posts={regularPosts}
-              filter={activeCategory}
-              onPostClick={handlePostClick}
-              isLoading={isLoadingInitial && !selectedPost && !skipLoadingIndicator}
-              postComments={postComments}
-              viewedPosts={viewedPosts}
-              postViewsRecord={postViewsRecord}
+            <PostFeed 
+            posts={regularPosts} 
+            filter={activeCategory} 
+            onPostClick={handlePostClick} 
+            isLoading={isLoadingInitial && !selectedPost && !skipLoadingIndicator}
+            postComments={postComments}
+            viewedPosts={viewedPosts}
+            postViewsRecord={postViewsRecord}
             />
           </div>
 
@@ -704,9 +699,9 @@ function CommunityContent() {
         isOpen={isModalOpen}
         onClose={closeModal}
       />
-
+      
       {/* Modal de autenticación requerida */}
-      <RequiredAuthModal
+      <RequiredAuthModal 
         isOpen={isAuthModalOpen}
         onSuccess={handleAuthSuccess}
       />

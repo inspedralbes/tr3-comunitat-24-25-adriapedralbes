@@ -16,17 +16,17 @@ interface PinnedPostsSectionProps {
     postViewsRecord?: PostViewRecord;
 }
 
-export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({
-    pinnedPosts,
-    onPostClick,
-    isLoading = false,
+export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({ 
+    pinnedPosts, 
+    onPostClick, 
+    isLoading = false, 
     postComments = {},
     viewedPosts = new Set(),
     postViewsRecord = {}
 }) => {
     const [isVisible, setIsVisible] = useState(true);
     const [visiblePosts, setVisiblePosts] = useState<Post[]>([]);
-
+    
     // Efecto para actualizar los posts con transición suave
     useEffect(() => {
         // Si no estamos cargando y tenemos posts, actualizar inmediatamente
@@ -74,7 +74,7 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({
                         // Extracción segura del nombre de la categoría de la respuesta de la API
                         let categoryName = '';
                         let categoryColor = 'bg-[#444442] border border-white/5';
-
+                        
                         if (post.category) {
                             // Si category es un objeto con la propiedad name
                             if (typeof post.category === 'object' && post.category !== null && 'name' in post.category) {
@@ -82,25 +82,25 @@ export const PinnedPostsSection: React.FC<PinnedPostsSectionProps> = ({
                                 if ('color' in post.category && post.category.color) {
                                     categoryColor = post.category.color;
                                 }
-                            }
+                            } 
                             // Si category es un string
                             else if (typeof post.category === 'string') {
                                 categoryName = post.category;
                             }
                         }
-
+                        
                         // Extraer timestamp del created_at de la API
                         const timestamp = post.timestamp || post.created_at || 'hace un momento';
-
+                        
                         // Extraer URL de imagen si existe
                         const imageUrl = post.imageUrl || post.image || undefined;
-
+                        
                         // Normalizar la URL del avatar - asegurarse de que author.avatarUrl siempre exista
                         const author = {
                             ...post.author,
                             avatarUrl: post.author.avatarUrl || post.author.avatar_url || undefined
                         };
-
+                        
                         return (
                             <PostCard
                                 key={post.id}

@@ -17,11 +17,11 @@ interface PostFeedProps {
     postViewsRecord?: PostViewRecord;
 }
 
-export const PostFeed: React.FC<PostFeedProps> = ({
-    posts,
-    filter = 'all',
-    onPostClick,
-    isLoading = false,
+export const PostFeed: React.FC<PostFeedProps> = ({ 
+    posts, 
+    filter = 'all', 
+    onPostClick, 
+    isLoading = false, 
     postComments = {},
     viewedPosts = new Set(),
     postViewsRecord = {}
@@ -29,41 +29,41 @@ export const PostFeed: React.FC<PostFeedProps> = ({
     // Estado para manejar la visibilidad y transición
     const [visiblePosts, setVisiblePosts] = useState<Post[]>([]);
     const [isTransitioning, setIsTransitioning] = useState(false);
-
+    
     // Efecto para actualizar los posts con transición suave
     useEffect(() => {
         if (isLoading) {
             // No hacer nada mientras carga, el esqueleto se mostrará
             return;
         }
-
+        
         // Importante: si ya tenemos posts visibles y los nuevos posts tienen la misma longitud,
         // probablemente estamos actualizando después de cerrar un modal, así que no hacemos transición
         if (visiblePosts.length > 0 && posts.length > 0 && posts.length === visiblePosts.length) {
             setVisiblePosts(posts);
             return;
         }
-
+        
         if (posts.length === 0) {
             setVisiblePosts([]);
             return;
         }
-
+        
         // Iniciar transición solo si es necesario (cambio real en los posts)
         setIsTransitioning(true);
-
+        
         // Pequeño retraso para la animación
         const timer = setTimeout(() => {
             setVisiblePosts(posts);
             setIsTransitioning(false);
         }, 300);
-
+        
         return () => clearTimeout(timer);
     }, [posts, isLoading, visiblePosts.length]);
-
+    
     // Filtrar posts según la categoría seleccionada
     let filteredPosts = visiblePosts || [];
-
+    
     if (filter !== 'all') {
         filteredPosts = filteredPosts.filter(post => {
             // Si la categoría es un objeto con slug
@@ -78,11 +78,6 @@ export const PostFeed: React.FC<PostFeedProps> = ({
             if (typeof post.category === 'string') {
                 return post.category === filter;
             }
-            // Si no hay categoría, permitir mostrar el post independientemente del filtro
-            if (!post.category && !post.categoryId) {
-                console.log('Post sin categoría mostrado en filtro:', filter, post);
-                return true;
-            }
             return false;
         });
     }
@@ -94,7 +89,7 @@ export const PostFeed: React.FC<PostFeedProps> = ({
             </div>
         );
     }
-
+    
     if (isTransitioning) {
         return (
             <div className="space-y-4 mx-4 sm:mx-2 md:mx-0 opacity-50 transition-opacity duration-300">
@@ -117,7 +112,7 @@ export const PostFeed: React.FC<PostFeedProps> = ({
                 // Extracción segura del nombre de la categoría de la respuesta de la API
                 let categoryName = '';
                 let categoryColor = 'bg-[#444442] border border-white/5';
-
+                
                 if (post.category) {
                     // Si category es un objeto con la propiedad name
                     if (typeof post.category === 'object' && post.category !== null && 'name' in post.category) {
@@ -125,48 +120,48 @@ export const PostFeed: React.FC<PostFeedProps> = ({
                         if ('color' in post.category && post.category.color) {
                             categoryColor = post.category.color;
                         }
-                    }
+                    } 
                     // Si category es un string
                     else if (typeof post.category === 'string') {
                         categoryName = post.category;
                     }
                 }
-
+                
                 // Extraer timestamp del created_at de la API
                 const timestamp = post.timestamp || post.created_at || 'hace un momento';
-
+                
                 // Siempre extraer la URL de imagen principal
                 const imageUrl = post.imageUrl || post.image || undefined;
-
+                
                 // Verificar si hay múltiples imágenes en el contenido enriquecido
                 let image2Url = undefined;
                 let image3Url = undefined;
                 let hasMultipleImages = false;
-
+                
                 // Obtener la URL base para imágenes (podría ser diferente en producción)
-                const baseImageUrl = imageUrl ?
-                    (imageUrl.startsWith('http') ?
-                        imageUrl.substring(0, imageUrl.lastIndexOf('/') + 1) :
-                        '/media/post_images/') :
+                const baseImageUrl = imageUrl ? 
+                    (imageUrl.startsWith('http') ? 
+                        imageUrl.substring(0, imageUrl.lastIndexOf('/') + 1) : 
+                        '/media/post_images/') : 
                     '/media/post_images/';
-
+                
                 try {
                     // Intentar parsear el contenido como JSON
                     if (typeof post.content === 'string' && post.content.includes('multi_image')) {
                         const contentObj = JSON.parse(post.content);
-
+                        
                         // Verificar si tiene la marca de múltiples imágenes
                         if (contentObj.features && contentObj.features.multi_image) {
                             hasMultipleImages = true;
                             const imagesCount = contentObj.features.images_count || 0;
-
+                            
                             // Generar URLs basadas en el ID del post
                             if (imagesCount >= 2) {
                                 // Para la segunda imagen, usar un patrón predecible basado en el ID
                                 const postIdShort = post.id.substring(0, 8);
                                 image2Url = imageUrl ? imageUrl.replace('.jpg', '_2.jpg').replace('.png', '_2.png') : undefined;
                             }
-
+                            
                             if (imagesCount >= 3) {
                                 // Para la tercera imagen, similar a la segunda
                                 image3Url = imageUrl ? imageUrl.replace('.jpg', '_3.jpg').replace('.png', '_3.png') : undefined;
@@ -177,13 +172,13 @@ export const PostFeed: React.FC<PostFeedProps> = ({
                     // Si hay error al parsear, seguimos con solo la imagen principal
                     console.log("Error parsing content for multiple images:", e);
                 }
-
+                
                 // Normalizar la URL del avatar - asegurarse de que author.avatarUrl siempre exista
                 const author = {
                     ...post.author,
                     avatarUrl: post.author.avatarUrl || post.author.avatar_url || undefined
                 };
-
+                
                 return (
                     <PostCard
                         key={post.id}
