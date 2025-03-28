@@ -112,9 +112,20 @@ export const authService = {
   
   // Actualizar avatar del usuario
   updateAvatar: async (file: File): Promise<UserProfile> => {
-    const formData = new FormData();
-    formData.append('avatar_url', file);
-    return api.upload('auth/me/', formData);
+    // Importar el servicio de subida de imágenes dinámicamente
+    // para evitar problemas de dependencia circular
+    const { default: imageUploadService } = await import('./imageUpload');
+    
+    try {
+      // Subir la imagen a Next.js
+      const imageUrl = await imageUploadService.uploadImage(file, 'avatar');
+      
+      // Actualizar el perfil con la URL de la imagen
+      return api.patch('auth/me/', { avatar_url: imageUrl });
+    } catch (error) {
+      console.error('Error al actualizar avatar:', error);
+      throw error;
+    }
   },
   
   // Logout

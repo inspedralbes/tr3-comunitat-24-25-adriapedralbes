@@ -67,6 +67,7 @@ export const ProfileConfigurationModal: React.FC<ProfileConfigurationModalProps>
     setSuccess('');
 
     try {
+      // Usar el servicio de autenticación actualizado que ahora usa internamente el servicio de carga de imágenes
       const updatedProfile = await authService.updateAvatar(file);
       setUserProfile(updatedProfile);
       setAvatarPreview(updatedProfile.avatar_url);
@@ -193,7 +194,7 @@ export const ProfileConfigurationModal: React.FC<ProfileConfigurationModalProps>
                           width={80}
                           height={80}
                           className="w-full h-full object-cover"
-                          unoptimized={avatarPreview.includes('127.0.0.1') || avatarPreview.includes('localhost')}
+                          unoptimized={true} // Siempre usamos unoptimized para las imágenes subidas localmente
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-zinc-300">
