@@ -9,6 +9,7 @@ import { communityService } from '@/services/community';
 import { Comment } from '@/types/Comment';
 import { Post } from '@/types/Post';
 import { formatAvatarUrl } from '@/utils/formatUtils';
+import { normalizeAvatarUrl, normalizeImageUrl } from '@/utils/imageUtils';
 
 interface UserPostsTabProps {
   userId: string;
@@ -85,17 +86,8 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
           // Asegurarnos de que tengamos un objeto author completo
           const author = post.author || { username: 'unknown' };
           
-          // Crear una nueva URL formateada para el avatar
-          let avatarUrl = null;
-          if (author.avatar_url) {
-            avatarUrl = author.avatar_url.startsWith('http') 
-              ? author.avatar_url 
-              : `http://127.0.0.1:8000${author.avatar_url}`;
-          } else if (author.avatarUrl) {
-            avatarUrl = author.avatarUrl.startsWith('http') 
-              ? author.avatarUrl 
-              : `http://127.0.0.1:8000${author.avatarUrl}`;
-          }
+          // Normalizar la URL del avatar usando la función de utilidad
+          const avatarUrl = normalizeAvatarUrl(author.avatar_url || author.avatarUrl);
           
           return {
             ...post,
@@ -268,8 +260,23 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
         // Extraer timestamp
         const timestamp = post.timestamp || post.created_at || 'hace un momento';
         
-        // Extraer URL de imagen
-        const imageUrl = post.imageUrl || post.image || undefined;
+        // Extraer URL de imagen - considerar también el contenido enriquecido
+        let imageUrl = post.imageUrl || post.image || undefined;
+        
+        // Comprobar si hay una imagen en el contenido enriquecido
+        if (typeof post.content === 'string') {
+          try {
+            const contentObj = JSON.parse(post.content);
+            if (contentObj.features && contentObj.features.main_image) {
+              imageUrl = contentObj.features.main_image;
+            }
+          } catch (e) {
+            // No es JSON válido, mantener la URL original
+          }
+        }
+        
+        // Normalizar la URL de la imagen
+        const normalizedImageUrl = normalizeImageUrl(imageUrl);
         
         // No necesitamos reconstruir el author aquí, ya lo hicimos en el useEffect
         return (
@@ -284,7 +291,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
             content={post.content}
             likes={post.likes || 0}
             comments={post.comments_count || 0}
-            imageUrl={imageUrl}
+            imageUrl={normalizedImageUrl}
             onPostClick={handlePostClick}
             postComments={postsComments[post.id] || []}
             isViewed={!!viewedPosts[post.id]}
