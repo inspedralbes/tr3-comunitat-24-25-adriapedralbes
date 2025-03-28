@@ -7,6 +7,7 @@ import React from 'react';
 
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { formatPostDate } from '@/utils/dateUtils';
+import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
 interface PostAuthorProps {
   username: string;
@@ -25,10 +26,8 @@ export const PostAuthor: React.FC<PostAuthorProps> = ({
   category,
   categoryColor = 'bg-zinc-700'
 }) => {
-  // Ensure the avatar URL is properly formatted
-  const finalAvatarUrl = avatarUrl ? (
-    avatarUrl.startsWith('http') ? avatarUrl : `http://127.0.0.1:8000${avatarUrl}`
-  ) : null;
+  // Normalizar la URL del avatar
+  const finalAvatarUrl = normalizeAvatarUrl(avatarUrl);
 
   return (
     <div className="flex items-center gap-2">

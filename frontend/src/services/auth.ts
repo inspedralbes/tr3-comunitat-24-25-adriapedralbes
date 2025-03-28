@@ -118,10 +118,25 @@ export const authService = {
     
     try {
       // Subir la imagen a Next.js
+      console.log('Iniciando subida de avatar al servidor local...');
       const imageUrl = await imageUploadService.uploadImage(file, 'avatar');
+      console.log('Imagen subida exitosamente. URL obtenida:', imageUrl);
       
       // Actualizar el perfil con la URL de la imagen
-      return api.patch('auth/me/', { avatar_url: imageUrl });
+      console.log('Enviando URL de avatar al servidor de Django para actualizar perfil...');
+      
+      // Imprimir datos que estamos enviando a la API
+      console.log('Datos enviados a la API:', { avatar_url: imageUrl });
+      
+      const updatedProfile = await api.patch('auth/me/', { avatar_url: imageUrl });
+      console.log('Respuesta de actualización de perfil:', updatedProfile);
+      
+      // Verificar que la URL se actualizó correctamente
+      if (updatedProfile && updatedProfile.avatar_url !== imageUrl) {
+        console.warn('La URL del avatar no coincide. Recibida:', updatedProfile.avatar_url, 'Esperada:', imageUrl);
+      }
+      
+      return updatedProfile;
     } catch (error) {
       console.error('Error al actualizar avatar:', error);
       throw error;

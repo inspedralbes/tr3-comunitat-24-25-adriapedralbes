@@ -137,12 +137,14 @@ export const communityService = {
         if (imageUrls.length > 0) {
           // Guardar la primera imagen como principal
           enrichedContent.features['main_image'] = imageUrls[0];
+          console.log('Imagen principal guardada:', imageUrls[0]);
           
           // Si hay varias imágenes, añadir información adicional
           if (imageUrls.length > 1) {
             enrichedContent.features['multi_image'] = true;
             enrichedContent.features['images_count'] = imageUrls.length;
             enrichedContent.features['image_urls'] = imageUrls;
+            console.log('Múltiples imágenes guardadas:', imageUrls);
           }
         }
         

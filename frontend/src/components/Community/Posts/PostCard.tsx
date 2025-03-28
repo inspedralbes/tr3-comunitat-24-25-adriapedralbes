@@ -7,6 +7,7 @@ import { PostAuthor } from '@/components/Community/Posts/PostAuthor';
 import { communityService } from '@/services/community';
 import { Comment } from '@/types/Comment';
 import { formatRelativeTime, isNewComment, parseDjangoTimestamp } from '@/utils/dateUtils';
+import { normalizeImageUrl } from '@/utils/imageUtils';
 
 interface PostCardProps {
     id: string;
@@ -451,13 +452,13 @@ export const PostCard: React.FC<PostCardProps> = ({
                            return (
                                 <div className="cursor-pointer hover:opacity-95 transition-all">
                                     <Image
-                                        src={baseImageUrl}
+                                        src={normalizeImageUrl(baseImageUrl) || '/placeholder-image.png'}
                                         alt={displayTitle || 'Imagen del post'}
                                         width={500}
                                         height={300}
                                         className="rounded-lg w-full max-h-64 object-cover border border-white/10" // Adjusted max-height
                                         priority={isPinned} // Prioritize pinned post images maybe?
-                                        unoptimized={process.env.NODE_ENV !== 'production'} // Example: unoptimize in dev
+                                        unoptimized={true} // Siempre usar unoptimized para compatibilidad
                                         onError={(e) => (e.currentTarget.style.display = 'none')} // Hide if image fails to load
                                     />
                                 </div>
@@ -484,13 +485,13 @@ export const PostCard: React.FC<PostCardProps> = ({
                                     {[1, 2].map(i => (
                                         <div key={i} className="cursor-pointer hover:opacity-95 transition-all relative aspect-video"> {/* Use aspect ratio */}
                                             <Image
-                                                src={getImageSrc(i)}
+                                                src={normalizeImageUrl(getImageSrc(i)) || '/placeholder-image.png'}
                                                 alt={`Imagen ${i} de ${displayTitle || 'post'}`}
                                                 fill // Use fill layout
                                                 sizes="(max-width: 640px) 50vw, 250px" // Example sizes
                                                 className="rounded-md object-cover border border-white/10"
                                                 priority={i === 1 && isPinned}
-                                                unoptimized={process.env.NODE_ENV !== 'production'}
+                                                unoptimized={true}
                                                 onError={(e) => (e.currentTarget.style.display = 'none')}
                                             />
                                         </div>
@@ -512,7 +513,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                                                 sizes="(max-width: 640px) 33vw, 150px" // Example sizes
                                                 className="rounded-md object-cover border border-white/10"
                                                 priority={i === 1 && isPinned}
-                                                unoptimized={process.env.NODE_ENV !== 'production'}
+                                                unoptimized={true}
                                                 onError={(e) => (e.currentTarget.style.display = 'none')}
                                             />
                                         </div>
@@ -530,7 +531,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                         return (
                              <div className="cursor-pointer hover:opacity-95 transition-all">
                                 <Image
-                                    src={baseImageUrl}
+                                    src={normalizeImageUrl(baseImageUrl) || '/placeholder-image.png'}
                                     alt={displayTitle || 'Imagen del post'}
                                     width={500}
                                     height={300}

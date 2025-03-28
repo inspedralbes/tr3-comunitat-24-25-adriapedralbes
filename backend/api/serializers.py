@@ -22,6 +22,11 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'date_joined', 'position', 'is_superuser', 'is_staff']
     
     def get_avatar_url(self, obj):
+        # Si hay una URL externa configurada, usarla primero
+        if obj.avatar_url_external:
+            return obj.avatar_url_external
+        
+        # Si no, usar el avatar de ImageField
         if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
             request = self.context.get('request')
             if request is not None:
@@ -71,6 +76,11 @@ class UserShortSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'level', 'points', 'avatar_url', 'date_joined', 'is_superuser', 'is_staff', 'is_admin']
     
     def get_avatar_url(self, obj):
+        # Si hay una URL externa configurada, usarla primero
+        if obj.avatar_url_external:
+            return obj.avatar_url_external
+        
+        # Si no, usar el avatar de ImageField
         if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
             request = self.context.get('request')
             if request is not None:

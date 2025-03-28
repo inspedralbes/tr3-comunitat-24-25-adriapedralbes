@@ -40,7 +40,7 @@ services:
       # Configuración de gamificación
       - FORCE_GAMIFICATION_SETUP=false
     restart: on-failure
-    command: sh -c "chmod +x /app/entrypoint.sh && /app/entrypoint.sh"
+    command: sh -c "chmod +x /app/entrypoint.sh && python manage.py makemigrations api && /app/entrypoint.sh"
     depends_on:
       - postgres
 

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import React from 'react';
 
 import { UserProfile } from '@/services/auth';
-import { formatAvatarUrl } from '@/utils/formatUtils';
+import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
 
 interface ProfileHeaderProps {
@@ -37,7 +37,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
 
   const level = userProfile.level || 1;
   
-  const avatarUrl = formatAvatarUrl(userProfile.avatar_url);
+  const avatarUrl = normalizeAvatarUrl(userProfile.avatar_url);
 
   return (
     <div className="bg-[#323230] rounded-lg p-6 border border-white/10 mb-6">

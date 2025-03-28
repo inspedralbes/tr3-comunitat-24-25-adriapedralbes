@@ -12,7 +12,7 @@ import { authService, UserProfile } from '@/services/auth';
 import { communityService } from '@/services/community';
 import { Comment } from '@/types/Comment'; // Assuming Comment.ts is in '@/types/Comment'
 import { Post } from '@/types/Post';
-import { formatAvatarUrl, formatImageUrl } from '@/utils/formatUtils';
+import { normalizeAvatarUrl, normalizeImageUrl } from '@/utils/imageUtils';
 
 interface PostDetailModalProps {
     post: Post | null;
@@ -563,7 +563,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                              <div className="w-8 h-8 bg-[#444442] rounded-full overflow-hidden border border-white/10">
                                 {comment.author?.avatarUrl ? (
                                     <Image
-                                        src={formatAvatarUrl(comment.author.avatarUrl) || '/default-avatar.png'} // Provide a fallback avatar
+                                        src={normalizeAvatarUrl(comment.author.avatarUrl) || '/default-avatar.png'} // Provide a fallback avatar
                                         alt={comment.author.username || 'Avatar'}
                                         width={32}
                                         height={32}
@@ -747,6 +747,35 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 features: null // No features for plain text
             };
         }
+    };
+    
+    // Obtener la URL de imagen del post, revisando todas las fuentes posibles
+    const getPostImageUrl = (): string | null => {
+        if (!selectedPost) return null;
+        
+        // 1. Verificar si hay una URL directa en el post
+        if (selectedPost.imageUrl) {
+            return selectedPost.imageUrl;
+        }
+        
+        // 2. Verificar si hay una imagen en el contenido enriquecido
+        if (typeof selectedPost.content === 'string') {
+            try {
+                const parsedContent = JSON.parse(selectedPost.content);
+                if (parsedContent.features && parsedContent.features.main_image) {
+                    return parsedContent.features.main_image;
+                }
+            } catch (e) {
+                // No es JSON válido, continuar con otros métodos
+            }
+        }
+        
+        // 3. Verificar otras propiedades posibles
+        if (selectedPost.image) {
+            return selectedPost.image;
+        }
+        
+        return null;
     };
 
     // --- Main Component Render ---
@@ -953,7 +982,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
 
                     {/* Imágenes para el post */}
-                    {selectedPost.imageUrl && (
+                    {getPostImageUrl() && (
                         <div className="mt-2 mb-4">
                             {/* Image Display Logic (Simplified) */}
                             <button
@@ -965,13 +994,13 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                                 aria-label="Ver imagen a tamaño completo"
                             >
                                 <Image
-                                    src={formatImageUrl(selectedPost.imageUrl) || '/placeholder-image.png'} // Fallback image
+                                    src={normalizeImageUrl(getPostImageUrl()) || '/placeholder-image.png'} // Fallback image
                                     alt={`Imagen para ${title}`}
                                     width={600} // Provide appropriate defaults or calculate based on container
                                     height={400}
                                     className="rounded-lg w-full max-h-80 object-contain border border-white/10 bg-black" // Use object-contain
                                     priority={selectedPost.isPinned} // Prioritize if pinned
-                                    unoptimized={process.env.NODE_ENV !== 'production'}
+                                    unoptimized={true}
                                     onError={(e) => (e.currentTarget.style.display = 'none')} // Optionally hide on error
                                 />
                             </button>
@@ -1086,7 +1115,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
                                 {currentUser?.avatar_url ? (
                                     <Image
-                                        src={formatAvatarUrl(currentUser.avatar_url) || '/default-avatar.png'}
+                                        src={normalizeAvatarUrl(currentUser.avatar_url) || '/default-avatar.png'}
                                         alt={currentUser.username || 'Tu avatar'}
                                         width={32}
                                         height={32}
@@ -1222,9 +1251,9 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
             </div>
 
              {/* Image Viewer Modal */}
-            {selectedPost.imageUrl && imageViewerOpen && (
+            {getPostImageUrl() && imageViewerOpen && (
                 <ImageViewerModal
-                    imageUrl={selectedPost.imageUrl}
+                    imageUrl={getPostImageUrl() || ''}
                     isOpen={imageViewerOpen}
                     onClose={() => setImageViewerOpen(false)}
                     altText={`Imagen de ${selectedPost.author.username}: ${title}`}
