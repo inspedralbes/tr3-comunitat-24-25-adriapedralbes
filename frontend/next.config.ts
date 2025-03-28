@@ -47,6 +47,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.futurprive.com',
+        port: '',
+        pathname: '/media/**',
+      }
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
