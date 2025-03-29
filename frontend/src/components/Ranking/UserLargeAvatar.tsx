@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import React from 'react';
+import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
 interface UserLargeAvatarProps {
     username: string;
@@ -39,15 +40,17 @@ export function UserLargeAvatar({ username, avatarUrl, level }: UserLargeAvatarP
                 {avatarUrl ? (
                     <div className="w-full h-full">
                         <Image 
-                            src={avatarUrl} 
+                            src={normalizeAvatarUrl(avatarUrl) || '/default-avatar.png'} 
                             alt={username}
                             width={128}
                             height={128}
                             className="w-full h-full object-cover"
-                            unoptimized={avatarUrl.includes('127.0.0.1') || avatarUrl.includes('localhost')}
+                            unoptimized={true}
                             onError={(e) => {
                                 // Si la imagen falla, mostrar las iniciales del usuario
+                                console.error('Error loading avatar in Ranking:', avatarUrl);
                                 const target = e.target as HTMLImageElement;
+                                target.onerror = null; // Prevenir llamadas recursivas
                                 target.style.display = 'none';
                                 (target.parentElement as HTMLElement).textContent = username.charAt(0).toUpperCase();
                                 target.parentElement!.classList.add('flex', 'items-center', 'justify-center', 'bg-blue-500', 'text-white', 'font-bold', 'text-4xl');
