@@ -42,10 +42,18 @@ services:
       - nextjs_public:/app/public
     labels:
       - "traefik.enable=true"
+      # Ruta principal para la aplicación Next.js
       - "traefik.http.routers.nextjs.rule=Host(`futurprive.com`)"
       - "traefik.http.routers.nextjs.entrypoints=websecure"
       - "traefik.http.routers.nextjs.tls.certresolver=leresolver"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
+      
+      # Ruta específica para archivos media
+      - "traefik.http.routers.nextjs-media.rule=Host(`futurprive.com`) && PathPrefix(`/media`)"
+      - "traefik.http.routers.nextjs-media.entrypoints=websecure"
+      - "traefik.http.routers.nextjs-media.tls.certresolver=leresolver"
+      - "traefik.http.routers.nextjs-media.service=nextjs"
+      - "traefik.http.routers.nextjs-media.priority=200"
 
   postgres:
     image: postgres:14-alpine
