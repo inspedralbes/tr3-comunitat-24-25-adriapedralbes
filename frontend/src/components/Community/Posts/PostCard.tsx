@@ -646,28 +646,22 @@ export const PostCard: React.FC<PostCardProps> = ({
                 {/* Only show this section if there are comments */}
                 {Number(comments) > 0 && (
                     <div className="flex items-center flex-shrink-0"> {/* Prevent shrinking on small screens */}
-                        {uniqueCommenters.length > 0 && (
-                            <div className="flex items-center">
+                        <div className="flex items-center">
+                            {uniqueCommenters.length > 0 ? (
                                 <CommentAvatars commenters={uniqueCommenters} />
-                                <div className="flex items-center ml-2">
-                                    <span className="text-xs" style={{ color: isNewestComment ? '#3b82f6' : '#9ca3af' }}>
-                                        {isNewestComment ? 'Nuevo' : 'Último'} coment. {formatRelativeTime(lastCommentTime)}
-                                    </span>
+                            ) : (
+                                <div className="flex">
+                                    <div className="w-6 h-6 rounded-full overflow-hidden bg-[#444442] flex items-center justify-center text-zinc-400 border border-zinc-900">
+                                        <span className="text-xs">?</span>
+                                    </div>
                                 </div>
+                            )}
+                            <div className="ml-2">
+                                <span className="text-xs" style={{ color: isNewestComment ? '#3b82f6' : '#9ca3af' }}>
+                                    {isNewestComment ? 'Nuevo' : 'Último'} coment. {formatRelativeTime(lastCommentTime)}
+                                </span>
                             </div>
-                        )}
-                        {uniqueCommenters.length === 0 && (
-                            <div className="flex items-center">
-                                <div className="w-6 h-6 rounded-full overflow-hidden bg-[#444442] flex items-center justify-center text-zinc-400">
-                                    <span className="text-xs">?</span>
-                                </div>
-                                <div className="flex items-center ml-2">
-                                    <span className="text-xs" style={{ color: isNewestComment ? '#3b82f6' : '#9ca3af' }}>
-                                        {isNewestComment ? 'Nuevo' : 'Último'} coment. {formatRelativeTime(lastCommentTime)}
-                                    </span>
-                                </div>
-                            </div>
-                        )}
+                        </div>
                     </div>
                 )}
             </div>

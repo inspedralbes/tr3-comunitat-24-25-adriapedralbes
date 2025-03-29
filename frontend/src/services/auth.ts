@@ -63,6 +63,11 @@ export const authService = {
     if (response && response.access) {
       localStorage.setItem('auth_token', response.access);
       localStorage.setItem('refresh_token', response.refresh);
+      
+      // Recargar la página después de iniciar sesión
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
     }
     
     return response;
@@ -133,6 +138,11 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
+    
+    // Recargar la página después de cerrar sesión
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   },
   
   // Verificar si el usuario está autenticado

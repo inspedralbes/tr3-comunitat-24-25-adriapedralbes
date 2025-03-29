@@ -428,8 +428,26 @@ export const UserActivityTab: React.FC<UserActivityTabProps> = ({ userId }) => {
                 className="bg-zinc-800/20 hover:bg-zinc-800/30 transition-colors p-4 rounded-lg border border-white/5"
               >
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 mt-1">
-                    {renderActivityIcon(activity.type)}
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full overflow-hidden bg-[#444442] flex items-center justify-center border border-white/10">
+                      {activity.author?.avatarUrl || activity.author?.avatar_url ? (
+                        <Image
+                          src={normalizeAvatarUrl(activity.author.avatarUrl || activity.author.avatar_url) || ''}
+                          alt={activity.author.username || 'user'}
+                          width={36}
+                          height={36}
+                          className="w-full h-full object-cover"
+                          unoptimized={true}
+                        />
+                      ) : (
+                        <div className="text-white font-medium">
+                          {activity.author?.username ? activity.author.username.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-shrink-0 mt-1">
+                      {renderActivityIcon(activity.type)}
+                    </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     {renderActivityContent(activity)}
