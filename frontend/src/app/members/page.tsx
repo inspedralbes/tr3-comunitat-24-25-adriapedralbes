@@ -187,17 +187,13 @@ export default function MiembrosPage() {
                     </div>
                 )}
                 
-                {/* Filtros y botón de invitación */}
+                {/* Filtros */}
                 <div className="flex justify-between items-center mb-6">
                     <MembersTabs
                         counts={counts}
                         activeFilter={filter}
                         onFilterChange={setFilter}
                     />
-
-                    <button className="px-6 py-2 bg-[#F3CA4D] hover:bg-[#e6be3e] text-black font-semibold rounded-md transition-colors">
-                        INVITE
-                    </button>
                 </div>
 
                 {/* Lista de miembros */}
