@@ -17,10 +17,27 @@ export const normalizeAvatarUrl = (avatarUrl: string | null | undefined): string
   
   // Si la URL es relativa a /media (nuevo sistema), usarla directamente
   if (avatarUrl.startsWith('/media')) {
+    // En producción, asegurarnos de usar la URL completa con el dominio
+    if (typeof window !== 'undefined') {
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!isDevelopment) {
+        // Para URLs en producción, usar futurprive.com como dominio
+        return `https://futurprive.com${avatarUrl}`;
+      }
+    }
     return avatarUrl;
   }
   
   // En otros casos, asumimos que es una URL relativa al backend de Django
+  if (typeof window !== 'undefined') {
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isDevelopment) {
+      return `http://127.0.0.1:8000${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
+    } else {
+      return `https://api.futurprive.com${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
+    }
+  }
+  
   return `http://127.0.0.1:8000${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
 };
 

@@ -10,6 +10,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { AuthModal, AuthModalType } from "@/components/Auth";
 import { cn } from "@/lib/utils";
 import { authService, UserProfile } from "@/services/auth";
+import { normalizeAvatarUrl } from "@/utils/imageUtils";
 
 interface NavItem {
   name: string;
@@ -246,12 +247,12 @@ export function NavBar({ items, className }: NavBarProps) {
               )}
               {isAuthenticated && user?.avatar_url ? (
                 <Image
-                  src={user.avatar_url}
+                  src={normalizeAvatarUrl(user.avatar_url) || '/default-avatar.png'}
                   alt="Foto de perfil"
                   width={40}
                   height={40}
                   className="w-full h-full object-cover"
-                  unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
+                  unoptimized={true}
                 />
               ) : (
                 <User className="text-white" size={20} />

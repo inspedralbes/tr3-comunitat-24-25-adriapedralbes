@@ -7,6 +7,7 @@ import React, { useState, useRef, ChangeEvent } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { UserProfile, authService } from '@/services/auth';
+import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
 interface ProfileSettingsProps {
   userProfile: UserProfile;
@@ -18,7 +19,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile: i
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(initialProfile.avatar_url || null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    normalizeAvatarUrl(initialProfile.avatar_url) || null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -61,9 +64,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile: i
       const updatedProfile = await authService.updateAvatar(file);
       // console.log('Profile updated with new avatar:', updatedProfile);
       
-      // Actualizar el estado con la nueva URL del avatar
+      // Actualizar el estado con la nueva URL del avatar normalizada
       setUserProfile(updatedProfile);
-      setAvatarPreview(updatedProfile.avatar_url);
+      setAvatarPreview(normalizeAvatarUrl(updatedProfile.avatar_url));
       setSuccess('Foto de perfil actualizada correctamente.');
     } catch (err) {
       console.error('Error updating avatar:', err);
@@ -159,7 +162,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile: i
                     width={80}
                     height={80}
                     className="w-full h-full object-cover"
-                    unoptimized={avatarPreview.includes('127.0.0.1') || avatarPreview.includes('localhost')}
+                    unoptimized={true}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-zinc-300">

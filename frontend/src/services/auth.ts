@@ -98,6 +98,7 @@ export const authService = {
     // Importar el servicio de subida de imágenes dinámicamente
     // para evitar problemas de dependencia circular
     const { default: imageUploadService } = await import('./imageUpload');
+    const { normalizeAvatarUrl } = await import('@/utils/imageUtils');
     
     try {
       // Subir la imagen a Next.js
@@ -114,9 +115,9 @@ export const authService = {
       const updatedProfile = await api.patch('auth/me/', { avatar_url: imageUrl });
       console.log('Respuesta de actualización de perfil:', updatedProfile);
       
-      // Verificar que la URL se actualizó correctamente
-      if (updatedProfile && updatedProfile.avatar_url !== imageUrl) {
-        console.warn('La URL del avatar no coincide. Recibida:', updatedProfile.avatar_url, 'Esperada:', imageUrl);
+      // Normalizar URL del avatar para asegurar compatibilidad
+      if (updatedProfile && updatedProfile.avatar_url) {
+        updatedProfile.avatar_url = normalizeAvatarUrl(updatedProfile.avatar_url) || updatedProfile.avatar_url;
       }
       
       return updatedProfile;
