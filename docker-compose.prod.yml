@@ -42,18 +42,10 @@ services:
       - nextjs_public:/app/public
     labels:
       - "traefik.enable=true"
-      # Ruta principal para la aplicación Next.js
       - "traefik.http.routers.nextjs.rule=Host(`futurprive.com`)"
       - "traefik.http.routers.nextjs.entrypoints=websecure"
       - "traefik.http.routers.nextjs.tls.certresolver=leresolver"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
-      
-      # Ruta específica para archivos media
-      - "traefik.http.routers.nextjs-media.rule=Host(`futurprive.com`) && PathPrefix(`/media`)"
-      - "traefik.http.routers.nextjs-media.entrypoints=websecure"
-      - "traefik.http.routers.nextjs-media.tls.certresolver=leresolver"
-      - "traefik.http.routers.nextjs-media.service=nextjs"
-      - "traefik.http.routers.nextjs-media.priority=200"
 
   postgres:
     image: postgres:14-alpine
@@ -133,6 +125,23 @@ services:
     environment:
       - ADMINER_DEFAULT_SERVER=postgres
       - ADMINER_DESIGN=pepa-linha
+      
+  nginx-static:
+    image: nginx:alpine
+    container_name: nginx-static
+    restart: always
+    volumes:
+      - nextjs_public:/usr/share/nginx/html
+    networks:
+      - web
+    command: sh -c "nginx -g 'daemon off;' & sleep 2 && mkdir -p /usr/share/nginx/html/media && mkdir -p /usr/share/nginx/html/media/avatars && chmod -R 755 /usr/share/nginx/html/media && nginx -s reload && while sleep 3600; do :; done"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx-static.rule=Host(`futurprive.com`) && PathPrefix(`/media`)"
+      - "traefik.http.routers.nginx-static.entrypoints=websecure"
+      - "traefik.http.routers.nginx-static.tls.certresolver=leresolver"
+      - "traefik.http.services.nginx-static.loadbalancer.server.port=80"
+      - "traefik.http.routers.nginx-static.priority=200"
 
 networks:
   web:
