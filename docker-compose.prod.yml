@@ -38,6 +38,8 @@ services:
       - NEXT_PUBLIC_API_URL=https://api.futurprive.com
     networks:
       - web
+    volumes:
+      - nextjs_public:/app/public
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nextjs.rule=Host(`futurprive.com`)"
@@ -131,4 +133,5 @@ volumes:
   postgres_data:
   static_data:
   media_data:
-  traefik_certs:  # Nuevo volumen para certificados persistentes
+  traefik_certs:  # Volumen para certificados persistentes
+  nextjs_public:  # Volumen persistente para archivos públicos de Next.js
