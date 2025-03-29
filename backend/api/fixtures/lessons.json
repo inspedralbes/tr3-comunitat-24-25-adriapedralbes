@@ -1,0 +1,58 @@
+[
+  {
+    "model": "api.lesson",
+    "pk": "e5bc8a21-6f4d-4c8e-9a7b-2d1f6c9e8a7b",
+    "fields": {
+      "course": "cc4dcc3c-7a3a-4d51-b390-36e9b6340b3a",
+      "title": "¿Qué es DevAccelerator™?",
+      "content": {
+        "html": "<h1>¿Qué es DevAccelerator™?</h1><p>DevAccelerator™ es una comunidad exclusiva para desarrolladores que quieren acelerar su carrera profesional. Nuestro enfoque se basa en tres pilares fundamentales:</p><ul><li>Aprendizaje continuo</li><li>Networking estratégico</li><li>Desarrollo de proyectos</li></ul><p>En esta plataforma encontrarás recursos exclusivos, mentorías y una comunidad activa de desarrolladores con tus mismos objetivos.</p>"
+      },
+      "order": 1,
+      "created_at": "2024-09-20T12:00:00Z",
+      "updated_at": "2024-09-20T12:00:00Z"
+    }
+  },
+  {
+    "model": "api.lesson",
+    "pk": "f7c9d8e2-3b1a-4d5e-8f9a-2b3c7d6e5f4a",
+    "fields": {
+      "course": "cc4dcc3c-7a3a-4d51-b390-36e9b6340b3a",
+      "title": "¿Qué hace a DevAccelerator™ diferente?",
+      "content": {
+        "html": "<h1>¿Qué hace a DevAccelerator™ diferente?</h1><p>A diferencia de otras plataformas de aprendizaje, DevAccelerator™ se enfoca en:</p><ol><li><strong>Aprendizaje práctico</strong>: Proyectos reales y aplicables</li><li><strong>Comunidad activa</strong>: Interacción constante con otros miembros</li><li><strong>Mentorías personalizadas</strong>: Feedback directo de expertos en la industria</li><li><strong>Gamificación</strong>: Sistema de niveles y logros para mantener la motivación</li></ol><p>Nuestra metodología ha sido probada con cientos de desarrolladores que han logrado mejoras significativas en sus carreras.</p>"
+      },
+      "order": 2,
+      "created_at": "2024-09-20T12:00:00Z",
+      "updated_at": "2024-09-20T12:00:00Z"
+    }
+  },
+  {
+    "model": "api.lesson",
+    "pk": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+    "fields": {
+      "course": "d48fedb2-b5de-4e6e-9a80-8e03bb0a6478",
+      "title": "Introducción al modelo DevAccelerator™",
+      "content": {
+        "html": "<h1>Introducción al modelo DevAccelerator™</h1><p>El modelo DevAccelerator™ es un sistema estructurado para potenciar tu carrera como desarrollador en tiempo récord. Este mini curso te mostrará paso a paso cómo implementarlo en tu vida profesional.</p><p>A lo largo de 6 lecciones, descubrirás:</p><ul><li>Las bases del desarrollo profesional acelerado</li><li>Cómo identificar y capitalizar tus fortalezas</li><li>Estrategias para destacar en un mercado competitivo</li><li>Técnicas de networking efectivo en la industria tech</li></ul>"
+      },
+      "order": 1,
+      "created_at": "2024-09-21T12:00:00Z",
+      "updated_at": "2024-09-21T12:00:00Z"
+    }
+  },
+  {
+    "model": "api.lesson",
+    "pk": "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
+    "fields": {
+      "course": "f7a0b9dd-9c9a-4a5a-8f0e-0876c0eae4b5",
+      "title": "El poder de un perfil optimizado",
+      "content": {
+        "html": "<h1>El poder de un perfil optimizado</h1><p>LinkedIn se ha convertido en la plataforma principal para el reclutamiento tech a nivel global. En esta lección aprenderás:</p><ul><li>Cómo optimizar tu perfil para los algoritmos de búsqueda</li><li>Las secciones clave que los reclutadores revisan primero</li><li>Errores comunes que alejan las oportunidades</li><li>Ejemplos de perfiles de alto impacto</li></ul><p>Un perfil bien optimizado puede multiplicar por 5 las oportunidades que recibes mensualmente.</p>"
+      },
+      "order": 1,
+      "created_at": "2024-09-22T12:00:00Z",
+      "updated_at": "2024-09-22T12:00:00Z"
+    }
+  }
+]

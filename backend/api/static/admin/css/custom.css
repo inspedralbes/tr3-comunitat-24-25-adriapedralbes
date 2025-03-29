@@ -1,0 +1,86 @@
+/* Tema oscuro básico - usando atributos importantes */
+body {
+  background-color: #121212 !important;
+  color: #e6e6e6 !important;
+}
+
+/* Asegurarse que todos los textos tienen color visible */
+body, p, span, div, h1, h2, h3, h4, h5, h6, a, label, th, td {
+  color: #e6e6e6;
+}
+
+/* Cabecera */
+#header {
+  background-color: #000000 !important;
+  color: white !important;
+}
+
+/* Contenedor principal */
+#container {
+  background-color: #121212 !important;
+}
+
+#content {
+  background-color: #121212 !important;
+}
+
+/* Módulos */
+.module {
+  background-color: #1a1a1a !important;
+  border: 1px solid #333 !important;
+}
+
+.module h2 {
+  background-color: #232323 !important;
+  color: #e09e41 !important;
+}
+
+/* Enlaces */
+a:link, a:visited {
+  color: #e09e41 !important;
+}
+
+a:hover {
+  color: #f0b45f !important;
+}
+
+/* Tablas */
+table {
+  border-collapse: collapse !important;
+}
+
+th {
+  background-color: #232323 !important;
+  color: #e6e6e6 !important;
+}
+
+td {
+  color: #e6e6e6 !important;
+}
+
+tr:nth-child(odd) {
+  background-color: #1a1a1a !important;
+}
+
+tr:nth-child(even) {
+  background-color: #232323 !important;
+}
+
+/* Inputs */
+input[type=text], input[type=password], input[type=email], textarea, select {
+  background-color: #2a2a2a !important;
+  color: #e6e6e6 !important;
+  border: 1px solid #333 !important;
+}
+
+/* Botones */
+.button, input[type=submit], input[type=button] {
+  background-color: #e09e41 !important;
+  color: black !important;
+}
+
+/* Navegación de migas de pan */
+div.breadcrumbs {
+  background-color: #1a1a1a !important;
+  color: #e6e6e6 !important;
+}

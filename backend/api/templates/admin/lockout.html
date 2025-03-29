@@ -1,0 +1,12 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Account Locked" %}{% endblock %}
+
+{% block content %}
+<div class="alert alert-danger">
+    <h2>{% trans "Your account has been locked" %}</h2>
+    <p>{% trans "Too many failed login attempts. Please try again later." %}</p>
+    <p>{% trans "This is a security measure to protect your account." %}</p>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main # Cambiar a la rama principal de tu proyecto (main, master, etc.)
+  workflow_dispatch: # Permite ejecutar el workflow manualmente desde la interfaz de GitHub
+
+jobs:
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Execute deployment commands via SSH
+        uses: appleboy/ssh-action@v1 # Usando la versión v1 (más reciente)
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }} # Añadido para manejar claves protegidas con contraseña
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            # Configurar para que el script falle si algún comando falla
+            set -e
+            
+            # Ir al directorio del proyecto
+            cd /${{ secrets.SSH_USERNAME }}/tr3-comunitat-24-25-adriapedralbes
+            
+            # Detener los contenedores existentes
+            docker compose -f docker-compose.prod.yml down
+            
+            # Actualizar el código del repositorio
+            git pull
+            
+            # Reconstruir y levantar los contenedores en modo detached
+            docker compose -f docker-compose.prod.yml up --build -d
+            
+            echo "Deployment completed successfully!"

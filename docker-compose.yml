@@ -1,0 +1,75 @@
+services:
+  nextjs:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nextjs-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - node_modules:/app/node_modules
+      - nextjs_public:/app/public
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+    command: pnpm dev
+    depends_on:
+      - django
+
+  django:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: django-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      # Configuración de la base de datos
+      - DATABASE_ENGINE=${DATABASE_ENGINE:-django.db.backends.sqlite3}
+      - DATABASE_NAME=${DATABASE_NAME:-db.sqlite3}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=${DATABASE_HOST:-postgres}
+      - DATABASE_PORT=${DATABASE_PORT:-5432}
+      # Configuración de gamificación
+      - FORCE_GAMIFICATION_SETUP=false
+    restart: on-failure
+    command: sh -c "chmod +x /app/entrypoint.sh && python manage.py makemigrations api && /app/entrypoint.sh"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:14-alpine
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    restart: on-failure
+
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+      - ADMINER_DESIGN=pepa-linha
+    depends_on:
+      - postgres
+    restart: on-failure
+
+volumes:
+  node_modules:
+  postgres_data:
+  nextjs_public:
