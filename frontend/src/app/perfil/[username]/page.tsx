@@ -4,6 +4,7 @@ import { HardDrive, Info, MessageCircle } from 'lucide-react';
 import { useRouter, useParams, usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
+import { AuthModal, AuthModalType } from '@/components/Auth';
 import MainLayout from '@/components/layouts/MainLayout';
 import NoNavbarLayout from '@/components/layouts/NoNavbarLayout';
 import { ProfileHeader } from '@/components/Profile/ProfileHeader';
@@ -30,6 +31,8 @@ export default function UserProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isCurrentUser, setIsCurrentUser] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalType, setAuthModalType] = useState<AuthModalType>(AuthModalType.LOGIN);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -97,6 +100,28 @@ export default function UserProfilePage() {
       console.error('Error creating checkout session:', err);
       setError('No se pudo iniciar el proceso de suscripción.');
     }
+  };
+  
+  const handleLogout = () => {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+      // Cerrar el dropdown y actualizar el estado local
+      
+      // Llamar a logout para eliminar tokens
+      authService.logout();
+      
+      // Aplicar transición pero quedarse en la misma página, mostrar el modal de login automáticamente
+      // Usamos una función setTimeout para abrir el modal después de un pequeño delay para permitir que se complete la transición
+      logoutTransition(window.location.pathname);
+      setTimeout(() => {
+        setAuthModalType(AuthModalType.LOGIN);
+        setIsAuthModalOpen(true);
+      }, 500);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false);
+    window.location.reload(); // Recargar la página para actualizar el estado de autenticación
   };
 
   const handleTabChange = (tab: TabType) => {
@@ -211,6 +236,13 @@ export default function UserProfilePage() {
 
   return (
     <Layout {...layoutProps}>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        type={authModalType}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
+    
       {/* Barra de suscripción - siempre visible cuando no hay suscripción */}
       {!hasSubscription && (
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 shadow-md">
@@ -220,15 +252,7 @@ export default function UserProfilePage() {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => {
-                  if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                    // Llamar a logout para eliminar tokens
-                    authService.logout();
-                    
-                    // Aplicar transición y navegar a la página principal
-                    logoutTransition('/');
-                  }
-                }}
+                onClick={handleLogout}
                 className="px-4 py-1 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors text-sm font-medium"
               >
                 Cerrar sesión
