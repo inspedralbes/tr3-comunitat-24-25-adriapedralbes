@@ -1222,24 +1222,35 @@ class CourseViewSet(viewsets.ModelViewSet):
         try:
             course = self.get_object()
             
-            # Eliminar thumbnail anterior si existe
-            if course.thumbnail and hasattr(course.thumbnail, 'path') and os.path.isfile(course.thumbnail.path):
-                try:
-                    os.remove(course.thumbnail.path)
-                except Exception as e:
-                    print(f"Error al eliminar thumbnail anterior: {e}")
-            
-            # Verificar si hay un archivo en la solicitud
-            if 'thumbnail' not in request.FILES:
-                return Response({"error": "No se ha proporcionado una imagen"}, status=status.HTTP_400_BAD_REQUEST)
+            # Verificar si se está enviando una URL externa (desde Next.js)
+            if 'thumbnail_url' in request.data and isinstance(request.data['thumbnail_url'], str):
+                # Guardar la URL externa
+                logger.info(f"Recibida URL externa de thumbnail: {request.data['thumbnail_url']}")
+                course.thumbnail_url_external = request.data['thumbnail_url']
+                course.save(update_fields=['thumbnail_url_external'])
                 
-            # Guardar nuevo thumbnail
-            course.thumbnail = request.FILES['thumbnail']
-            course.save()
+                # Serializar respuesta
+                serializer = self.get_serializer(course)
+                return Response(serializer.data)
             
-            # Serializar respuesta
-            serializer = self.get_serializer(course)
-            return Response(serializer.data)
+            # Manejo tradicional de archivo
+            elif 'thumbnail' in request.FILES:
+                # Eliminar thumbnail anterior si existe
+                if course.thumbnail and hasattr(course.thumbnail, 'path') and os.path.isfile(course.thumbnail.path):
+                    try:
+                        os.remove(course.thumbnail.path)
+                    except Exception as e:
+                        logger.error(f"Error al eliminar thumbnail anterior: {e}")
+                
+                # Guardar nuevo thumbnail
+                course.thumbnail = request.FILES['thumbnail']
+                course.save()
+                
+                # Serializar respuesta
+                serializer = self.get_serializer(course)
+                return Response(serializer.data)
+            else:
+                return Response({"error": "No se ha proporcionado una imagen o URL"}, status=status.HTTP_400_BAD_REQUEST)
             
         except Exception as e:
             logger.error(f"Error al subir thumbnail: {str(e)}")

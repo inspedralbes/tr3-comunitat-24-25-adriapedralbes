@@ -86,7 +86,9 @@ export default function CourseEditor({ courseId, initialData }: CourseEditorProp
           console.log('Thumbnail cargado exitosamente:', uploadResult.url);
           
           // Actualizar el curso con la URL del thumbnail
+          // Incluimos el título obligatorio para evitar el error 400
           await courseService.updateCourse(newCourseId, {
+            title: title,  // Incluir siempre el título obligatorio
             thumbnail_url: uploadResult.url
           });
           

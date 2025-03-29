@@ -177,6 +177,7 @@ class Course(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True)
+    thumbnail_url_external = models.URLField(max_length=500, blank=True, null=True)
     progress_percentage = models.IntegerField(default=0)  # Para seguimiento de progreso
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

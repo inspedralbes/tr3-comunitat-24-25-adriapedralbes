@@ -265,6 +265,11 @@ class CourseSerializer(serializers.ModelSerializer):
         return obj.lessons.count()
         
     def get_thumbnail_url(self, obj):
+        # Si hay una URL externa configurada, usarla primero
+        if obj.thumbnail_url_external:
+            return obj.thumbnail_url_external
+        
+        # Si no, usar el thumbnail de ImageField
         if obj.thumbnail and hasattr(obj.thumbnail, 'url'):
             request = self.context.get('request')
             if request is not None:
