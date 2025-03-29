@@ -134,7 +134,7 @@ services:
       - nextjs_public:/usr/share/nginx/html
     networks:
       - web
-    command: sh -c "nginx -g 'daemon off;' & sleep 2 && mkdir -p /usr/share/nginx/html/media && mkdir -p /usr/share/nginx/html/media/avatars && mkdir -p /usr/share/nginx/html/media/posts && mkdir -p /usr/share/nginx/html/media/course_thumbnails && chmod -R 755 /usr/share/nginx/html/media && nginx -s reload && while sleep 3600; do :; done"
+    command: sh -c "nginx -g 'daemon off;' & sleep 2 && mkdir -p /usr/share/nginx/html/media/avatars /usr/share/nginx/html/media/posts /usr/share/nginx/html/media/course_thumbnails && chmod -R 755 /usr/share/nginx/html/media && echo 'Verificando contenido persistente en volumen:' && ls -la /usr/share/nginx/html/media/avatars && nginx -s reload && while sleep 3600; do :; done"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nginx-static.rule=Host(`futurprive.com`) && PathPrefix(`/media`)"
