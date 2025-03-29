@@ -151,7 +151,8 @@ export const api = {
   },
 
   delete: async (endpoint: string) => {
-    const response = await fetch(buildEndpointUrl(endpoint), {
+    // Asegurar que la URL termine con / para evitar redirecciones 301
+    const response = await fetch(buildEndpointUrl(endpoint, true), {
       method: 'DELETE',
       headers: getHeaders(),
     });
