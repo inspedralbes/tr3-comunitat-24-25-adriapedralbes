@@ -22,24 +22,13 @@ export interface LeaderboardUserFormatted {
 const formatLeaderboardUsers = (users: LeaderboardUserResponse[]): LeaderboardUserFormatted[] => {
   return users.map(user => {
     // Función para determinar la URL del avatar
-    let avatarUrl = null;
-    if (user.avatar_url) {
-      // Validar que la URL del avatar es válida
-      try {
-        // Solo necesitamos validar la URL
-        new URL(user.avatar_url);
-        avatarUrl = user.avatar_url;
-      } catch {
-        // Silenciamos el error
-        // Si la URL no es válida, no usar avatar
-        // console.warn(`Avatar URL inválida para ${user.username}: ${user.avatar_url}`);
-      }
-    }
+    // Permitir URLs relativas o absolutas para avatares
+    let avatarUrl = user.avatar_url || null;
     
     return {
       position: user.position || 0,
       username: user.username,
-      avatarUrl: avatarUrl || '',  // Valor predeterminado como string vacío si es null
+      avatarUrl: avatarUrl,  // Permitir que sea null para el componente UserAvatar
       points: user.points || 0,
       level: user.level || 1
     };
@@ -91,23 +80,13 @@ export const rankingService = {
   }> => {
     try {
       const response = await api.get('auth/me/');
-      // Validar el avatar URL
-      let avatarUrl = null;
-      if (response.avatar_url) {
-        try {
-          // Solo necesitamos validar la URL
-          new URL(response.avatar_url);
-          avatarUrl = response.avatar_url;
-        } catch {
-          // Silenciamos el error
-          // console.warn(`Avatar URL inválido para usuario actual: ${response.avatar_url}`);
-        }
-      }
+      // Usar directamente la URL del avatar
+      const avatarUrl = response.avatar_url || null;
 
       return {
         username: response.username,
         level: response.level || 1,
-        avatarUrl: avatarUrl || '',  // Valor predeterminado como string vacío si es null
+        avatarUrl: avatarUrl,  // Permitir que sea null para el componente UserAvatar
         // Suponemos que necesita 10 puntos por nivel, pero esto debería venir del backend
         pointsToNextLevel: 10 - (response.points % 10)
       };

@@ -647,12 +647,27 @@ export const PostCard: React.FC<PostCardProps> = ({
                 {Number(comments) > 0 && (
                     <div className="flex items-center flex-shrink-0"> {/* Prevent shrinking on small screens */}
                         {uniqueCommenters.length > 0 && (
-                            <CommentAvatars commenters={uniqueCommenters} />
+                            <div className="flex items-center">
+                                <CommentAvatars commenters={uniqueCommenters} />
+                                <div className="flex items-center ml-2">
+                                    <span className="text-xs" style={{ color: isNewestComment ? '#3b82f6' : '#9ca3af' }}>
+                                        {isNewestComment ? 'Nuevo' : 'Último'} coment. {formatRelativeTime(lastCommentTime)}
+                                    </span>
+                                </div>
+                            </div>
                         )}
-                        <span className={`text-xs ml-2 ${uniqueCommenters.length === 0 ? 'ml-0' : ''}`} // Adjust margin if no avatars
-                              style={{ color: isNewestComment ? '#3b82f6' : '#9ca3af' }}> {/* Tailwind blue-500 and zinc-400 */}
-                            {isNewestComment ? 'Nuevo' : 'Último'} coment. {formatRelativeTime(lastCommentTime)}
-                        </span>
+                        {uniqueCommenters.length === 0 && (
+                            <div className="flex items-center">
+                                <div className="w-6 h-6 rounded-full overflow-hidden bg-[#444442] flex items-center justify-center text-zinc-400">
+                                    <span className="text-xs">?</span>
+                                </div>
+                                <div className="flex items-center ml-2">
+                                    <span className="text-xs" style={{ color: isNewestComment ? '#3b82f6' : '#9ca3af' }}>
+                                        {isNewestComment ? 'Nuevo' : 'Último'} coment. {formatRelativeTime(lastCommentTime)}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

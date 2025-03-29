@@ -1,19 +1,25 @@
 import Image from 'next/image';
 import React from 'react';
+import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
 interface Commenter {
     username: string;
     avatarUrl?: string;
+    avatar_url?: string;
 }
 
 interface CommentAvatarsProps {
     commenters: Commenter[];
     maxAvatars?: number;
+    showNewComment?: boolean;
+    newCommentText?: string;
 }
 
 export const CommentAvatars: React.FC<CommentAvatarsProps> = ({
     commenters,
-    maxAvatars = 4
+    maxAvatars = 4,
+    showNewComment = false,
+    newCommentText = 'Nuevo coment. just now'
 }) => {
     // Si no hay comentarios, no mostramos nada
     if (!commenters || commenters.length === 0) return null;
@@ -31,14 +37,14 @@ export const CommentAvatars: React.FC<CommentAvatarsProps> = ({
                         key={`${commenter.username}-${index}`}
                         className="w-6 h-6 rounded-full border border-zinc-900 overflow-hidden bg-[#444442]"
                     >
-                        {commenter.avatarUrl ? (
+                        {(commenter.avatarUrl || commenter.avatar_url) ? (
                             <Image
-                                src={commenter.avatarUrl}
+                                src={normalizeAvatarUrl(commenter.avatarUrl || commenter.avatar_url) || ''}
                                 alt={commenter.username}
                                 width={24}
                                 height={24}
                                 className="w-full h-full object-cover"
-                                unoptimized={commenter.avatarUrl.includes('127.0.0.1') || commenter.avatarUrl.includes('localhost')}
+                                unoptimized={true}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-zinc-400">
@@ -55,6 +61,13 @@ export const CommentAvatars: React.FC<CommentAvatarsProps> = ({
                     </div>
                 )}
             </div>
+            
+            {/* Texto de nuevo comentario con avatar al lado */}
+            {showNewComment && (
+                <div className="flex items-center ml-2">
+                    <span className="text-xs text-blue-500 mr-1">{newCommentText}</span>
+                </div>
+            )}
         </div>
     );
 };
