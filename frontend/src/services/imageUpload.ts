@@ -3,7 +3,7 @@
  */
 
 // Tipos de imágenes aceptados
-export type ImageType = 'avatar' | 'post' | 'media';
+export type ImageType = 'avatar' | 'post' | 'media' | 'course_thumbnail';
 
 /**
  * Sube una imagen al sistema de archivos de Next.js

@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
       subPath = 'media/avatars';
     } else if (type === 'post') {
       subPath = 'media/posts';
+    } else if (type === 'course_thumbnail') {
+      subPath = 'media/course_thumbnails';
     }
     
     // Ruta completa al directorio de carga

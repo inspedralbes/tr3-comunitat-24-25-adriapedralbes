@@ -78,12 +78,18 @@ export default function CourseEditor({ courseId, initialData }: CourseEditorProp
       // Si hay un archivo de thumbnail, cargarlo
       if (thumbnailFile && newCourseId) {
         console.log(`Cargando thumbnail para curso ${newCourseId}`);
-        const formData = new FormData();
-        formData.append('thumbnail', thumbnailFile);
         
         try {
-          await api.upload(`courses/${newCourseId}/upload_thumbnail/`, formData);
-          console.log('Thumbnail cargado exitosamente');
+          // Usar nuestro servicio de carga de imágenes local
+          const { default: imageUploadService } = await import('@/services/imageUpload');
+          const imageUrl = await imageUploadService.uploadImage(thumbnailFile, 'course_thumbnail');
+          console.log('Thumbnail cargado exitosamente:', imageUrl);
+          
+          // Actualizar el curso con la URL del thumbnail
+          await courseService.updateCourse(newCourseId, {
+            thumbnail_url: imageUrl
+          });
+          
         } catch (uploadError) {
           console.error('Error al cargar el thumbnail:', uploadError);
           // Continuamos aunque falle la carga del thumbnail
