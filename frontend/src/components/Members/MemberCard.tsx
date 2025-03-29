@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Clock, Calendar, MapPin } from "lucide-react";
+import { Clock, Calendar, MapPin } from "lucide-react";
 
 import { UserAvatar } from "@/components/Members/UserAvatar";
 
@@ -50,10 +50,7 @@ export function MemberCard({ member }: MemberCardProps) {
                             <p className="text-white mt-2">{member.description}</p>
                         </div>
 
-                        <button className="flex items-center justify-center px-4 py-1 text-gray-300 bg-[#2a2a2a] hover:bg-[#3a3a3a] rounded border border-gray-700 transition-colors text-sm">
-                            <MessageSquare size={16} className="mr-1" />
-                            CHAT
-                        </button>
+                        {/* Botón de chat eliminado */}
                     </div>
 
                     {/* Meta información */}

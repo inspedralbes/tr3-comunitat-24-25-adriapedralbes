@@ -22,6 +22,7 @@ export interface UserProfile {
   first_name: string;
   last_name: string;
   avatar_url: string | null;
+  avatar_url_external: string | null; // Añadido para compatibilidad con backend
   bio: string | null;
   level: number;
   points: number;

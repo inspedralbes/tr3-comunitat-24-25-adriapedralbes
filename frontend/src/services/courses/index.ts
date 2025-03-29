@@ -64,7 +64,9 @@ export const courseService = {
   // Delete a course
   deleteCourse: async (id: string): Promise<void> => {
     try {
+      console.log(`Eliminando curso con ID: ${id}`);
       await api.delete(`courses/${id}/`);
+      console.log(`Curso ${id} eliminado correctamente`);
     } catch (error) {
       console.error(`Error deleting course ${id}:`, error);
       throw error;

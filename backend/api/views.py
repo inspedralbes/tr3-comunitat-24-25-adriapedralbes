@@ -501,8 +501,20 @@ class UserMeView(APIView):
         return Response(user_data)
 
     def patch(self, request):
+        # Manejar el caso específico de eliminar avatar
+        if 'avatar_url' in request.data and request.data['avatar_url'] is None:
+            # Eliminar tanto avatar_url como avatar_url_external
+            request.user.avatar_url = None
+            request.user.avatar_url_external = None
+            request.user.save(update_fields=['avatar_url', 'avatar_url_external'])
+            
+            # Eliminar avatar_url del request.data para no procesarlo nuevamente
+            request_data = request.data.copy()
+            request_data.pop('avatar_url')
+            if 'avatar_url_external' in request_data:
+                request_data.pop('avatar_url_external')
         # Revisar si estamos recibiendo una URL del avatar desde Next.js
-        if 'avatar_url' in request.data and isinstance(request.data['avatar_url'], str) and request.data['avatar_url'].startswith('/'):
+        elif 'avatar_url' in request.data and isinstance(request.data['avatar_url'], str) and request.data['avatar_url'].startswith('/'):
             # Guardarla en el campo avatar_url_external
             request.user.avatar_url_external = request.data['avatar_url']
             request.user.save(update_fields=['avatar_url_external'])

@@ -1,5 +1,7 @@
 "use client";
 
+import { Edit, Plus, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Edit, Plus, Trash2 } from 'lucide-react';
@@ -10,29 +12,51 @@ import { Course } from '@/types/Course';
 export default function AdminClassroomPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setLoading(true);
-        const data = await courseService.getAllCourses();
-        
-        // Verificar que los datos son un array
-        if (Array.isArray(data)) {
-          setCourses(data);
-        } else {
-          console.error('Unexpected data format from API:', data);
-          setCourses([]);
-        }
-      } catch (error) {
-        console.error('Error fetching courses:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCourses();
   }, []);
+
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const data = await courseService.getAllCourses();
+      
+      // Verificar que los datos son un array
+      if (Array.isArray(data)) {
+        setCourses(data);
+      } else {
+        console.error('Unexpected data format from API:', data);
+        setCourses([]);
+      }
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!courseToDelete) return;
+    
+    try {
+      setDeleting(true);
+      await courseService.deleteCourse(courseToDelete.id.toString());
+      
+      // Actualizar la lista de cursos después de eliminar
+      setCourses(prevCourses => prevCourses.filter(course => course.id !== courseToDelete.id));
+      
+      // Limpiar el estado
+      setCourseToDelete(null);
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      alert('Ha ocurrido un error al eliminar el curso. Por favor, intenta nuevamente.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <MainLayout activeTab="classroom">
@@ -86,6 +110,13 @@ export default function AdminClassroomPage() {
                       >
                         <Plus size={18} />
                       </Link>
+                      <button 
+                        onClick={() => setCourseToDelete(course)}
+                        className="text-red-500 hover:text-red-400"
+                        title="Eliminar curso"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -102,6 +133,34 @@ export default function AdminClassroomPage() {
           </div>
         )}
       </div>
+
+      {courseToDelete && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-[#2A2A28] p-6 rounded-lg shadow-lg max-w-md w-full border border-white/10">
+            <h3 className="text-xl font-bold mb-4 text-white">Confirmar eliminación</h3>
+            <p className="mb-6 text-white/80">
+              ¿Estás seguro de que deseas eliminar el curso <span className="font-semibold">{courseToDelete.title}</span>? 
+              Esta acción no se puede deshacer y se eliminarán todas las lecciones asociadas.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setCourseToDelete(null)}
+                className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
+                disabled={deleting}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteCourse}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center gap-2"
+                disabled={deleting}
+              >
+                {deleting ? 'Eliminando...' : 'Eliminar curso'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 }

@@ -82,8 +82,11 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile: i
     setSuccess('');
 
     try {
-      // Actualizar perfil con avatar_url = null
-      await authService.updateProfile({ avatar_url: null as unknown as string });
+      // Actualizar perfil con avatar_url = null y avatar_url_external = null
+      await authService.updateProfile({ 
+        avatar_url: null as unknown as string,
+        avatar_url_external: null as unknown as string 
+      });
       setAvatarPreview(null);
       setSuccess('Foto de perfil eliminada correctamente.');
     } catch (err) {
