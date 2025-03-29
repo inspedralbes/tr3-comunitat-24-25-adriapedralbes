@@ -501,7 +501,19 @@ class UserMeView(APIView):
         return Response(user_data)
 
     def patch(self, request):
-        serializer = UserSerializer(request.user, data=request.data, partial=True, context={'request': request})
+        # Revisar si estamos recibiendo una URL del avatar desde Next.js
+        if 'avatar_url' in request.data and isinstance(request.data['avatar_url'], str) and request.data['avatar_url'].startswith('/'):
+            # Guardarla en el campo avatar_url_external
+            request.user.avatar_url_external = request.data['avatar_url']
+            request.user.save(update_fields=['avatar_url_external'])
+            
+            # Eliminar avatar_url del request.data para que no intente procesarlo como un archivo
+            request_data = request.data.copy()
+            request_data.pop('avatar_url')
+        else:
+            request_data = request.data
+            
+        serializer = UserSerializer(request.user, data=request_data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             

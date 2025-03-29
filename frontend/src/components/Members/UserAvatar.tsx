@@ -2,6 +2,7 @@ import Image from 'next/image';
 import React from 'react';
 
 import { Avatar, AvatarImage as _AvatarImage, AvatarFallback } from "@/components/ui/avatar-temp";
+import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
 interface UserAvatarProps {
     username: string;
@@ -53,12 +54,12 @@ export function UserAvatar({ username, avatarUrl, level, size = "md" }: UserAvat
                 {avatarUrl ? (
                     <div className="relative w-full h-full">
                         <Image 
-                            src={avatarUrl} 
+                            src={normalizeAvatarUrl(avatarUrl) || ''} 
                             alt={username}
                             fill
                             priority
                             className="object-cover"
-                            unoptimized={true}
+                            unoptimized={true} // Siempre unoptimized para asegurar compatibilidad con URLs externas
                         />
                     </div>
                 ) : (

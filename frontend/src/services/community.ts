@@ -103,11 +103,14 @@ export const communityService = {
   },
 
   createPost: async (data: CreatePostData) => {
-    // Siempre usamos FormData para manejar archivos adjuntos y otros tipos de contenido
+    // Importar el servicio de subida de imágenes dinámicamente para evitar circular dependencies
+    const { default: imageUploadService } = await import('./imageUpload');
+    
+    // Crear FormData para enviar al backend - excluyendo las imágenes por ahora
     const formData = new FormData();
-
-    // Crear estructura de contenido enriquecido para almacenar todo en el campo content
-    let enrichedContent: EnrichedContent = {
+    
+    // Crear estructura de contenido enriquecido
+    let enrichedContent = {
       text: data.content,  // Texto original
       features: {}
     };
@@ -131,22 +134,15 @@ export const communityService = {
     if (data.title) {
       formData.append('title', data.title);
     }
-
-    // Usar JSON estructurado en lugar de solo texto si hay características adicionales
-    let hasFeatures = Object.keys(enrichedContent.features).length > 0;
-    formData.append('content', hasFeatures
-      ? JSON.stringify(enrichedContent)
-      : data.content
-    );
-
+    
     if (data.category_id) {
       formData.append('category_id', data.category_id.toString());
     }
-
-    // Solución alternativa: crear una estructura especial para múltiples imágenes
-    // y convertirlas a base64 para almacenarlas en el contenido
+    
+    // Procesar imágenes
     const allImages = [];
-
+    const imageUrls = [];
+    
     // Recolectar todas las imágenes
     if (data.image) {
       allImages.push(data.image);
@@ -162,88 +158,138 @@ export const communityService = {
 
     // Limitar a un máximo de 3 imágenes
     const maxImages = Math.min(allImages.length, 3);
-
+    
+    // Subir imágenes si hay alguna
     if (maxImages > 0) {
-      // Siempre asignar la primera imagen al campo 'image' para la vista previa
-      formData.append('image', allImages[0]);
-
-      // Si hay varias imágenes, almacenarlas de otra forma
-      if (maxImages > 1) {
-        // Asegurarse de que estamos usando contenido enriquecido
-        if (!hasFeatures) {
-          enrichedContent = {
-            text: data.content,
-            features: {}
-          };
-          hasFeatures = true;
-        }
-
-        // Agregar un marcador para indicar que hay múltiples imágenes
-        enrichedContent.features.multi_image = true;
-        enrichedContent.features.images_count = maxImages;
-
-        // Incluir los nombres de archivo para ayudar en la visualización
-        const imageFilenames = allImages.map(img => img.name || 'image.jpg');
-        enrichedContent.features.image_filenames = imageFilenames;
-
-        // Almacenar los nombres de archivo para mostrar en la UI
-        formData.append('image_filenames', JSON.stringify(imageFilenames));
-
-        // Actualizar el contenido enriquecido
-        formData.set('content', JSON.stringify(enrichedContent));
-
-        // Adjuntar todas las imágenes con nombres especiales para el backend
+      try {
+        console.log(`Subiendo ${maxImages} imágenes para el post...`);
+        
+        // Subir cada imagen a Next.js
         for (let i = 0; i < maxImages; i++) {
-          if (i === 0) {
-            // La primera ya está asignada al campo 'image'
-            continue;
-          }
-
-          // Usar nombre único para cada imagen adicional
-          const fieldName = `image_${i + 1}`;
-          formData.append(fieldName, allImages[i]);
+          const imageUrl = await imageUploadService.uploadImage(allImages[i], 'post');
+          imageUrls.push(imageUrl);
         }
+        
+        console.log(`Imágenes subidas correctamente:`, imageUrls);
+        
+        // Si hay imágenes, actualizar el contenido enriquecido
+        if (imageUrls.length > 0) {
+          // Guardar la primera imagen como principal
+          enrichedContent.features['main_image'] = imageUrls[0];
+          console.log('Imagen principal guardada:', imageUrls[0]);
+          
+          // Si hay varias imágenes, añadir información adicional
+          if (imageUrls.length > 1) {
+            enrichedContent.features['multi_image'] = true;
+            enrichedContent.features['images_count'] = imageUrls.length;
+            enrichedContent.features['image_urls'] = imageUrls;
+            console.log('Múltiples imágenes guardadas:', imageUrls);
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error al subir imágenes:', error);
+        throw new Error('Error al subir imágenes: ' + error);
       }
     }
-
-    // Nuevos campos - archivos adjuntos múltiples podrían implementarse en el futuro
+    
+    // Procesar attachments (archivos que no son imágenes)
     if (data.attachments && data.attachments.length > 0) {
-      // También incluimos la información de archivos adjuntos en el contenido
-      if (hasFeatures) {
-        enrichedContent.features.attachments_count = data.attachments.length;
-        // Actualizar el contenido con la nueva información de attachments
-        formData.set('content', JSON.stringify(enrichedContent));
-      }
-
-      // Seguimos enviando los archivos reales para un potencial procesamiento futuro
+      // Incluir info de attachments en el contenido
+      enrichedContent.features['attachments_count'] = data.attachments.length;
+      
+      // Enviamos los archivos adjuntos al backend de Django (no cambiamos esta parte)
       data.attachments.forEach((file, index) => {
         formData.append(`attachment_${index}`, file);
       });
       formData.append('attachments_count', data.attachments.length.toString());
     }
-
-    // Log de depuración para verificar qué se está enviando
-    console.log('Enviando FormData para creación de post:');
-    for (const pair of formData.entries()) {
-      if (pair[0] === 'image' || pair[0].startsWith('attachment_')) {
-        console.log(`${pair[0]}: [Archivo] ${(pair[1] as File).name} (${(pair[1] as File).type})`);
-      } else {
-        console.log(`${pair[0]}: ${pair[1]}`);
-      }
-    }
-
-    // Usar el método de carga para FormData
+    
+    // Determinar si el contenido tiene características extra
+    const hasFeatures = Object.keys(enrichedContent.features).length > 0;
+    
+    // Añadir el contenido al FormData
+    formData.append('content', hasFeatures 
+      ? JSON.stringify(enrichedContent) 
+      : data.content
+    );
+    
+    // Log de depuración
+    console.log('Enviando FormData para creación de post con URLs de imágenes en Next.js');
+    
+    // Usar el método de upload para FormData
     return api.upload('posts/', formData);
   },
 
   updatePost: async (id: string, data: Partial<CreatePostData>) => {
-    // Si hay imagen, usamos FormData
+    // Si hay imagen, necesitamos procesarla
     if (data.image) {
-      const formData = new FormData();
-      if (data.content) formData.append('content', data.content);
-      if (data.category_id) formData.append('category_id', data.category_id.toString());
-      formData.append('image', data.image);
-      return api.upload(`posts/${id}`, formData);
+      // Importar el servicio de subida de imágenes
+      const { default: imageUploadService } = await import('./imageUpload');
+      
+      try {
+        // Subir la imagen a Next.js
+        const imageUrl = await imageUploadService.uploadImage(data.image, 'post');
+        
+        // Crear FormData para el resto de los datos
+        const formData = new FormData();
+        
+        // Si hay contenido, puede ser necesario actualizar el JSON para incluir la imagen
+        if (data.content) {
+          // Intentar parsear el contenido si es JSON
+          try {
+            const contentObj = JSON.parse(data.content);
+            if (contentObj.text && contentObj.features) {
+              // Es un objeto de contenido enriquecido, actualizar con la nueva imagen
+              contentObj.features.main_image = imageUrl;
+              formData.append('content', JSON.stringify(contentObj));
+            } else {
+              // No es el formato esperado, usar como está
+              formData.append('content', data.content);
+            }
+          } catch (e) {
+            // No es JSON, usar como está
+            formData.append('content', data.content);
+          }
+        } else {
+          // Si no hay contenido nuevo, obtenemos el post actual para actualizar solo la imagen
+          const post = await api.get(`posts/${id}/`);
+          if (post && post.content) {
+            try {
+              const contentObj = JSON.parse(post.content);
+              if (contentObj.text && contentObj.features) {
+                // Es un objeto de contenido enriquecido, actualizar con la nueva imagen
+                contentObj.features.main_image = imageUrl;
+                formData.append('content', JSON.stringify(contentObj));
+              } else {
+                // Crear un nuevo objeto de contenido enriquecido
+                const enrichedContent = {
+                  text: post.content,
+                  features: { main_image: imageUrl }
+                };
+                formData.append('content', JSON.stringify(enrichedContent));
+              }
+            } catch (e) {
+              // No es JSON, crear un nuevo objeto de contenido enriquecido
+              const enrichedContent = {
+                text: post.content,
+                features: { main_image: imageUrl }
+              };
+              formData.append('content', JSON.stringify(enrichedContent));
+            }
+          }
+        }
+        
+        if (data.category_id) {
+          formData.append('category_id', data.category_id.toString());
+        }
+        
+        // Enviar la actualización
+        return api.upload(`posts/${id}/`, formData);
+      } catch (error) {
+        console.error('Error al actualizar post con imagen:', error);
+        throw error;
+      }
     }
 
     // Si no hay imagen, usamos JSON normal

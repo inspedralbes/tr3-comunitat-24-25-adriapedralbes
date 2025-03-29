@@ -6,6 +6,7 @@ import UserLevelBadge from '@/components/ui/UserLevelBadge';
 
 import { AuthModal, AuthModalType } from '@/components/Auth';
 import { authService } from '@/services/auth';
+import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
 interface Category {
     id: number;
@@ -490,12 +491,12 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                             <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
                                 {user?.avatar_url ? (
                                     <Image
-                                        src={user.avatar_url}
+                                        src={normalizeAvatarUrl(user.avatar_url) || '/default-avatar.png'}
                                         alt={user.username || 'User'}
                                         width={32}
                                         height={32}
                                         className="w-full h-full object-cover"
-                                        unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
+                                        unoptimized={true}
                                     />
                                 ) : (
                                     <User className="text-zinc-300" size={18} />
@@ -528,12 +529,12 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                 <div className="w-8 h-8 bg-[#444442] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
                                     {user?.avatar_url ? (
                                         <Image
-                                            src={user.avatar_url}
+                                            src={normalizeAvatarUrl(user.avatar_url) || '/default-avatar.png'}
                                             alt={user.username || 'User'}
                                             width={32}
                                             height={32}
                                             className="w-full h-full object-cover"
-                                            unoptimized={user.avatar_url.includes('127.0.0.1') || user.avatar_url.includes('localhost')}
+                                            unoptimized={true}
                                         />
                                     ) : (
                                         <User className="text-zinc-300" size={18} />

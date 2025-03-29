@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 import Image from 'next/image';
 import React, { useRef, useEffect } from 'react';
 
-import { formatImageUrl } from '@/utils/formatUtils';
+import { normalizeImageUrl } from '@/utils/imageUtils';
 
 interface ImageViewerModalProps {
   imageUrl: string;
@@ -85,7 +85,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
             aria-label="Ver imagen"
           >
             <Image
-              src={formatImageUrl(imageUrl) || ''}
+              src={normalizeImageUrl(imageUrl) || '/placeholder-image.png'}
               alt={altText}
               width={1200}
               height={800}

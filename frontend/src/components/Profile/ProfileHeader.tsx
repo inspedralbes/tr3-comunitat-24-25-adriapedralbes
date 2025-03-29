@@ -5,7 +5,7 @@ import Image from 'next/image';
 import React from 'react';
 
 import { UserProfile } from '@/services/auth';
-import { formatAvatarUrl } from '@/utils/formatUtils';
+import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
 
 interface ProfileHeaderProps {
@@ -37,7 +37,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
 
   const level = userProfile.level || 1;
   
-  const avatarUrl = formatAvatarUrl(userProfile.avatar_url);
+  const avatarUrl = normalizeAvatarUrl(userProfile.avatar_url);
 
   return (
     <div className="bg-[#323230] rounded-lg p-6 border border-white/10 mb-6">
@@ -52,7 +52,17 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
                 width={96}
                 height={96}
                 className="w-full h-full object-cover"
-                unoptimized={true}
+                unoptimized={true} // Siempre unoptimized para los avatares subidos
+                onError={(e) => {
+                  console.error('Error loading avatar:', avatarUrl);
+                  (e.target as HTMLImageElement).onerror = null; // Prevenir llamadas recursivas
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).parentElement!.innerHTML = `
+                    <div class="w-full h-full flex items-center justify-center text-zinc-300">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </div>
+                  `;
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-zinc-300">

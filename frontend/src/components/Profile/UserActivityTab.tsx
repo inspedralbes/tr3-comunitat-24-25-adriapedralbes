@@ -5,10 +5,8 @@ import {
   ThumbsUp, 
   User, 
   Clock, 
-  Filter, 
-  BookOpen,
-  Award,
-  CornerUpRight
+  Filter,
+  Image as ImageIcon
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -18,7 +16,7 @@ import { es } from 'date-fns/locale';
 
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { communityService } from '@/services/community';
-import { formatAvatarUrl } from '@/utils/formatUtils';
+import { normalizeAvatarUrl, normalizeImageUrl } from '@/utils/imageUtils';
 
 // Tipos de actividad para filtrado
 type ActivityType = 'all' | 'comments' | 'likes';
@@ -31,6 +29,10 @@ interface UserActivity {
   post?: {
     id: string;
     title: string;
+    content?: string;
+    image?: string;
+    imageUrl?: string;
+    image_url?: string;
   };
   comment?: {
     id: string;
@@ -38,6 +40,9 @@ interface UserActivity {
     post: {
       id: string;
       title: string;
+      image?: string;
+      imageUrl?: string;
+      image_url?: string;
     }
   };
   // Campos obsoletos para compatibilidad
@@ -46,6 +51,8 @@ interface UserActivity {
   postTitle?: string; 
   post_title?: string;
   timestamp?: string;
+  imageUrl?: string;
+  image_url?: string;
   author?: {
     username: string;
     level?: number;
@@ -196,10 +203,42 @@ export const UserActivityTab: React.FC<UserActivityTabProps> = ({ userId }) => {
     }
   };
 
+  // Función para obtener la URL de imagen correctamente normalizada
+  const getPostImageUrl = (post: any): string | null => {
+    if (!post) return null;
+    
+    // 1. Verificar campos directos de imagen
+    if (post.imageUrl) {
+      return normalizeImageUrl(post.imageUrl);
+    }
+    
+    if (post.image_url) {
+      return normalizeImageUrl(post.image_url);
+    }
+    
+    if (post.image) {
+      return normalizeImageUrl(post.image);
+    }
+    
+    // 2. Verificar si hay una imagen en el contenido enriquecido
+    if (post.content && typeof post.content === 'string') {
+      try {
+        const parsedContent = JSON.parse(post.content);
+        if (parsedContent.features && parsedContent.features.main_image) {
+          return normalizeImageUrl(parsedContent.features.main_image);
+        }
+      } catch (e) {
+        // No es JSON válido, ignorar
+      }
+    }
+    
+    return null;
+  };
+
   // Renderizar el contenido según el tipo de actividad
   const renderActivityContent = (item: UserActivity) => {
     switch (item.type) {
-      case 'comment':
+      case 'comment': {
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
@@ -222,40 +261,97 @@ export const UserActivityTab: React.FC<UserActivityTabProps> = ({ userId }) => {
             )}
           </div>
         );
+      }
       
-      case 'post_like':
+      case 'post_like': {
+        // Obtener la URL de la imagen del post
+        const postImageUrl = getPostImageUrl(item.post);
+        
         return (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-zinc-300">Te gustó </span>
-            {item.post?.title ? (
-              <Link href={getPostUrl(item.post.id, item.post.title)} className="text-blue-400 hover:underline">
-                {item.post.title}
-              </Link>
-            ) : (
-              <Link href={getPostUrl(item.post?.id || '')} className="text-blue-400 hover:underline">
-                una publicación
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-zinc-300">Te gustó </span>
+              {item.post?.title ? (
+                <Link href={getPostUrl(item.post.id, item.post.title)} className="text-blue-400 hover:underline">
+                  {item.post.title}
+                </Link>
+              ) : (
+                <Link href={getPostUrl(item.post?.id || '')} className="text-blue-400 hover:underline">
+                  una publicación
+                </Link>
+              )}
+              <span className="text-zinc-400 text-xs">• {formatRelativeDate(item.created_at)}</span>
+            </div>
+            
+            {/* Mostrar la imagen si existe */}
+            {postImageUrl && (
+              <Link 
+                href={getPostUrl(item.post?.id || '')} 
+                className="block w-full mt-2 hover:opacity-90 transition-opacity"
+              >
+                <div className="relative w-full h-40 bg-black/20 rounded-lg overflow-hidden border border-white/10">
+                  <Image
+                    src={postImageUrl}
+                    alt={item.post?.title || 'Imagen de la publicación'}
+                    fill
+                    className="object-cover"
+                    unoptimized={true}
+                    onError={(e) => {
+                      console.error('Error loading image:', postImageUrl);
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
               </Link>
             )}
-            <span className="text-zinc-400 text-xs">• {formatRelativeDate(item.created_at)}</span>
           </div>
         );
+      }
       
-      case 'comment_like':
+      case 'comment_like': {
+        // Obtener la URL de la imagen del post donde se comentó
+        const commentPostImageUrl = getPostImageUrl(item.comment?.post);
+        
         return (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-zinc-300">Te gustó un comentario en </span>
-            {item.comment?.post.title ? (
-              <Link href={getPostUrl(item.comment.post.id, item.comment.post.title)} className="text-blue-400 hover:underline">
-                {item.comment.post.title}
-              </Link>
-            ) : (
-              <Link href={getPostUrl(item.comment?.post.id || '')} className="text-blue-400 hover:underline">
-                una publicación
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-zinc-300">Te gustó un comentario en </span>
+              {item.comment?.post.title ? (
+                <Link href={getPostUrl(item.comment.post.id, item.comment.post.title)} className="text-blue-400 hover:underline">
+                  {item.comment.post.title}
+                </Link>
+              ) : (
+                <Link href={getPostUrl(item.comment?.post.id || '')} className="text-blue-400 hover:underline">
+                  una publicación
+                </Link>
+              )}
+              <span className="text-zinc-400 text-xs">• {formatRelativeDate(item.created_at)}</span>
+            </div>
+            
+            {/* Mostrar la imagen si existe */}
+            {commentPostImageUrl && (
+              <Link 
+                href={getPostUrl(item.comment?.post.id || '')} 
+                className="block w-full mt-2 hover:opacity-90 transition-opacity"
+              >
+                <div className="relative w-full h-40 bg-black/20 rounded-lg overflow-hidden border border-white/10">
+                  <Image
+                    src={commentPostImageUrl}
+                    alt={item.comment?.post.title || 'Imagen de la publicación'}
+                    fill
+                    className="object-cover"
+                    unoptimized={true}
+                    onError={(e) => {
+                      console.error('Error loading image:', commentPostImageUrl);
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
               </Link>
             )}
-            <span className="text-zinc-400 text-xs">• {formatRelativeDate(item.created_at)}</span>
           </div>
         );
+      }
       
       default:
         return null;

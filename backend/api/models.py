@@ -34,6 +34,7 @@ class User(AbstractUser):
     Extiende AbstractUser para usar la autenticación estándar de Django.
     """
     avatar_url = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    avatar_url_external = models.URLField(max_length=500, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     level = models.PositiveIntegerField(default=1)
     points = models.PositiveIntegerField(default=0)

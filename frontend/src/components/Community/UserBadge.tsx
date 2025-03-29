@@ -5,7 +5,7 @@ import React from 'react';
 
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
 import { formatPostDate } from '@/utils/dateUtils';
-import { formatAvatarUrl as _formatAvatarUrl } from '@/utils/formatUtils';
+import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
 interface UserBadgeProps {
   username: string;
@@ -24,11 +24,8 @@ export const UserBadge: React.FC<UserBadgeProps> = ({
   category,
   categoryColor = 'bg-zinc-700'
 }) => {
-  // Formatear la URL del avatar directamente sin usar la función
-  // Si ya está formateada (empieza con http), usar directamente
-  const formattedAvatarUrl = avatarUrl ? (
-    avatarUrl.startsWith('http') ? avatarUrl : `http://127.0.0.1:8000${avatarUrl}`
-  ) : null;
+  // Usar nuestra función de normalización para procesar la URL del avatar
+  const formattedAvatarUrl = normalizeAvatarUrl(avatarUrl);
 
   return (
     <div className="flex items-center gap-2">
@@ -46,6 +43,11 @@ export const UserBadge: React.FC<UserBadgeProps> = ({
               height={40}
               className="w-full h-full object-cover"
               unoptimized={true}
+              onError={(e) => {
+                console.error('Error loading avatar:', formattedAvatarUrl);
+                (e.target as HTMLImageElement).onerror = null;
+                (e.target as HTMLImageElement).src = '/default-avatar.png';
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-zinc-400">

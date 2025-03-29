@@ -130,41 +130,63 @@ export const PostFeed: React.FC<PostFeedProps> = ({
                 // Extraer timestamp del created_at de la API
                 const timestamp = post.timestamp || post.created_at || 'hace un momento';
                 
-                // Siempre extraer la URL de imagen principal
-                const imageUrl = post.imageUrl || post.image || undefined;
+                // Extraer la URL de imagen principal, revisando todas las posibles fuentes
+                let imageUrl = post.imageUrl || post.image || undefined;
+                
+                // Revisar si hay una URL en el contenido enriquecido (nuevo sistema)
+                try {
+                    if (typeof post.content === 'string') {
+                        const contentObj = JSON.parse(post.content);
+                        if (contentObj.features && contentObj.features.main_image) {
+                            // Si hay una imagen principal en features, la usamos en lugar de la anterior
+                            imageUrl = contentObj.features.main_image;
+                        }
+                    }
+                } catch (e) {
+                    // Si no es JSON válido, mantenemos la URL original
+                }
                 
                 // Verificar si hay múltiples imágenes en el contenido enriquecido
                 let image2Url = undefined;
                 let image3Url = undefined;
                 let hasMultipleImages = false;
                 
-                // Obtener la URL base para imágenes (podría ser diferente en producción)
-                const baseImageUrl = imageUrl ? 
-                    (imageUrl.startsWith('http') ? 
-                        imageUrl.substring(0, imageUrl.lastIndexOf('/') + 1) : 
-                        '/media/post_images/') : 
-                    '/media/post_images/';
-                
                 try {
                     // Intentar parsear el contenido como JSON
-                    if (typeof post.content === 'string' && post.content.includes('multi_image')) {
+                    if (typeof post.content === 'string') {
                         const contentObj = JSON.parse(post.content);
                         
                         // Verificar si tiene la marca de múltiples imágenes
                         if (contentObj.features && contentObj.features.multi_image) {
                             hasMultipleImages = true;
-                            const imagesCount = contentObj.features.images_count || 0;
                             
-                            // Generar URLs basadas en el ID del post
-                            if (imagesCount >= 2) {
-                                // Para la segunda imagen, usar un patrón predecible basado en el ID
-                                const postIdShort = post.id.substring(0, 8);
-                                image2Url = imageUrl ? imageUrl.replace('.jpg', '_2.jpg').replace('.png', '_2.png') : undefined;
-                            }
-                            
-                            if (imagesCount >= 3) {
-                                // Para la tercera imagen, similar a la segunda
-                                image3Url = imageUrl ? imageUrl.replace('.jpg', '_3.jpg').replace('.png', '_3.png') : undefined;
+                            // Si hay un array de URLs de imágenes en features, lo usamos
+                            if (contentObj.features.image_urls && Array.isArray(contentObj.features.image_urls)) {
+                                const imageUrls = contentObj.features.image_urls;
+                                
+                                // Usar las URLs del array directamente
+                                if (imageUrls.length >= 1) {
+                                    imageUrl = imageUrls[0]; // Principal
+                                }
+                                
+                                if (imageUrls.length >= 2) {
+                                    image2Url = imageUrls[1];
+                                }
+                                
+                                if (imageUrls.length >= 3) {
+                                    image3Url = imageUrls[2];
+                                }
+                            } else {
+                                // Fallback: generar URLs basadas en patrones
+                                const imagesCount = contentObj.features.images_count || 0;
+                                
+                                if (imagesCount >= 2 && imageUrl) {
+                                    image2Url = imageUrl.replace('.jpg', '_2.jpg').replace('.png', '_2.png');
+                                }
+                                
+                                if (imagesCount >= 3 && imageUrl) {
+                                    image3Url = imageUrl.replace('.jpg', '_3.jpg').replace('.png', '_3.png');
+                                }
                             }
                         }
                     }
