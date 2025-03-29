@@ -236,7 +236,7 @@ export const UserActivityTab: React.FC<UserActivityTabProps> = ({ userId }) => {
   // Renderizar el contenido según el tipo de actividad
   const renderActivityContent = (item: UserActivity) => {
     switch (item.type) {
-      case 'comment':
+      case 'comment': {
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
@@ -259,8 +259,9 @@ export const UserActivityTab: React.FC<UserActivityTabProps> = ({ userId }) => {
             )}
           </div>
         );
+      }
       
-      case 'post_like':
+      case 'post_like': {
         // Obtener la URL de la imagen del post
         const postImageUrl = getPostImageUrl(item.post);
         
@@ -303,8 +304,9 @@ export const UserActivityTab: React.FC<UserActivityTabProps> = ({ userId }) => {
             )}
           </div>
         );
+      }
       
-      case 'comment_like':
+      case 'comment_like': {
         // Obtener la URL de la imagen del post donde se comentó
         const commentPostImageUrl = getPostImageUrl(item.comment?.post);
         
@@ -347,6 +349,7 @@ export const UserActivityTab: React.FC<UserActivityTabProps> = ({ userId }) => {
             )}
           </div>
         );
+      }
       
       default:
         return null;

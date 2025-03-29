@@ -291,7 +291,7 @@ export const UserPostsTab: React.FC<UserPostsTabProps> = ({ userId }) => {
             content={post.content}
             likes={post.likes || 0}
             comments={post.comments_count || 0}
-            imageUrl={normalizedImageUrl}
+            imageUrl={normalizedImageUrl ?? undefined}
             onPostClick={handlePostClick}
             postComments={postsComments[post.id] || []}
             isViewed={!!viewedPosts[post.id]}
