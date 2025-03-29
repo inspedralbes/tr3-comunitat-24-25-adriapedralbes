@@ -87,10 +87,22 @@ export default function CourseEditor({ courseId, initialData }: CourseEditorProp
           
           // Actualizar el curso con la URL del thumbnail
           // Incluimos el título obligatorio para evitar el error 400
-          await courseService.updateCourse(newCourseId, {
-            title: title,  // Incluir siempre el título obligatorio
-            thumbnail_url: uploadResult.url
-          });
+          // Enviar la URL al endpoint específico de upload_thumbnail
+          try {
+            // Mostrar los datos que vamos a enviar para depuración
+            console.log('Enviando URL de thumbnail al servidor:', uploadResult.url);
+            
+            const formData = new FormData();
+            formData.append('thumbnail_url', uploadResult.url);
+            
+            // Llamar al endpoint específico para thumbnail
+            const updateResponse = await api.upload(`courses/${newCourseId}/upload_thumbnail/`, formData);
+            
+            console.log('Respuesta del servidor al actualizar thumbnail:', updateResponse);
+            console.log('Thumbnail actualizado correctamente en el servidor');
+          } catch (uploadError) {
+            console.error('Error al actualizar thumbnail en el servidor:', uploadError);
+          }
           
         } catch (uploadError) {
           console.error('Error al cargar el thumbnail:', uploadError);

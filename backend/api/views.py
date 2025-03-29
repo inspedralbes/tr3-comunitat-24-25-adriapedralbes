@@ -1222,12 +1222,19 @@ class CourseViewSet(viewsets.ModelViewSet):
         try:
             course = self.get_object()
             
+            # Log para ver qué datos estamos recibiendo
+            logger.info(f"Datos recibidos en upload_thumbnail: {request.data}")
+            
             # Verificar si se está enviando una URL externa (desde Next.js)
             if 'thumbnail_url' in request.data and isinstance(request.data['thumbnail_url'], str):
                 # Guardar la URL externa
-                logger.info(f"Recibida URL externa de thumbnail: {request.data['thumbnail_url']}")
-                course.thumbnail_url_external = request.data['thumbnail_url']
+                thumbnail_url = request.data['thumbnail_url']
+                logger.info(f"Recibida URL externa de thumbnail: {thumbnail_url}")
+                
+                # Guardar en el modelo
+                course.thumbnail_url_external = thumbnail_url
                 course.save(update_fields=['thumbnail_url_external'])
+                logger.info(f"URL guardada en la base de datos: {course.thumbnail_url_external}")
                 
                 # Serializar respuesta
                 serializer = self.get_serializer(course)
