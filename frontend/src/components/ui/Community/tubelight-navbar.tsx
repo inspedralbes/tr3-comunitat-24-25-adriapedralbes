@@ -11,6 +11,7 @@ import { AuthModal, AuthModalType } from "@/components/Auth";
 import { cn } from "@/lib/utils";
 import { authService, UserProfile } from "@/services/auth";
 import { normalizeAvatarUrl } from "@/utils/imageUtils";
+import { logoutTransition } from '@/utils/transitionUtils';
 
 interface NavItem {
   name: string;
@@ -102,12 +103,16 @@ export function NavBar({ items, className }: NavBarProps) {
   };
 
   const handleLogout = () => {
-    authService.logout();
+    // Cerrar el dropdown y actualizar el estado local
+    setIsDropdownOpen(false);
     setIsAuthenticated(false);
     setUser(null);
-    setIsDropdownOpen(false);
-    // Recargar la página actual para refrescar el estado
-    router.refresh();
+    
+    // Llamar a logout para eliminar tokens
+    authService.logout();
+    
+    // Aplicar transición y navegar a la página principal
+    logoutTransition('/');
   };
 
   const handleAuthSuccess = () => {

@@ -11,6 +11,7 @@ import { ProfileSettings } from '@/components/Profile/ProfileSettings';
 import { RequiredSubscriptionModal } from '@/components/Subscription';
 import { UserProfile, authService } from '@/services/auth';
 import subscriptionService, { SubscriptionStatus } from '@/services/subscription';
+import { logoutTransition } from '@/utils/transitionUtils';
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
@@ -157,8 +158,11 @@ export default function ProfileSettingsPage() {
               <button
                 onClick={() => {
                   if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                    // Llamar a logout para eliminar tokens
                     authService.logout();
-                    router.push('/');
+                    
+                    // Aplicar transición y navegar a la página principal
+                    logoutTransition('/');
                   }
                 }}
                 className="px-4 py-1 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors text-sm font-medium"

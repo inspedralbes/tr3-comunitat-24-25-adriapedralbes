@@ -64,10 +64,7 @@ export const authService = {
       localStorage.setItem('auth_token', response.access);
       localStorage.setItem('refresh_token', response.refresh);
       
-      // Recargar la página después de iniciar sesión
-      if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
+      // No recargamos la página, se gestionará en el componente
     }
     
     return response;
@@ -139,10 +136,7 @@ export const authService = {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
     
-    // Recargar la página después de cerrar sesión
-    if (typeof window !== 'undefined') {
-      window.location.reload();
-    }
+    // No recargamos la página, se gestionará en el componente que llama a logout
   },
   
   // Verificar si el usuario está autenticado

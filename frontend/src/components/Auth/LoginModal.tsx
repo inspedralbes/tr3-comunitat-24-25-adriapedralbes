@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { authService } from '@/services/auth';
+import { authTransition } from '@/utils/transitionUtils';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -32,17 +33,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     try {
       await authService.login({ username, password });
+      
+      // Primero llamar a onSuccess para actualizar cualquier estado en el componente padre
       onSuccess();
-
-      // Give the UI a moment to update before reloading the page
-      setTimeout(() => {
-        // Recargar la página después del login para asegurar que el estado se actualiza completamente
-        window.location.reload();
-      }, 300);
+      
+      // Aplicar transición y navegar a la página principal
+      router.refresh();
+      authTransition('/');
     } catch (err: unknown) {
       const error = err as Error;
       setError(error.message || 'Credenciales inválidas. Por favor, intenta de nuevo.');
-    } finally {
       setIsLoading(false);
     }
   };
