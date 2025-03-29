@@ -37,9 +37,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       // Primero llamar a onSuccess para actualizar cualquier estado en el componente padre
       onSuccess();
       
-      // Aplicar transición y navegar a la página principal
+      // Aplicar transición y navegar a la página de comunidad
       router.refresh();
-      authTransition('/');
+      authTransition('/comunidad');
     } catch (err: unknown) {
       const error = err as Error;
       setError(error.message || 'Credenciales inválidas. Por favor, intenta de nuevo.');

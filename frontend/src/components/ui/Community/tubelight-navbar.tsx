@@ -111,8 +111,13 @@ export function NavBar({ items, className }: NavBarProps) {
     // Llamar a logout para eliminar tokens
     authService.logout();
     
-    // Aplicar transición y navegar a la página principal
-    logoutTransition('/');
+    // Aplicar transición pero quedarse en la misma página, mostrar el modal de login automáticamente
+    // Usamos una función setTimeout para abrir el modal después de un pequeño delay para permitir que se complete la transición
+    logoutTransition(window.location.pathname);
+    setTimeout(() => {
+      setAuthModalType(AuthModalType.LOGIN);
+      setIsAuthModalOpen(true);
+    }, 500);
   };
 
   const handleAuthSuccess = () => {
