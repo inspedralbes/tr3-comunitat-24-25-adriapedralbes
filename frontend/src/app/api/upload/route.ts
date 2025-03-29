@@ -34,6 +34,9 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split('.').pop();
     const fileName = `${uniqueId}.${fileExtension}`;
     
+    // Guardar el nombre original para referencia (opcional)
+    const originalName = file.name;
+    
     // Determinar subpath basado en el tipo de imagen
     let subPath = 'media';
     const type = formData.get('type') as string;
@@ -63,6 +66,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       url: imageUrl,
+      fileName: fileName,
+      originalName: originalName,
       message: 'Archivo subido correctamente'
     });
   } catch (error) {

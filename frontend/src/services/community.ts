@@ -168,8 +168,8 @@ export const communityService = {
         
         // Subir cada imagen a Next.js
         for (let i = 0; i < maxImages; i++) {
-          const imageUrl = await imageUploadService.uploadImage(allImages[i], 'post');
-          imageUrls.push(imageUrl);
+          const uploadResult = await imageUploadService.uploadImage(allImages[i], 'post');
+          imageUrls.push(uploadResult.url);
         }
         
         console.log(`Imágenes subidas correctamente:`, imageUrls);
@@ -231,7 +231,8 @@ export const communityService = {
       
       try {
         // Subir la imagen a Next.js
-        const imageUrl = await imageUploadService.uploadImage(data.image, 'post');
+        const uploadResult = await imageUploadService.uploadImage(data.image, 'post');
+        const imageUrl = uploadResult.url;
         
         // Crear FormData para el resto de los datos
         const formData = new FormData();

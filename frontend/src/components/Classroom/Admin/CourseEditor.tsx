@@ -82,12 +82,12 @@ export default function CourseEditor({ courseId, initialData }: CourseEditorProp
         try {
           // Usar nuestro servicio de carga de imágenes local
           const { default: imageUploadService } = await import('@/services/imageUpload');
-          const imageUrl = await imageUploadService.uploadImage(thumbnailFile, 'course_thumbnail');
-          console.log('Thumbnail cargado exitosamente:', imageUrl);
+          const uploadResult = await imageUploadService.uploadImage(thumbnailFile, 'course_thumbnail');
+          console.log('Thumbnail cargado exitosamente:', uploadResult.url);
           
           // Actualizar el curso con la URL del thumbnail
           await courseService.updateCourse(newCourseId, {
-            thumbnail_url: imageUrl
+            thumbnail_url: uploadResult.url
           });
           
         } catch (uploadError) {

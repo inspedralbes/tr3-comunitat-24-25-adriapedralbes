@@ -103,10 +103,11 @@ export const authService = {
     try {
       // Subir la imagen a Next.js
       console.log('Iniciando subida de avatar al servidor local...');
-      const imageUrl = await imageUploadService.uploadImage(file, 'avatar');
+      const uploadResult = await imageUploadService.uploadImage(file, 'avatar');
+      const imageUrl = uploadResult.url;
       console.log('Imagen subida exitosamente. URL obtenida:', imageUrl);
       
-      // Actualizar el perfil con la URL de la imagen
+      // Actualizar el perfil con la URL de la imagen generada
       console.log('Enviando URL de avatar al servidor de Django para actualizar perfil...');
       
       // Imprimir datos que estamos enviando a la API
