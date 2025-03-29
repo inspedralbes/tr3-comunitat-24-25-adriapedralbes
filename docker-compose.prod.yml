@@ -9,7 +9,7 @@ services:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/acme.json:/acme.json:rw
+      - traefik_certs:/etc/traefik/acme:rw  # Volumen persistente para certificados
     networks:
       - web
     command:
@@ -23,7 +23,7 @@ services:
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--certificatesresolvers.leresolver.acme.email=talkcompiler@gmail.com"
-      - "--certificatesresolvers.leresolver.acme.storage=/acme.json"
+      - "--certificatesresolvers.leresolver.acme.storage=/etc/traefik/acme/acme.json"  # Ruta actualizada
       - "--certificatesresolvers.leresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
 
@@ -131,3 +131,4 @@ volumes:
   postgres_data:
   static_data:
   media_data:
+  traefik_certs:  # Nuevo volumen para certificados persistentes

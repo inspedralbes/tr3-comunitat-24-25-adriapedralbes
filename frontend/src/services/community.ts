@@ -13,8 +13,10 @@ export interface ContentFeatures {
   poll?: PollOption[];
   multi_image?: boolean;
   images_count?: number;
+  image_urls?: string[];
   image_filenames?: string[];
   attachments_count?: number;
+  main_image?: string;
   [key: string]: any; // Permitir propiedades adicionales
 }
 
@@ -110,9 +112,9 @@ export const communityService = {
     const formData = new FormData();
     
     // Crear estructura de contenido enriquecido
-    let enrichedContent = {
+    const enrichedContent: EnrichedContent = {
       text: data.content,  // Texto original
-      features: {}
+      features: {} as ContentFeatures
     };
 
     // Añadir URL de enlace si existe
@@ -175,14 +177,14 @@ export const communityService = {
         // Si hay imágenes, actualizar el contenido enriquecido
         if (imageUrls.length > 0) {
           // Guardar la primera imagen como principal
-          enrichedContent.features['main_image'] = imageUrls[0];
+          enrichedContent.features.main_image = imageUrls[0];
           console.log('Imagen principal guardada:', imageUrls[0]);
           
           // Si hay varias imágenes, añadir información adicional
           if (imageUrls.length > 1) {
-            enrichedContent.features['multi_image'] = true;
-            enrichedContent.features['images_count'] = imageUrls.length;
-            enrichedContent.features['image_urls'] = imageUrls;
+            enrichedContent.features.multi_image = true;
+            enrichedContent.features.images_count = imageUrls.length;
+            enrichedContent.features.image_urls = imageUrls;
             console.log('Múltiples imágenes guardadas:', imageUrls);
           }
         }
@@ -196,7 +198,7 @@ export const communityService = {
     // Procesar attachments (archivos que no son imágenes)
     if (data.attachments && data.attachments.length > 0) {
       // Incluir info de attachments en el contenido
-      enrichedContent.features['attachments_count'] = data.attachments.length;
+      enrichedContent.features.attachments_count = data.attachments.length;
       
       // Enviamos los archivos adjuntos al backend de Django (no cambiamos esta parte)
       data.attachments.forEach((file, index) => {
