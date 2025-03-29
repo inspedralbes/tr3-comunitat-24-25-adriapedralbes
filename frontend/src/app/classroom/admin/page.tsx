@@ -1,7 +1,5 @@
 "use client";
 
-import { Edit, Plus, Trash2 } from 'lucide-react';
-import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Edit, Plus, Trash2 } from 'lucide-react';
