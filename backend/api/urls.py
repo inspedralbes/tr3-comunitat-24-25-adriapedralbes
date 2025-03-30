@@ -57,7 +57,8 @@ urlpatterns = [
     path('subscription/status/', subscription_views.SubscriptionStatusView.as_view(), name='subscription-status'),
     path('subscription/cancel/', subscription_views.CancelSubscriptionView.as_view(), name='cancel-subscription'),
     
-    # Webhooks de Stripe
+    # Webhooks de Stripe - Añadimos ruta alternativa para compatibilidad
     path('webhooks/stripe/', webhook_views.stripe_webhook, name='stripe-webhook'),
+    path('webhook/stripe/', webhook_views.stripe_webhook, name='stripe-webhook-alt'),
     path('events/', EventListView.as_view(), name='event-list'),
 ]
