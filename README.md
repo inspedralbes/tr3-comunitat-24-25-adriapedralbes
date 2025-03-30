@@ -152,9 +152,21 @@ El flux d'informació segueix aquests patrons:
     * `.env.prod` (arrel) - **NO pujar a Git!**:
 
         ```
+        # Variables de base de datos
         POSTGRES_DB=tu_db
         POSTGRES_USER=tu_user
         POSTGRES_PASSWORD=password
+        
+        # Stripe API Keys - Producción
+        STRIPE_SECRET_KEY=sk_live_your_real_secret_key
+        STRIPE_PUBLISHABLE_KEY=pk_live_your_real_publishable_key
+        STRIPE_WEBHOOK_SECRET=whsec_your_real_webhook_secret
+        STRIPE_PRODUCT_ID=prod_your_real_product_id
+        STRIPE_PRICE_ID=price_your_real_price_id
+        STRIPE_MONTHLY_PLAN_AMOUNT=20
+        
+        # Variables para frontend
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your_real_publishable_key
         ```
 
     * `backend/.env`:
