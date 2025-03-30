@@ -409,7 +409,33 @@ class StripeService:
                 
             user.save()
             return True
+        
+        # Verificar si el usuario tiene una suscripción gratuita otorgada por el administrador
+        if user.has_free_subscription:
+            # Verificar si la suscripción gratuita aún es válida
+            now = timezone.now()
             
+            if user.free_subscription_end_date and user.free_subscription_end_date > now:
+                logger.info(f"Usuario {user.username} tiene suscripción gratuita válida hasta {user.free_subscription_end_date}")
+                
+                # Asegurar que los campos estén correctamente configurados
+                if not user.has_active_subscription or not user.is_premium:
+                    user.has_active_subscription = True
+                    user.is_premium = True
+                    user.subscription_status = 'active'
+                    user.save()
+                
+                return True
+            else:
+                # La suscripción gratuita ha expirado
+                logger.info(f"La suscripción gratuita de {user.username} ha expirado")
+                user.has_free_subscription = False
+                user.has_active_subscription = False
+                user.is_premium = False
+                user.subscription_status = 'expired'
+                user.save()
+        
+        # Verificar suscripción normal de Stripe
         if not user.subscription_id:
             return False
             

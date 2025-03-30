@@ -52,6 +52,12 @@ class User(AbstractUser):
     subscription_start_date = models.DateTimeField(blank=True, null=True)
     subscription_end_date = models.DateTimeField(blank=True, null=True)
     
+    # Campo para suscripciones gratuitas otorgadas por el administrador
+    has_free_subscription = models.BooleanField(default=False)
+    free_subscription_start_date = models.DateTimeField(blank=True, null=True)
+    free_subscription_end_date = models.DateTimeField(blank=True, null=True)
+    free_subscription_reason = models.CharField(max_length=255, blank=True, null=True)
+    
     objects = CustomUserManager()
     
     class Meta:

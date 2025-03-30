@@ -54,13 +54,25 @@ export default {
 				'border-gradient': 'border-gradient 2s ease-in-out infinite',
 				'gradient-x': 'gradient-x 3s ease infinite',
 				'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
-				'fade-in': 'fadeIn 1.2s ease-out forwards',
+				'fade-in': 'fadeIn 0.5s ease-out forwards',
+				'fade-out': 'fadeOut 0.5s ease-out forwards',
 				shine: 'shine 6s linear infinite',
 				marquee: 'marquee var(--duration) infinite linear',
 				'marquee-vertical': 'marquee-vertical var(--duration) linear infinite',
 				'shimmer-slide': 'shimmer-slide var(--speed) ease-in-out infinite alternate',
 				'spin-around': 'spin-around calc(var(--speed) * 2) infinite linear',
 				rainbow: 'rainbow var(--speed, 2s) infinite linear',
+				'slide-up': 'slideUp 0.7s ease-out forwards',
+				'slide-down': 'slideDown 0.7s ease-out forwards',
+				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 3',
+				'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) 3',
+				'bounce-once': 'bounce 1s ease-in-out 1',
+				'wiggle': 'wiggle 1s ease-in-out 2',
+				'float-up-fade': 'floatUpFade 1.5s ease-out forwards',
+                'number-change': 'numberChange 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+                'highlight-fade': 'highlightFade 2s ease forwards',
+                'move-up': 'moveUp 1.5s ease-in-out forwards',
+                'move-down': 'moveDown 1.5s ease-in-out forwards',
 			},
 			keyframes: {
 				'border-glow': {
@@ -100,8 +112,12 @@ export default {
 					}
 				},
 				fadeIn: {
-					'0%': { opacity: '0', transform: 'translateY(10px)' },
-					'100%': { opacity: '1', transform: 'translateY(0)' },
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' },
+				},
+				fadeOut: {
+					'0%': { opacity: '1' },
+					'100%': { opacity: '0' },
 				},
 				shine: {
 					'0%': {
@@ -154,6 +170,148 @@ export default {
 						'background-position': '200%'
 					}
 				},
+				slideUp: {
+					'0%': {
+						opacity: '1',
+						transform: 'translateY(0)',
+						backgroundColor: 'rgba(34, 197, 94, 0.05)'
+					},
+					'15%': {
+						backgroundColor: 'rgba(34, 197, 94, 0.15)',
+						transform: 'translateY(-3px) scale(1.02)'
+					},
+					'70%': {
+						backgroundColor: 'rgba(34, 197, 94, 0.1)',
+						transform: 'translateY(-5px) scale(1.01)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0) scale(1)',
+						backgroundColor: 'rgba(34, 197, 94, 0.03)'
+					}
+				},
+				slideDown: {
+					'0%': {
+						opacity: '1',
+						transform: 'translateY(0)',
+						backgroundColor: 'rgba(239, 68, 68, 0.05)'
+					},
+					'15%': {
+						backgroundColor: 'rgba(239, 68, 68, 0.15)',
+						transform: 'translateY(3px) scale(1.02)'
+					},
+					'70%': {
+						backgroundColor: 'rgba(239, 68, 68, 0.1)',
+						transform: 'translateY(5px) scale(1.01)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0) scale(1)',
+						backgroundColor: 'rgba(239, 68, 68, 0.03)'
+					}
+				},
+				wiggle: {
+					'0%, 100%': { transform: 'rotate(-3deg)' },
+					'50%': { transform: 'rotate(3deg)' },
+				},
+				pulse: {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' },
+				},
+				ping: {
+					'75%, 100%': {
+						transform: 'scale(1.1)',
+						opacity: '0'
+					}
+				},
+				floatUpFade: {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(5px) scale(1)'
+					},
+					'20%': {
+						opacity: '1',
+						transform: 'translateY(0) scale(1.2)'
+					},
+					'80%': {
+						opacity: '1',
+						transform: 'translateY(-10px) scale(1)'
+					},
+					'100%': {
+						opacity: '0',
+						transform: 'translateY(-15px) scale(0.9)'
+					}
+				},
+				numberChange: {
+					'0%': {
+						transform: 'scale(1)',
+						boxShadow: '0 0 0 rgba(255, 255, 255, 0)'
+					},
+					'30%': {
+						transform: 'scale(1.2)',
+						boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)'
+					},
+					'60%': {
+						transform: 'scale(1.1)',
+						boxShadow: '0 0 12px rgba(255, 255, 255, 0.3)'
+					},
+					'100%': {
+						transform: 'scale(1)',
+						boxShadow: '0 0 0 rgba(255, 255, 255, 0)'
+					}
+				},
+				highlightFade: {
+					'0%': {
+						backgroundColor: 'rgba(59, 130, 246, 0.3)'
+					},
+					'100%': {
+						backgroundColor: 'rgba(59, 130, 246, 0)'
+					}
+				},
+                moveUp: {
+                    '0%': {
+                        transform: 'translateY(0)',
+                        zIndex: '10'
+                    },
+                    '20%': {
+                        transform: 'translateY(-3px) scale(1.02)',
+                        boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)',
+                        zIndex: '10'
+                    },
+                    '60%': {
+                        transform: 'translateY(-30px) scale(1.02)',
+                        boxShadow: '0 8px 16px rgba(34, 197, 94, 0.3)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                        zIndex: '10'
+                    },
+                    '100%': {
+                        transform: 'translateY(-100%)',
+                        opacity: '0.5',
+                        zIndex: '10'
+                    }
+                },
+                moveDown: {
+                    '0%': {
+                        transform: 'translateY(0)',
+                        zIndex: '0'
+                    },
+                    '20%': {
+                        transform: 'translateY(3px) scale(1.02)',
+                        boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)',
+                        zIndex: '0'
+                    },
+                    '60%': {
+                        transform: 'translateY(30px) scale(1.02)',
+                        boxShadow: '0 8px 16px rgba(239, 68, 68, 0.3)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                        zIndex: '0'
+                    },
+                    '100%': {
+                        transform: 'translateY(100%)',
+                        opacity: '0.5',
+                        zIndex: '0'
+                    }
+                },
 			}
 		}
 	},

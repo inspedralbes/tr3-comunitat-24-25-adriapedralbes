@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import socketService from '@/services/socket';
 
 import { AuthModalType } from "@/components/Auth";
 import { RequiredAuthModal } from "@/components/Auth/RequiredAuthModal";
@@ -399,6 +400,10 @@ function CommunityContent() {
         const leaderboardData = await communityService.getLeaderboard();
         setLeaderboardUsers(Array.isArray(leaderboardData) ? leaderboardData : 
                            (leaderboardData.results ? leaderboardData.results : []));
+        
+        // Inicializar la conexión SSE para actualizaciones en tiempo real
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        socketService.initSocket(apiUrl);
       } catch (err) {
         console.error('Error al cargar datos:', err);
         // Seguimos guardando el error en el estado pero no lo mostraremos en la UI
@@ -409,6 +414,11 @@ function CommunityContent() {
     };
     
     fetchInitialData();
+    
+    // Limpieza al desmontar para cerrar la conexión SSE
+    return () => {
+      socketService.closeSocket();
+    };
   }, [activeSortType, fetchCommentsForPosts]);
 
   // Cargar posts filtrados por categoría

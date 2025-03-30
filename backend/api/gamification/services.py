@@ -4,6 +4,9 @@ from datetime import timedelta
 from .models import UserLevel, UserAction, UserActionLog, UserAchievement, UserAchievementUnlock
 import logging
 
+# Importar servicio de sockets
+from api.sockets import emit_ranking_update
+
 # Configurar logger
 logger = logging.getLogger(__name__)
 
@@ -48,12 +51,47 @@ def award_points(user, action_type, reference_id=None):
         # Comprobar si ha desbloqueado logros
         check_achievements(user)
         
+        # Calcular la posición en el ranking después de recibir los puntos
+        from api.models import User
+        higher_ranked_users = User.objects.filter(points__gt=user.points).count()
+        new_position = higher_ranked_users + 1
+        
+        # Emitir evento de actualización de ranking
+        try:
+            # Preparar datos del usuario para la actualización
+            avatar_url = None
+            if user.avatar_url:
+                try:
+                    avatar_url = user.avatar_url.url
+                except Exception as e:
+                    logger.error(f"Error obteniendo URL de avatar: {str(e)}")
+            elif user.avatar_url_external:
+                avatar_url = user.avatar_url_external
+                
+            # Incluir timestamp para que el frontend pueda distinguir eventos en tiempo real
+            from datetime import datetime
+            user_data = {
+                'id': str(user.id),  # Convertir a string para evitar problemas de serialización
+                'username': user.username,
+                'points': user.points,
+                'level': user.level,
+                'position': new_position,
+                'avatar_url': avatar_url,
+                'timestamp': datetime.now().isoformat()  # Añadir timestamp ISO
+            }
+            
+            emit_ranking_update(user_data)
+            logger.info(f"Evento de ranking emitido para {user.username} (posición: {new_position})")
+        except Exception as e:
+            logger.error(f"Error al emitir evento de ranking: {str(e)}")
+        
         return {
             'success': True, 
             'points_earned': action.points,
             'total_points': user.points,
             'level_up': level_up_info.get('level_up', False),
-            'new_level': level_up_info.get('new_level')
+            'new_level': level_up_info.get('new_level'),
+            'position': new_position
         }
     except Exception as e:
         logger.error(f"Error al otorgar puntos: {str(e)}")

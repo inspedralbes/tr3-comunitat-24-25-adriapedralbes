@@ -5,6 +5,7 @@ from . import views
 from . import subscription_views
 from . import webhook_views
 from . import progress_views
+from . import sse_views
 from api.gamification import urls as gamification_urls
 from .views import EventListView
 
@@ -51,4 +52,7 @@ urlpatterns = [
     # Webhooks de Stripe
     path('webhooks/stripe/', webhook_views.stripe_webhook, name='stripe-webhook'),
     path('events/', EventListView.as_view(), name='event-list'),
+    
+    # Server-Sent Events (SSE) para actualizaciones en tiempo real
+    path('sse/ranking-updates/', sse_views.ranking_updates_stream, name='ranking-updates-stream'),
 ]

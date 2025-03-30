@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import MainLayout from '@/components/layouts/MainLayout';
@@ -9,6 +9,7 @@ import { ProfileLevelComponent } from '@/components/Ranking/ProfileLevelComponen
 import { authService } from '@/services/auth';
 import { rankingService } from '@/services/ranking';
 import subscriptionService from '@/services/subscription';
+import socketService from '@/services/socket';
 
 export default function RankingPage() {
     const router = useRouter();
@@ -65,6 +66,28 @@ export default function RankingPage() {
         checkAuth();
     }, [router]);
 
+    // Función para manejar actualizaciones de ranking en tiempo real
+    const handleRankingUpdate = useCallback((userData) => {
+        console.log('Recibida actualización de usuario:', userData);
+        
+        // Actualizar los leaderboards según corresponda
+        setMonthlyUsers(prevUsers => socketService.updateUserRanking(prevUsers, userData));
+        setWeeklyUsers(prevUsers => socketService.updateUserRanking(prevUsers, userData));
+        setAllTimeUsers(prevUsers => socketService.updateUserRanking(prevUsers, userData));
+        
+        // Actualizar perfil del usuario actual si es el mismo usuario
+        if (userProfile.username === userData.username) {
+            setUserProfile(prevProfile => ({
+                ...prevProfile,
+                level: userData.level || prevProfile.level,
+                pointsToNextLevel: Math.max(0, 10 - (userData.points % 10)),
+            }));
+        }
+        
+        // Actualizar la fecha de última actualización
+        setLastUpdated(new Date().toLocaleString());
+    }, [userProfile.username]);
+
     // Función para cargar los datos
     const fetchData = async () => {
         try {
@@ -90,6 +113,19 @@ export default function RankingPage() {
 
             // Actualizar la fecha de última actualización
             setLastUpdated(new Date().toLocaleString());
+
+            // Inicializar conexión Socket.io
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+            socketService.initSocket(apiUrl);
+            
+            // Suscribirse a actualizaciones de ranking
+            const unsubscribe = socketService.subscribeToRankingUpdates(handleRankingUpdate);
+            
+            // Devolver función para limpiar al desmontar
+            return () => {
+                unsubscribe();
+                socketService.closeSocket();
+            };
         } catch (_err) {
             console.error('Error cargando datos de ranking:', _err);
         } finally {

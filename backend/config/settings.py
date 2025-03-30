@@ -58,7 +58,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'api.middleware.PremiumContentMiddleware',  # Verificador de suscripción premium
+    'api.middleware.PremiumAccessMiddleware',  # Verificador de suscripción premium
+    # Socket.IO middleware temporalmente comentado
+    # 'api.middleware.SocketIOMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -66,7 +68,10 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'api/templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'api/templates'),
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

@@ -168,13 +168,27 @@ class SubscriptionStatusView(views.APIView):
                 "has_subscription": True,
                 "subscription_status": "active",
                 "start_date": user.subscription_start_date or "2025-03-21",
-                "end_date": user.subscription_end_date or "2026-03-21"
+                "end_date": user.subscription_end_date or "2026-03-21",
+                "is_free_subscription": False
+            })
+        
+        # Verificar si tiene suscripción gratuita
+        if user.has_free_subscription and user.free_subscription_end_date and user.free_subscription_end_date > datetime.now().replace(tzinfo=user.free_subscription_end_date.tzinfo):
+            logger.info(f"Usuario {user.username} tiene suscripción gratuita válida")
+            return Response({
+                "has_subscription": True,
+                "subscription_status": "active",
+                "start_date": user.free_subscription_start_date,
+                "end_date": user.free_subscription_end_date,
+                "is_free_subscription": True,
+                "reason": user.free_subscription_reason
             })
         
         if not user.subscription_id:
             return Response({
                 "has_subscription": False,
-                "subscription_status": None
+                "subscription_status": None,
+                "is_free_subscription": False
             })
         
         # Verificar estado actual
@@ -184,7 +198,8 @@ class SubscriptionStatusView(views.APIView):
             "has_subscription": is_active,
             "subscription_status": user.subscription_status,
             "start_date": user.subscription_start_date,
-            "end_date": user.subscription_end_date
+            "end_date": user.subscription_end_date,
+            "is_free_subscription": False
         })
 
 

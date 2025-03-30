@@ -7,3 +7,5 @@ python-dotenv
 gunicorn
 stripe
 psycopg2-binary
+python-socketio>=5.10.0
+socketio

@@ -787,15 +787,35 @@ class PostLikeView(APIView):
             post.likes += 1
             post.save(update_fields=['likes'])
             
-            # Otorgar puntos al usuario que da like
-            try:
-                award_points(request.user, 'give_like_post', reference_id=str(post.id))
+            # Verificar si el usuario ya ha recibido puntos por este post
+            # Usamos UserActionLog para verificar si ya ha habido una acción similar antes
+            from api.gamification.models import UserActionLog, UserAction
             
-                # Si el autor no es el mismo usuario que da like, otorgar puntos al autor por recibir like
-                if post.author != request.user:
-                    award_points(post.author, 'receive_like_post', reference_id=str(post.id))
-            except Exception as e:
-                logger.error(f"Error al otorgar puntos por like: {str(e)}")
+            # Verificar si ya dio like antes (evita recompensa por dar like varias veces)
+            previous_like_action = UserActionLog.objects.filter(
+                user=request.user,
+                reference_id=str(post.id),
+                action__action_type='give_like_post'
+            ).exists()
+            
+            if not previous_like_action:
+                # Otorgar puntos al usuario que da like (solo la primera vez)
+                try:
+                    award_points(request.user, 'give_like_post', reference_id=str(post.id))
+                
+                    # Si el autor no es el mismo usuario que da like, otorgar puntos al autor por recibir like
+                    if post.author != request.user:
+                        # Verificar si el autor ya recibió puntos por este like específico
+                        previous_receive_action = UserActionLog.objects.filter(
+                            user=post.author,
+                            reference_id=str(post.id),
+                            action__action_type='receive_like_post'
+                        ).exists()
+                        
+                        if not previous_receive_action:
+                            award_points(post.author, 'receive_like_post', reference_id=str(post.id))
+                except Exception as e:
+                    logger.error(f"Error al otorgar puntos por like: {str(e)}")
             
             return Response({'status': 'liked', 'likes': post.likes})
         else:
@@ -826,15 +846,34 @@ class CommentLikeView(APIView):
             comment.likes += 1
             comment.save(update_fields=['likes'])
             
-            # Otorgar puntos al usuario que da like
-            try:
-                award_points(request.user, 'give_like_comment', reference_id=str(comment.id))
+            # Verificar si el usuario ya ha recibido puntos por este comentario
+            from api.gamification.models import UserActionLog, UserAction
             
-                # Si el autor no es el mismo usuario que da like, otorgar puntos al autor por recibir like
-                if comment.author != request.user:
-                    award_points(comment.author, 'receive_like_comment', reference_id=str(comment.id))
-            except Exception as e:
-                logger.error(f"Error al otorgar puntos por like a comentario: {str(e)}")
+            # Verificar si ya dio like antes (evita recompensa por dar like varias veces)
+            previous_like_action = UserActionLog.objects.filter(
+                user=request.user,
+                reference_id=str(comment.id),
+                action__action_type='give_like_comment'
+            ).exists()
+            
+            if not previous_like_action:
+                # Otorgar puntos al usuario que da like (solo la primera vez)
+                try:
+                    award_points(request.user, 'give_like_comment', reference_id=str(comment.id))
+                
+                    # Si el autor no es el mismo usuario que da like, otorgar puntos al autor por recibir like
+                    if comment.author != request.user:
+                        # Verificar si el autor ya recibió puntos por este like específico
+                        previous_receive_action = UserActionLog.objects.filter(
+                            user=comment.author,
+                            reference_id=str(comment.id),
+                            action__action_type='receive_like_comment'
+                        ).exists()
+                        
+                        if not previous_receive_action:
+                            award_points(comment.author, 'receive_like_comment', reference_id=str(comment.id))
+                except Exception as e:
+                    logger.error(f"Error al otorgar puntos por like a comentario: {str(e)}")
             
             return Response({'status': 'liked', 'likes': comment.likes})
         else:
