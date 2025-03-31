@@ -32,20 +32,32 @@ export default function NewsletterPage() {
 
     document.addEventListener('click', handleAnchorClick);
 
+    // Asegurar que al cargar la página, solo se vea la sección hero
+    document.body.style.overflow = 'hidden';
+    
+    // Después de 1 segundo, restaurar el scroll
+    const timer = setTimeout(() => {
+      document.body.style.overflow = '';
+    }, 1000);
+
     return () => {
       document.removeEventListener('click', handleAnchorClick);
+      document.body.style.overflow = '';
+      clearTimeout(timer);
     };
   }, []);
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Hero Section */}
+      {/* Hero Section - Nueva estructura con waitlist */}
       <NewsletterHero />
 
       {/* Benefits Section */}
-      <NewsletterBenefits />
+      <section id="benefits">
+        <NewsletterBenefits />
+      </section>
 
-      {/* Testimonials Marquee - Se ha eliminado el padding vertical en esta sección */}
+      {/* Testimonials Marquee */}
       <section className="relative w-full overflow-hidden bg-[#0a0a0a] pt-0">
         <div className="absolute inset-0 flex items-center justify-center -z-10">
           <div className="h-full w-full bg-gradient-to-r from-[#C9A880]/20 to-[#C9A880]/10 blur-[120px]" />
@@ -56,7 +68,7 @@ export default function NewsletterPage() {
       {/* Free Gifts Section */}
       <NewsletterGifts />
 
-      {/* Testimonials Section - mejorado para mejor visibilidad */}
+      {/* Testimonials Section */}
       <section className="py-16 bg-black border-t border-[#C9A880]/10">
         <NewsletterTestimonials />
       </section>
