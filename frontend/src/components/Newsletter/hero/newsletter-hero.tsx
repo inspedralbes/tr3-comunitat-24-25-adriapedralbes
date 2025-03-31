@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -80,12 +81,10 @@ export function NewsletterHero() {
       {/* Contenido */}
       <div className="relative z-20 text-center px-4 max-w-3xl mx-auto">
         <div className="flex justify-center mb-4">
-          <Image 
-            src="/logo_futurprive_sinfondo.png" 
-            alt="FuturPrive Logo" 
+          <Logo 
             width={96}
             height={96}
-            className="h-24 w-auto" 
+            className="h-24 w-auto"
           />
         </div>
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">

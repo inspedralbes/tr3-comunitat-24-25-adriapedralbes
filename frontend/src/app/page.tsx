@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 
 import { AnimatedButton } from "@/components/animatedButton";
@@ -18,12 +19,10 @@ export default function Home() {
       <nav className="flex items-center justify-between px-6 py-4 lg:px-8">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 text-xl font-semibold">
-            <Image 
-              src="/logo_futurprive_sinfondo.png" 
-              alt="FuturPrive Logo" 
+            <Logo 
               width={32} 
               height={32} 
-              className="h-8 w-auto" 
+              className="h-8 w-auto"
             />
             FuturPrive
           </Link>
