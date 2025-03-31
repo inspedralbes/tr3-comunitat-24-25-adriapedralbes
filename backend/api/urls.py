@@ -24,11 +24,10 @@ urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    # Rutas de la API de newsletter
+    # Rutas de la API de newsletter (solo persistencia en base de datos)
     path('newsletter/subscribe/', views.subscribe, name='subscribe'),
     path('newsletter/confirm/<uuid:token>/', views.confirm_subscription, name='confirm'),
     path('newsletter/unsubscribe/<uuid:token>/', views.unsubscribe, name='unsubscribe'),
-    path('test/beehiiv/', views.test_beehiiv, name='test_beehiiv'),
     
     # Rutas de la API de usuarios y comunidad
     path('', include(router.urls)),

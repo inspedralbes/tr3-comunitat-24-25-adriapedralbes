@@ -133,7 +133,7 @@ export function NewsletterForm() {
 
       {submitted ? (
         <div className="p-4 bg-green-500/20 rounded-lg">
-          <p className="text-green-400 font-medium">¡Gracias por suscribirte! Pronto recibirás nuestras novedades.</p>
+          <p className="text-green-400 font-medium">¡Gracias por suscribirte a nuestra newsletter!</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-lg mx-auto">
