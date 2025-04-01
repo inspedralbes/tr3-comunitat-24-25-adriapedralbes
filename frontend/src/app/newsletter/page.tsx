@@ -4,8 +4,11 @@ import { useEffect } from "react";
 
 import { Footer } from "@/components/footer-component";
 import { NewsletterBenefits } from "@/components/Newsletter/benefits/newsletter-benefits";
+import { NewsletterCommunity } from "@/components/Newsletter/community/newsletter-community";
 import { NewsletterGifts } from "@/components/Newsletter/gifts/newsletter-gifts";
 import { NewsletterHero } from "@/components/Newsletter/hero/newsletter-hero";
+import { NewsletterPricing } from "@/components/Newsletter/pricing/newsletter-pricing";
+import { NewsletterSkills } from "@/components/Newsletter/skills/newsletter-skills";
 import { MarqueeDemo } from "@/components/testimonials";
 
 export default function NewsletterPage() {
@@ -51,13 +54,27 @@ export default function NewsletterPage() {
       {/* Hero Section - Nueva estructura con waitlist */}
       <NewsletterHero />
 
+      {/* Pricing Section */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-[#080604] z-0"></div>
+        <NewsletterPricing />
+      </div>
+
       {/* Benefits Section */}
       <section id="benefits" className="mt-0 bg-[#0a0a0a]">
         <NewsletterBenefits />
       </section>
 
+      {/* Community Section */}
+      <NewsletterCommunity />
+
+      {/* Skills Section */}
+      <NewsletterSkills />
+
       {/* Free Gifts Section */}
       <NewsletterGifts />
+      
+
 
       {/* Testimonials Marquee */}
       <section className="relative w-full overflow-hidden bg-[#0a0a0a] pt-4 pb-16">
