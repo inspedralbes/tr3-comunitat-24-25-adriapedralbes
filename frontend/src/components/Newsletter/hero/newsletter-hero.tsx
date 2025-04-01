@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { NewsletterAvatarCircles } from "@/components/Newsletter/newsletter-avatar-circles";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 import { Input } from "@/components/ui/input";
+import { AnimatedBackground } from "@/components/Newsletter/backgrounds";
 
 export function NewsletterHero() {
   const [name, setName] = useState("");
@@ -227,6 +228,8 @@ export function NewsletterHero() {
     <>
       {/* Hero Section with full-height layout */}
       <section className="relative w-full bg-black min-h-screen flex items-center">
+        {/* Animated Background */}
+        <AnimatedBackground />
         {/* Reserve Spot Button */}
         <div className="absolute top-7 right-7 md:right-14 z-30">
           <Link href="#newsletter-form">
@@ -238,7 +241,7 @@ export function NewsletterHero() {
 
         <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row px-8 md:px-12 pb-12 pt-24 md:pt-20">
           {/* Left Section - Made larger */}
-          <div className="w-full md:w-1/2 flex flex-col justify-center md:pr-12 lg:pr-16">
+          <div className="w-full md:w-1/2 flex flex-col justify-center md:pr-12 lg:pr-16 z-10">
             <div className="flex items-center mb-8">
               <Logo width={70} height={70} className="h-16 w-auto" />
             </div>
@@ -277,7 +280,7 @@ export function NewsletterHero() {
           </div>
 
           {/* Right Section - Video/Image (positioned lower) */}
-          <div className="w-full md:w-1/2 mt-12 md:mt-0 flex items-center">
+          <div className="w-full md:w-1/2 mt-12 md:mt-0 flex items-center z-10">
             <div 
               ref={videoContainerRef}
               className="rounded-2xl overflow-hidden shadow-xl bg-black/30 border border-white/10 relative w-full h-0 pb-[56.25%]"
