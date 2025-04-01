@@ -528,7 +528,7 @@ export function NewsletterHero() {
                                 className="absolute inset-0 opacity-0 cursor-pointer w-8 -left-4"
                                 style={{
                                   WebkitAppearance: 'slider-vertical',
-                                  writingMode: 'bt-lr',
+                                  writingMode: 'vertical-rl',
                                 }}
                               />
                             </div>

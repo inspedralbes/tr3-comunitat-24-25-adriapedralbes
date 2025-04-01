@@ -11,6 +11,7 @@ import { NewsletterPricing } from "@/components/Newsletter/pricing/newsletter-pr
 import { NewsletterSkills } from "@/components/Newsletter/skills/newsletter-skills";
 import { ActivityNotifications } from "@/components/Newsletter/activity-notifications";
 import { MarqueeDemo } from "@/components/testimonials";
+import { NewsletterCourses } from "@/components/Newsletter/courses/newsletter-courses";
 
 export default function NewsletterPage() {
   // Implementar scroll suave para los enlaces de anclaje
@@ -84,6 +85,9 @@ export default function NewsletterPage() {
         </div>
         <MarqueeDemo />
       </section>
+      
+      {/* Cursos IA Section */}
+      <NewsletterCourses />
 
       {/* Spacer */}
       <div className="h-16 bg-black"></div>
