@@ -38,7 +38,7 @@ export function NewsletterBenefits() {
   ];
 
   return (
-    <section className="py-16 pb-8 bg-[#0a0a0a] mt-16">
+    <section className="py-16 pb-12 bg-[#0a0a0a] mt-0">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-center mb-2">
           <AnimatedButton>Beneficios de la Comunidad</AnimatedButton>
@@ -73,12 +73,7 @@ export function NewsletterBenefits() {
           ))}
         </div>
 
-        {/* Botón con margen inferior reducido */}
-        <div className="text-center mt-8 mb-0">
-          <Link href="#newsletter-form" scroll={false}>
-            <AnimatedButton>Unirme a la Lista de Espera</AnimatedButton>
-          </Link>
-        </div>
+        {/* Se eliminó el botón "Unirme a la Lista de Espera" */}
       </div>
     </section>
   );

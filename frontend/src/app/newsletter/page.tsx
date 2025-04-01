@@ -6,7 +6,6 @@ import { Footer } from "@/components/footer-component";
 import { NewsletterBenefits } from "@/components/Newsletter/benefits/newsletter-benefits";
 import { NewsletterGifts } from "@/components/Newsletter/gifts/newsletter-gifts";
 import { NewsletterHero } from "@/components/Newsletter/hero/newsletter-hero";
-import { NewsletterTestimonials } from "@/components/Newsletter/testimonials/newsletter-testimonials";
 import { MarqueeDemo } from "@/components/testimonials";
 
 export default function NewsletterPage() {
@@ -53,25 +52,23 @@ export default function NewsletterPage() {
       <NewsletterHero />
 
       {/* Benefits Section */}
-      <section id="benefits">
+      <section id="benefits" className="mt-0 bg-[#0a0a0a]">
         <NewsletterBenefits />
       </section>
 
+      {/* Free Gifts Section */}
+      <NewsletterGifts />
+
       {/* Testimonials Marquee */}
-      <section className="relative w-full overflow-hidden bg-[#0a0a0a] pt-0">
+      <section className="relative w-full overflow-hidden bg-[#0a0a0a] pt-4 pb-16">
         <div className="absolute inset-0 flex items-center justify-center -z-10">
           <div className="h-full w-full bg-gradient-to-r from-[#C9A880]/20 to-[#C9A880]/10 blur-[120px]" />
         </div>
         <MarqueeDemo />
       </section>
 
-      {/* Free Gifts Section */}
-      <NewsletterGifts />
-
-      {/* Testimonials Section */}
-      <section className="py-16 bg-black border-t border-[#C9A880]/10">
-        <NewsletterTestimonials />
-      </section>
+      {/* Spacer */}
+      <div className="h-16 bg-black"></div>
 
       {/* Footer */}
       <Footer />

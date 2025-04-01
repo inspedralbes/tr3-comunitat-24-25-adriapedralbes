@@ -394,12 +394,12 @@ export function NewsletterHero() {
       </section>
 
       {/* Subscription Form - larger and with more impact */}
-      <section id="newsletter-form" className="relative py-32 mt-16 bg-black border-t border-[#C9A880]/10">
-        {/* Fondo con degradado muy sutil con el color principal */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050505] to-black z-10"></div>
+      <section id="newsletter-form" className="relative pt-32 pb-16 mt-0 bg-[#080604] border-t border-[#C9A880]/15">
+        {/* Fondo con degradado sutil basado en el color principal pero muy oscurecido */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0806] to-[#050302] z-10"></div>
         
         {/* Efecto de iluminación del color principal */}
-        <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[#C9A880]/5 blur-[120px] z-5"></div>
+        <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[#C9A880]/8 blur-[120px] z-5"></div>
         
         {/* Contenido */}
         <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
@@ -418,8 +418,8 @@ export function NewsletterHero() {
             Conviértete en un pionero en la adopción de Inteligencia Artificial
           </h2>
           
-          {/* Subscription Form - Elegante */}
-          <div className="bg-gradient-to-b from-black/40 to-black/80 backdrop-blur-md p-8 rounded-3xl border border-[#C9A880]/20 hover:border-[#C9A880]/30 shadow-lg max-w-2xl mx-auto space-y-6 transition-all duration-300">
+          {/* Subscription Form - Elegante con color principal muy oscuro */}
+          <div className="bg-gradient-to-b from-[#161310]/90 to-[#0c0a06]/95 backdrop-blur-md p-8 rounded-3xl border border-[#C9A880]/25 hover:border-[#C9A880]/40 shadow-lg max-w-2xl mx-auto space-y-4 transition-all duration-300">
             <NewsletterAvatarCircles />
             
             {errorMessage && (
@@ -434,7 +434,7 @@ export function NewsletterHero() {
             <Input 
               type="text" 
               placeholder="Tu nombre" 
-              className="w-full p-5 h-14 rounded-lg bg-black/30 text-white border-[#C9A880]/20 focus:border-[#C9A880]/60 focus:ring-[#C9A880]/10 placeholder:text-white/50 text-base transition-all duration-300"
+              className="w-full p-5 h-14 rounded-lg bg-[#13110d] text-white border-[#C9A880]/30 focus:border-[#C9A880]/70 focus:ring-[#C9A880]/15 placeholder:text-[#C9A880]/40 text-base transition-all duration-300"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -442,12 +442,12 @@ export function NewsletterHero() {
             <Input 
               type="email" 
               placeholder="Tu mejor email" 
-              className="w-full p-5 h-14 rounded-lg bg-black/30 text-white border-[#C9A880]/20 focus:border-[#C9A880]/60 focus:ring-[#C9A880]/10 placeholder:text-white/50 text-base transition-all duration-300"
+              className="w-full p-5 h-14 rounded-lg bg-[#13110d] text-white border-[#C9A880]/30 focus:border-[#C9A880]/70 focus:ring-[#C9A880]/15 placeholder:text-[#C9A880]/40 text-base transition-all duration-300"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
             
-            <div className="flex items-start space-x-3 text-left p-3 rounded-lg bg-black/40">
+            <div className="flex items-start space-x-3 text-left p-3">
               <div className="relative flex mt-1">
                 <input 
                   type="checkbox" 
@@ -469,7 +469,7 @@ export function NewsletterHero() {
               </label>
             </div>
             
-            <div className="pt-4">
+            <div className="pt-2">
               {isSuccess ? (
                 <div className="text-green-400 bg-green-500/10 p-5 rounded-lg border border-green-500/30 flex items-center flex-col">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-2" viewBox="0 0 20 20" fill="currentColor">
@@ -503,7 +503,7 @@ export function NewsletterHero() {
                       )}
                     </span>
                   </RainbowButtonDemo>
-                  <p className="text-xs text-[#C9A880]/70 text-center">Plazas limitadas · Acceso prioritario a recursos exclusivos</p>
+                  <p className="text-xs text-[#C9A880]/80 text-center font-medium">Plazas limitadas · Acceso prioritario a recursos exclusivos</p>
                 </div>
               )}
             </div>

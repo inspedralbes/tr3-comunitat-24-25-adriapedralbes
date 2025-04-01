@@ -1,107 +1,53 @@
 "use client";
 
-import { CheckCircle } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
-import { AnimatedButton } from "@/components/animatedButton";
-import { RainbowButtonDemo } from "@/components/rainbowButton";
 import { Card } from "@/components/ui/card";
 
 export function NewsletterGifts() {
   return (
-    <section className="py-16 bg-[#0a0a0a]">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center gap-12">
+    <section className="py-24 bg-[#0a0a0a]">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Título centrado */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-white">
+            Your <span className="bg-gradient-to-r from-[#C2A57C] to-[#D4B68E] bg-clip-text text-transparent">Guide</span>
+          </h2>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center gap-16">
+          {/* Columna de texto */}
           <div className="md:w-1/2">
-            <div className="relative max-w-md mx-auto md:mx-0">
-              {/* Efecto de luz detrás de las cards */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#C9A880]/30 rounded-full blur-3xl"></div>
+            <div className="bg-black/30 backdrop-blur-sm p-8 rounded-xl border border-white/10">
+              <p className="mb-8 text-gray-300 text-lg">
+                Nice to meet you! I'm Cole Medin – a tech enthusiast, software developer, and entrepreneur with over five years dedicated to mastering AI, particularly generative AI and AI agents. With a YouTube channel that's grown to over 100,000 subscribers, I've helped thousands build and leverage AI to tackle real-world problems.
+              </p>
 
-              {/* Cards de regalos */}
-              <div className="relative">
-                <div className="flex -space-x-6 transform rotate-[-8deg]">
-                  <Card className="w-44 h-64 bg-gradient-to-br from-[#C9A880] to-[#A78355] rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[-2deg] transition-transform">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">🤖</div>
-                      <div className="font-bold">+5000 HERRAMIENTAS IA PARA 40+ SECTORES</div>
-                    </div>
-                  </Card>
-
-                  <Card className="w-44 h-64 bg-gradient-to-br from-[#C9A880] to-[#A78355] rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[2deg] transition-transform z-10">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">💬</div>
-                      <div className="font-bold">+300 PROMPTS PARA MASTERIZAR CHATGPT</div>
-                    </div>
-                  </Card>
-                </div>
-
-                <div className="flex -space-x-6 -mt-16 transform rotate-[5deg] z-20">
-                  <Card className="w-44 h-64 bg-gradient-to-br from-[#C9A880] to-[#A78355] rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[-2deg] transition-transform z-20">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">💰</div>
-                      <div className="font-bold">IDEAS PARA GANAR DINERO CON CHATGPT</div>
-                    </div>
-                  </Card>
-
-                  <Card className="w-44 h-64 bg-gradient-to-br from-[#C9A880] to-[#A78355] rounded-xl shadow-xl text-white p-4 flex items-center justify-center transform hover:rotate-[2deg] transition-transform">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">🔌</div>
-                      <div className="font-bold">LAS MEJORES EXTENSIONES DE CHATGPT</div>
-                    </div>
-                  </Card>
-                </div>
-              </div>
+              <p className="mb-6 text-gray-300 text-lg">
+                My journey includes working as a software developer for a Fortune 500 company and consulting with numerous startups, guiding their AI strategies and integration. I've seen firsthand the immense potential—and pitfalls—of AI, equipping me to deliver practical, actionable insights that can transform your skills and your business.
+              </p>
             </div>
           </div>
 
-          <div className="md:w-1/2 mt-12 md:mt-0">
-            <div className="flex justify-center mb-2">
-              <AnimatedButton>Regalos exclusivos</AnimatedButton>
-            </div>
-
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white text-center md:text-left">
-              ¡Apúntate y llévate <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">4 regalos!</span>
-            </h2>
-
-            <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl border border-white/10">
-              <p className="text-lg mb-6 text-gray-300">
-                Te voy a contar algo que me pasó la semana pasada: un cliente me dijo <span className="italic">&ldquo;Llevo 3 meses usando ChatGPT y siento que apenas estoy arañando la superficie&rdquo;</span>.
-              </p>
-
-              <p className="mb-6 text-gray-300">
-                ¿Sabes qué le envié? Exactamente la misma colección de recursos que recibirás tú ahora. Su mensaje dos días después: <span className="font-semibold text-white">&ldquo;He conseguido en una semana lo que no logré en tres meses por mi cuenta&rdquo;</span>.
-              </p>
-
-              <p className="mb-6 text-gray-300">
-                Y es que cuando se trata de IA, el problema no es la falta de información, sino el exceso. Necesitas alguien que filtre el ruido y te dé exactamente lo que funciona.
-              </p>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                  <p className="text-gray-300"><span className="font-bold text-white">Directorio de +5000 herramientas IA:</span> Organizadas por sector. ¿Marketing? ¿Desarrollo? ¿Diseño? Tenemos herramientas específicas para ti.</p>
-                </div>
-                <div className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                  <p className="text-gray-300"><span className="font-bold text-white">+300 Prompts para ChatGPT:</span> Los mismos que uso para que ChatGPT genere contenido que parece escrito por un experto de 10 años en cualquier campo.</p>
-                </div>
-                <div className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                  <p className="text-gray-300"><span className="font-bold text-white">Ideas para monetizar ChatGPT:</span> 23 modelos de negocio probados para generar ingresos con IA (uno de mis suscriptores facturó 3.400€ en su primer mes).</p>
-                </div>
-                <div className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                  <p className="text-gray-300"><span className="font-bold text-white">Bonus Extra:</span> Cada domingo recibes una perla de sabiduría IA que el 99% de usuarios desconoce. En mi última newsletter compartí un truco que ahorra 5 horas semanales en tareas administrativas.</p>
-                </div>
-              </div>
-
-              <div className="text-center">
-                <Link href="#newsletter-form" scroll={false}>
-                  <RainbowButtonDemo>
-                    ¡Quiero mis 4 regalos ahora!
-                  </RainbowButtonDemo>
-                </Link>
-              </div>
+          {/* Columna de imagen */}
+          <div className="md:w-1/2 mt-8 md:mt-0 flex justify-center">
+            <div className="relative w-72 h-80 md:w-96 md:h-[28rem] overflow-hidden rounded-xl border-2 border-[#C2A57C]">
+              {/* Efecto de luz detrás de la imagen */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#C2A57C]/50 to-[#D4B68E]/30 opacity-60"></div>
+              
+              {/* Imagen */}
+              <Image 
+                src="/adria.jpg" 
+                alt="Cole Medin" 
+                width={500}
+                height={600}
+                className="w-full h-full object-cover"
+                unoptimized={true}
+              />
+              
+              {/* Efecto de código en el fondo */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
             </div>
           </div>
         </div>
