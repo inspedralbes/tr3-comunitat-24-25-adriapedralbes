@@ -56,7 +56,7 @@ export function NewsletterSkills() {
         <div className="mb-24">
           <div className="flex justify-center mb-6">
             <div className="rounded-full bg-black border border-[#333] px-4 py-1.5">
-              <span className="text-sm text-white font-medium">Desarrolla Habilidades Fundamentales</span>
+              <span className="text-sm text-white font-medium">Desarrolla Habilidades FUNDAMENTALES</span>
             </div>
           </div>
 
@@ -65,8 +65,8 @@ export function NewsletterSkills() {
           </h2>
           
           <p className="text-gray-400 text-center max-w-3xl mx-auto mb-12">
-            Nuestro currículum completo y eventos de comunidad te enseñarán todo lo que necesitas 
-            para construir y hacer productivos agentes de IA y otras soluciones de IA.
+            Nuestro currículum NO es teórico. Todo lo que enseñamos es fruto de EXPERIENCIA REAL 
+            y está documentado con RESULTADOS REALES. Aquí no vendemos humo.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -93,7 +93,7 @@ export function NewsletterSkills() {
           </h2>
           
           <p className="text-gray-300 text-center max-w-3xl mx-auto mb-12">
-            La demanda de experiencia en IA está creciendo rápidamente en todas las industrias.
+            La demanda de experiencia en IA está creciendo rápidamente en TODAS las industrias y quien no se adapte quedará FUERA del mercado.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -12,7 +12,7 @@ export function NewsletterGifts() {
         {/* Título centrado */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-white">
-            Your <span className="bg-gradient-to-r from-[#C2A57C] to-[#D4B68E] bg-clip-text text-transparent">Guide</span>
+            Tu <span className="bg-gradient-to-r from-[#C2A57C] to-[#D4B68E] bg-clip-text text-transparent">Guía</span> (que tiene RESULTADOS REALES)
           </h2>
         </div>
 
@@ -21,11 +21,20 @@ export function NewsletterGifts() {
           <div className="md:w-1/2">
             <div className="bg-black/30 backdrop-blur-sm p-8 rounded-xl border border-white/10">
               <p className="mb-8 text-gray-300 text-lg">
-                Nice to meet you! I'm Cole Medin – a tech enthusiast, software developer, and entrepreneur with over five years dedicated to mastering AI, particularly generative AI and AI agents. With a YouTube channel that's grown to over 100,000 subscribers, I've helped thousands build and leverage AI to tackle real-world problems.
+                Mira.
+                No soy un teórico.
+                
+                Soy Cole Medin, entusiasta de la tecnología, desarrollador de software y emprendedor con más de cinco años DEDICADOS al dominio de la IA, especialmente la IA generativa y agentes de IA.
+                
+                Con un canal de YouTube que ha crecido hasta superar los 100.000 suscriptores, he ayudado a MILES de personas a construir y aprovechar la IA para resolver problemas del mundo real.
               </p>
 
               <p className="mb-6 text-gray-300 text-lg">
-                My journey includes working as a software developer for a Fortune 500 company and consulting with numerous startups, guiding their AI strategies and integration. I've seen firsthand the immense potential—and pitfalls—of AI, equipping me to deliver practical, actionable insights that can transform your skills and your business.
+                Mi trayectoria incluye trabajar como desarrollador de software para una empresa Fortune 500 y asesorar a numerosas startups, guiando sus estrategias e integración de IA.
+
+                He visto de primera mano el INMENSO potencial y los peligros de la IA, lo que me ha equipado para ofrecer conocimientos PRÁCTICOS y ACCIONABLES que pueden transformar tus habilidades y tu negocio.
+                
+                Lo que enseño es fruto de mi PROPIA experiencia. No toco de oídas.
               </p>
             </div>
           </div>
@@ -34,7 +43,7 @@ export function NewsletterGifts() {
           <div className="md:w-1/2 mt-8 md:mt-0 flex justify-center">
             <div className="relative w-72 h-80 md:w-96 md:h-[28rem] overflow-hidden rounded-xl border-2 border-[#C2A57C]">
               {/* Efecto de luz detrás de la imagen */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#C2A57C]/50 to-[#D4B68E]/30 opacity-60"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#C2A57C]/30 to-[#D4B68E]/20 opacity-40"></div>
               
               {/* Imagen */}
               <Image 
@@ -47,7 +56,7 @@ export function NewsletterGifts() {
               />
               
               {/* Efecto de código en el fondo */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             </div>
           </div>
         </div>

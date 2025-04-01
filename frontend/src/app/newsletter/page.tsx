@@ -90,7 +90,7 @@ export default function NewsletterPage() {
       <NewsletterCourses />
 
       {/* Spacer */}
-      <div className="h-16 bg-black"></div>
+      <div className="h-16 bg-[#0a0a0a]"></div>
 
       {/* Footer */}
       <Footer />

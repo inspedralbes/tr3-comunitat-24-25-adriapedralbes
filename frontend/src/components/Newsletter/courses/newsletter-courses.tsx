@@ -453,66 +453,66 @@ export function NewsletterCourses() {
         {/* Preguntas Frecuentes */}
         <div className="mt-24">
           <h3 className="text-2xl font-bold mb-3 text-center">
-            Preguntas <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Frecuentes</span>
+            Las Dudas que TODOS <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Me Preguntan</span>
           </h3>
           <p className="text-gray-400 max-w-2xl mx-auto text-center mb-12">
-            Encuentra respuestas a las preguntas más comunes sobre nuestros cursos de IA y cómo sacarles el máximo partido.
+            Mira, voy a ser BRUTALMENTE sincero contigo. Estas son las preguntas que me hacen a diario y aquí tienes las respuestas SIN FILTROS.
           </p>
           
           <div className="max-w-3xl mx-auto bg-[#0c0c0c]/80 border border-[#C9A880]/20 rounded-xl p-6">
             <FAQItem 
-              question="¿Necesito conocimientos previos para estos cursos?"
-              answer="No es necesario tener experiencia previa en IA para empezar. El módulo de introducción está diseñado para principiantes, aunque tener conocimientos básicos de programación te ayudará a avanzar más rápido en los módulos más técnicos."
+              question="¿NECESITO conocimientos previos para empezar?"
+              answer="Mira, voy a serte 100% sincero. NO necesitas experiencia previa en IA. Mi módulo de introducción está pensado para CUALQUIER nivel. Pero ojo, si ya tienes nociones básicas de programación, avanzarás MÁS RÁPIDO. Lo importante es que tengas GANAS DE APRENDER, el resto lo ponemos nosotros."
             />
             
             <FAQItem 
-              question="¿Cómo puedo acceder a los cursos?"
-              answer="Los cursos estarán disponibles exclusivamente para los miembros de la comunidad. Al unirte, tendrás acceso inmediato a los primeros módulos disponibles y recibirás los nuevos a medida que se publiquen."
+              question="¿Cómo accedo a TODO el contenido?"
+              answer="Es muy simple: únete a la comunidad y tendrás ACCESO INMEDIATO a los primeros módulos. La parte buena es que irás recibiendo nuevo contenido a medida que lo publicamos. Y esto es importante: este contenido NO lo encontrarás en YouTube ni en cursos gratuitos. Es EXCLUSIVO para miembros."
             />
             
             <FAQItem 
-              question="¿Las tecnologías enseñadas son relevantes para proyectos reales?"
-              answer="Absolutamente. Hemos seleccionado cuidadosamente las tecnologías y frameworks que están siendo adoptados en la industria. Aprenderás herramientas que puedes aplicar inmediatamente en proyectos reales y que tienen una gran demanda en el mercado laboral."
+              question="¿Enseñas tecnologías que se usan DE VERDAD o solo teoría?"
+              answer="Te lo digo MUY claro: NO enseño teoría inútil. Cada tecnología y framework que incluyo está ACTUALMENTE siendo usado en la industria real. No pierdo tu tiempo (ni el mío) con herramientas obsoletas. Todo lo que aprenderás podrás aplicarlo INMEDIATAMENTE en proyectos reales, y son exactamente las mismas herramientas que están buscando las empresas que contratan."
             />
             
             <FAQItem 
-              question="¿Con qué frecuencia se actualizará el contenido?"
-              answer="El campo de la IA evoluciona rápidamente, por lo que nos comprometemos a actualizar regularmente nuestro contenido. Añadiremos nuevos módulos mensualmente y actualizaremos el material existente para reflejar los últimos avances del sector."
+              question="¿Mantienes el contenido ACTUALIZADO con los cambios de la IA?"
+              answer="Si hay algo que me OBSESIONA es mantener todo al día. La IA cambia cada semana, y me aseguro de que nuestro contenido refleje eso. No como otros cursos que grabaron hace 2 años y siguen vendiendo lo mismo. Actualizamos MENSUALMENTE con nuevos módulos y revisamos TODO el material existente para incorporar los últimos avances. Si compras hoy, tendrás acceso a TODAS las actualizaciones futuras."
             />
             
             <FAQItem 
-              question="¿Recibiré alguna certificación al completar los cursos?"
-              answer="Sí, al completar cada curso recibirás un certificado digital que podrás compartir en tu CV o redes profesionales. Además, los proyectos que desarrolles durante el curso servirán como portfolio para demostrar tus habilidades."
+              question="¿Me darás algún certificado cuando termine?"
+              answer="Sí, recibirás un certificado digital por cada curso que completes. Pero seamos sinceros: lo que REALMENTE importa no es el papel, sino los PROYECTOS REALES que construirás durante el curso. Estos proyectos serán tu verdadero portfolio y lo que demostrará que SABES hacer lo que dices que sabes hacer. Un certificado solo dice que completaste algo, tus proyectos demuestran que DOMINAS la materia."
             />
             
             <FAQItem 
-              question="¿Hay soporte disponible si tengo dudas durante el curso?"
-              answer="Por supuesto. Tendrás acceso a un foro exclusivo para miembros donde podrás hacer preguntas, compartir tus proyectos y recibir feedback. También organizamos sesiones de Q&A en vivo con expertos en la materia."
+              question="¿Me ayudarás cuando me atasque o tendré que arreglármelas solo?"
+              answer="JAMÁS te dejaré abandonado. Odio cuando pago por un curso y luego no hay nadie que responda mis dudas. Por eso he creado un sistema de soporte COMPLETO: tendrás acceso a un foro EXCLUSIVO para miembros donde puedes preguntar lo que sea (y recibir respuestas en 24h máximo), sesiones semanales de Q&A EN VIVO, y la posibilidad de conectar con otros estudiantes que están en tu mismo camino. Nadie se queda atrás."
             />
             
             <FAQItem 
-              question="¿Necesito experiencia en programación?"
-              answer="No es necesario tener experiencia previa en programación para empezar. El módulo de introducción está diseñado para principiantes, aunque tener conocimientos básicos te ayudará a avanzar más rápido en los módulos técnicos. Ofrecemos recursos adicionales para quienes necesiten fortalecer estas habilidades."
+              question="¿Necesito ser un EXPERTO en programación para seguir el curso?"
+              answer="¡NO! Y esto es importante: he diseñado el curso para que CUALQUIERA pueda empezar. Si nunca has programado, podrás seguir el módulo de introducción sin problemas. Eso sí, si ya tienes algo de base, avanzarás más rápido en las partes técnicas. ADEMÁS: incluyo recursos adicionales ESPECÍFICOS para quienes necesiten reforzar estas habilidades. Lo importante es tu ACTITUD, no tu nivel inicial."
             />
             
             <FAQItem 
-              question="¿Cuál es el compromiso de tiempo?"
-              answer="El curso está diseñado para adaptarse a tu ritmo. Recomendamos dedicar al menos 5-7 horas semanales para obtener el máximo beneficio. Los módulos están estructurados en lecciones cortas que puedes completar según tu disponibilidad, y tendrás acceso permanente al contenido para revisarlo cuando lo necesites."
+              question="¿Cuánto tiempo tengo que dedicarle CADA SEMANA?"
+              answer="Mira, te voy a ser 100% transparente: puedes avanzar a TU RITMO. No hay prisas ni fechas límite. Dicho esto, para sacarle el MÁXIMO JUGO, recomiendo dedicar unas 5-7 horas semanales. He estructurado todo en lecciones CORTAS y DIRECTAS para que puedas aprovechar incluso espacios de 30 minutos. Y lo mejor: tendrás ACCESO DE POR VIDA al contenido, así que puedes revisarlo cuando quieras. No es cuestión de prisa, sino de CONSTANCIA."
             />
             
             <FAQItem 
-              question="¿Y si no es para mí?"
-              answer="Ofrecemos una garantía de satisfacción de 14 días. Si después de probar el contenido sientes que no se ajusta a tus expectativas o necesidades, puedes solicitar un reembolso completo sin preguntas. Queremos que estés completamente seguro de tu inversión en aprendizaje."
+              question="¿Y si me apunto y luego veo que NO es lo que esperaba?"
+              answer="Tranquilo. Lo tengo MUY CLARO: si no estás satisfecho, no quiero tu dinero. Por eso ofrezco una garantía COMPLETA de 14 días. Prueba el contenido, explora la comunidad, haz preguntas, y si después de todo eso sientes que no es para ti... te devuelvo TODO tu dinero sin hacer preguntas incómodas. Así de simple. Sin letra pequeña, sin excusas. No quiero que nadie se quede con algo que no le APORTA VALOR."
             />
             
             <FAQItem 
-              question="¿Qué tipo de soporte está disponible?"
-              answer="Contarás con múltiples niveles de soporte: acceso a una comunidad exclusiva donde podrás conectar con otros estudiantes, sesiones grupales de resolución de dudas semanales, y la posibilidad de programar sesiones individuales de mentoría. Nuestro equipo responde a las preguntas técnicas en un plazo máximo de 24 horas."
+              question="¿Qué tipo de SOPORTE ofreces EXACTAMENTE?"
+              answer="He creado un sistema de soporte MULTICAPA: 1) Acceso a la comunidad privada donde conectarás con otros estudiantes QUE ESTÁN HACIENDO LO MISMO que tú, 2) Sesiones grupales SEMANALES donde resolvemos dudas en directo, 3) La posibilidad de programar sesiones 1-a-1 de mentoría (sí, conmigo), y 4) Soporte técnico garantizado en menos de 24 HORAS para cualquier pregunta o problema. En resumen: NUNCA estarás solo en este viaje."
             />
             
             <FAQItem 
-              question="¿Qué puedo construir después de unirme?"
-              answer="Al finalizar el curso, serás capaz de desarrollar agentes IA completos para automatizar tareas, crear asistentes especializados para tu industria, implementar soluciones de procesamiento de lenguaje natural, y construir aplicaciones que integren múltiples servicios de IA. Cada módulo incluye proyectos prácticos que fortalecerán tu portfolio."
+              question="¿Qué seré capaz de CREAR cuando termine el curso?"
+              answer="Te lo digo sin rodeos: al terminar podrás construir COSAS REALES Y ÚTILES. No teoría, sino productos que generan valor. Desarrollarás agentes IA COMPLETOS que automatizan tareas tediosas, crearás asistentes especializados para TU industria específica, implementarás soluciones de procesamiento de lenguaje natural, y construirás aplicaciones que integren MÚLTIPLES servicios de IA. Y lo mejor: cada módulo incluye proyectos PRÁCTICOS que irán directos a tu portfolio profesional. Esto no es un curso, es un trampolín para tu carrera."
             />
           </div>
         </div>

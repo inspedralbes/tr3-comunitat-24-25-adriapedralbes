@@ -14,12 +14,12 @@ export function NewsletterCommunity() {
     {
       icon: <Rocket className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
       title: "Para Innovadores y Fundadores",
-      content: "Aprende cómo integrar agentes de IA de manera efectiva para optimizar las operaciones de tu negocio, acelerar el crecimiento y transformar ideas en éxitos en el mundo real."
+      content: "¿Tienes un negocio? ¿Estás harto de ver cómo otros crecen con IA mientras tú sigues igual? Aprenderás a integrar agentes de IA que OPTIMIZARÁN tus operaciones, ACELERARÁN tu crecimiento y TRANSFORMARÁN tus ideas en éxitos que podrás contar (y documentar). Conmigo se forman empresarios que quieren VER CAMBIOS REALES."
     },
     {
       icon: <Code className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
       title: "Para Desarrolladores y Entusiastas de la Tecnología",
-      content: "Domina habilidades y conceptos de IA de alto nivel esenciales para construir agentes de IA robustos, escalables y listos para producción - mantente relevante a medida que el campo de la IA evoluciona rápidamente."
+      content: "Domina habilidades y conceptos de IA de alto nivel ESENCIALES para construir agentes de IA robustos, escalables y listos para producción. Mientras otros siguen tutoriales obsoletos, tú estarás a la vanguardia. Mantente RELEVANTE a medida que el campo de la IA evoluciona rápidamente. NO toco de oídas, todo lo que enseño es fruto de MI experiencia."
     }
   ];
 
@@ -35,8 +35,9 @@ export function NewsletterCommunity() {
         </h2>
         
         <p className="text-gray-300 text-center max-w-3xl mx-auto mb-12">
-          Ya sea que estés construyendo un negocio o desarrollando tus habilidades técnicas, 
-          nuestra comunidad tiene lo que necesitas.
+          Mira, seré claro. Esta comunidad NO es para todo el mundo.
+          Si buscas teoría, certificados bonitos o promesas vacías... este NO es tu sitio.
+          Pero si quieres RESULTADOS TANGIBLES, sigue leyendo.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

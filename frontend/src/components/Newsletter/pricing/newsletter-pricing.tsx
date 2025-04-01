@@ -20,10 +20,10 @@ export function NewsletterPricing() {
             <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">
               Asegura
             </span>{" "}
-            tu precio de por vida
+            tu precio DE POR VIDA
           </h2>
           <p className="text-lg text-white/80 max-w-3xl mx-auto">
-            Oferta exclusiva para adoptadores tempranos — los precios aumentarán después de los primeros 200 miembros fundadores.
+            Mira, voy a ser CLARO contigo. Los precios aumentarán después de los primeros 200 miembros fundadores, y esto NO es una táctica de marketing.
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export function NewsletterPricing() {
           <div className="w-full lg:w-7/12 bg-[#0c0a08]/80 backdrop-blur-sm rounded-3xl p-8 border border-[#C9A880]/20 shadow-xl overflow-hidden relative">
             {/* Early adopter badge */}
             <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-[#C9A880]/10 border border-[#C9A880]/20 text-[#C9A880]">
-              <span className="text-sm font-medium">Descuento para Adoptadores Tempranos</span>
+              <span className="text-sm font-medium">Descuento para Adoptadores Tempranos (SÓLO 200 PLAZAS)</span>
             </div>
 
             {/* Monthly option */}
@@ -44,7 +44,7 @@ export function NewsletterPricing() {
               </div>
               <div className="flex items-center mb-5">
                 <span className="text-white/60 line-through mr-2">Normalmente €79</span>
-                <span className="bg-[#C9A880]/20 text-[#C9A880] px-2 py-1 rounded text-sm font-medium">25% descuento</span>
+                <span className="bg-[#C9A880]/20 text-[#C9A880] px-2 py-1 rounded text-sm font-medium">25% DE DESCUENTAZO</span>
               </div>
             </div>
 
@@ -64,7 +64,7 @@ export function NewsletterPricing() {
               </div>
               <div className="flex items-center mb-5">
                 <span className="text-white/60 line-through mr-2">Normalmente €948</span>
-                <span className="bg-[#C9A880]/20 text-[#C9A880] px-2 py-1 rounded text-sm font-medium">50% descuento!</span>
+                <span className="bg-[#C9A880]/20 text-[#C9A880] px-2 py-1 rounded text-sm font-medium">¡50% DE DESCUENTO!</span>
               </div>
             </div>
           </div>
@@ -87,7 +87,7 @@ export function NewsletterPricing() {
                     clipRule="evenodd" 
                   />
                 </svg>
-                <span className="text-white">Acceso a todos los cursos actuales y futuros</span>
+                <span className="text-white">Acceso a TODOS los cursos actuales y futuros</span>
               </li>
               <li className="flex items-start">
                 <svg 
@@ -102,7 +102,7 @@ export function NewsletterPricing() {
                     clipRule="evenodd" 
                   />
                 </svg>
-                <span className="text-white">Sesiones en vivo semanales y talleres</span>
+                <span className="text-white">Sesiones en vivo semanales y talleres PRÁCTICOS</span>
               </li>
               <li className="flex items-start">
                 <svg 
@@ -117,7 +117,7 @@ export function NewsletterPricing() {
                     clipRule="evenodd" 
                   />
                 </svg>
-                <span className="text-white">Acceso a la comunidad privada</span>
+                <span className="text-white">Acceso a la comunidad privada DE ÉLITE</span>
               </li>
               <li className="flex items-start">
                 <svg 
@@ -132,7 +132,7 @@ export function NewsletterPricing() {
                     clipRule="evenodd" 
                   />
                 </svg>
-                <span className="text-white">Plantillas y recursos para agentes de IA</span>
+                <span className="text-white">Plantillas y recursos para agentes de IA PROFESIONALES</span>
               </li>
             </ul>
             
@@ -140,11 +140,11 @@ export function NewsletterPricing() {
             <div className="space-y-4 mb-8">
               <div className="flex items-start">
                 <span className="h-5 w-5 text-[#C9A880] mt-0.5 mr-3 flex-shrink-0">🎁</span>
-                <span className="text-[#C9A880] font-medium">BONUS - Eventos exclusivos para el lanzamiento</span>
+                <span className="text-[#C9A880] font-medium">BONUS - Eventos exclusivos para fundadores</span>
               </div>
               <div className="flex items-start">
                 <span className="h-5 w-5 text-[#C9A880] mt-0.5 mr-3 flex-shrink-0">🎁</span>
-                <span className="text-[#C9A880] font-medium">BONUS - Grupo de networking exclusivo</span>
+                <span className="text-[#C9A880] font-medium">BONUS - Grupo de networking exclusivo GARANTIZADO</span>
               </div>
             </div>
 
@@ -152,7 +152,7 @@ export function NewsletterPricing() {
             <Link href="#newsletter-form">
               <RainbowButtonDemo className="w-full py-4 text-lg font-medium">
                 <span className="flex items-center justify-center">
-                  Asegura Tu Plaza Ahora
+                  DEBES RESERVAR TU PLAZA YA
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>

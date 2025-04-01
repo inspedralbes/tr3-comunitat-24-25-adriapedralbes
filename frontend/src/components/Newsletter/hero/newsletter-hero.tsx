@@ -260,12 +260,12 @@ export function NewsletterHero() {
     setErrorMessage(null);
     
     if (!email) {
-      setErrorMessage("Por favor, introduce tu email");
+      setErrorMessage("Mira, DEBES introducir tu email para poder continuar");
       return;
     }
     
     if (!accepted) {
-      setErrorMessage("Debes aceptar la política de privacidad");
+      setErrorMessage("¡OJO! Es OBLIGATORIO aceptar la política de privacidad para continuar");
       return;
     }
     
@@ -314,7 +314,7 @@ export function NewsletterHero() {
         <div className="absolute top-7 right-7 md:right-14 z-30">
           <Link href="#newsletter-form">
             <button className="bg-black border border-[#C9A880]/50 hover:border-[#C9A880] text-white text-sm px-5 py-2 rounded-full transition-all duration-300">
-              ¡Reserva tu plaza hoy!
+              ¡DEBES RESERVAR AHORA!
             </button>
           </Link>
         </div>
@@ -327,14 +327,16 @@ export function NewsletterHero() {
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-7 text-white leading-tight">
-              Domina la IA y <br />
-              Obtén la <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Ventaja</span>
+              Después de documentar<br />
+              <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">cientos de casos</span>
               <br />
-              <span className="text-[#C9A880]">Definitiva</span>
+              <span className="text-[#C9A880]">de éxito real...</span>
             </h1>
             
             <p className="text-white/90 text-lg mb-10 max-w-xl">
-              Únete a la comunidad emergente número 1 para pioneros en IA, domina la Inteligencia Artificial y los Agentes de IA, y transforma tu negocio y carrera profesional.
+              ...he observado dos tendencias que necesitan atención inmediata:
+              La mayoría aprende IA de gente SIN resultados y con tanto ruido 
+              ahí fuera es IMPOSIBLE tomar buenas decisiones.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-5 mb-8 md:mb-0">
@@ -342,7 +344,7 @@ export function NewsletterHero() {
                 <div className="w-full sm:w-auto">
                   <RainbowButtonDemo className="px-7 py-3 text-base">
                     <span className="flex items-center">
-                      Únete a la Lista
+                      QUIERO APRENDER
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                       </svg>
@@ -353,7 +355,7 @@ export function NewsletterHero() {
               
               <Link href="#benefits">
                 <button className="border border-[#C9A880]/50 hover:border-[#C9A880] text-white font-medium py-3 px-7 rounded-xl text-base transition-all duration-300">
-                  Explorar Curso
+                  Ver los beneficios
                 </button>
               </Link>
             </div>
@@ -646,22 +648,24 @@ export function NewsletterHero() {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
             </svg>
-            PLAZAS LIMITADAS - SOLO 200 MIEMBROS FUNDADORES
+            ¡OJO! SOLO 200 PLAZAS PARA MIEMBROS FUNDADORES
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
-            Únete a la <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Comunidad</span>
+            Mira. <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Esto es importante.</span>
           </h1>
           
           <h2 className="text-xl md:text-2xl lg:text-3xl font-medium mb-4 text-white">
-            Conviértete en un pionero en la adopción de Inteligencia Artificial
+            Todo lo que enseño es fruto de mi PROPIA experiencia. 
           </h2>
           
           <p className="text-white/80 max-w-2xl mx-auto mb-10">
-            Sé uno de los <span className="text-[#C9A880] font-medium">miembros fundadores</span> y asegura tu 
-            <span className="text-[#C9A880] font-medium"> precio especial para siempre</span>.
-            Únete a la lista de espera <span className="text-[#C9A880] font-medium">gratis</span> para reclamar tu plaza y serás contactado
-            cuando la comunidad esté lista.
+            NO toco de oídas. He sacado (y saco) <span className="text-[#C9A880] font-medium">miles de formaciones documentadas</span> con resultados reales.
+             
+            Si quieres dominar la IA, <span className="text-[#C9A880] font-medium">debes formarte con alguien que no sea un teórico</span>.
+            
+            Conmigo se forman arquitectos, programadores, empresarios, diseñadores, editores, médicos, abogados... 
+            Gente que quiere <span className="text-[#C9A880] font-medium">resultados DE VERDAD</span>.
           </p>
           
           {/* Subscription Form - Elegante con color principal muy oscuro */}
@@ -679,7 +683,7 @@ export function NewsletterHero() {
             
             <Input 
               type="text" 
-              placeholder="Tu nombre" 
+              placeholder="Tu nombre aquí" 
               className="w-full p-5 h-14 rounded-lg bg-[#13110d] text-white border-[#C9A880]/30 focus:border-[#C9A880]/70 focus:ring-[#C9A880]/15 placeholder:text-[#C9A880]/40 text-base transition-all duration-300"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -687,7 +691,7 @@ export function NewsletterHero() {
             
             <Input 
               type="email" 
-              placeholder="Tu mejor email" 
+              placeholder="Tu MEJOR email (importante)" 
               className="w-full p-5 h-14 rounded-lg bg-[#13110d] text-white border-[#C9A880]/30 focus:border-[#C9A880]/70 focus:ring-[#C9A880]/15 placeholder:text-[#C9A880]/40 text-base transition-all duration-300"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -711,7 +715,7 @@ export function NewsletterHero() {
                 </div>
               </div>
               <label htmlFor="privacy" className="text-base text-white/90 cursor-pointer">
-                He leído y acepto la <Link href="#" className="text-[#C9A880] hover:underline font-medium">política de cookies</Link> y <Link href="#" className="text-[#C9A880] hover:underline font-medium">privacidad</Link>.
+                He leído y acepto la <Link href="#" className="text-[#C9A880] hover:underline font-medium">política de cookies</Link> y <Link href="#" className="text-[#C9A880] hover:underline font-medium">privacidad</Link>. (IMPORTANTE)
               </label>
             </div>
             
@@ -721,7 +725,7 @@ export function NewsletterHero() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <p className="text-base font-medium">¡Gracias por unirte! Te notificaremos cuando la comunidad esté lista.</p>
+                  <p className="text-base font-medium">¡PERFECTO! Hemos guardado tu email. Te avisaremos cuando abramos las puertas de la comunidad. Pasa un gran día.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -741,7 +745,7 @@ export function NewsletterHero() {
                         </>
                       ) : (
                         <>
-                          UNIRME A LA LISTA DE ESPERA
+                          ¡QUIERO SER MIEMBRO FUNDADOR!
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                           </svg>
@@ -751,7 +755,7 @@ export function NewsletterHero() {
                   </RainbowButtonDemo>
                   <div className="px-4 py-3 bg-[#C9A880]/10 rounded-lg border border-[#C9A880]/20">
                     <p className="text-xs text-[#C9A880] text-center font-medium">
-                      Acceso prioritario a recursos exclusivos · Precio especial para siempre
+                      Acceso prioritario · Recursos EXCLUSIVOS · Precio especial GARANTIZADO para siempre
                     </p>
                   </div>
                 </div>

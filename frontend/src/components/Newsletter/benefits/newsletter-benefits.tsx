@@ -15,24 +15,24 @@ export function NewsletterBenefits() {
       icon: <Users className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
       title: "Comunidad Exclusiva",
       content: [
-        "Únete a una comunidad selecta de profesionales y entusiastas de la IA comprometidos con el dominio de la inteligencia artificial.",
-        "Comparte experiencias, colabora en proyectos y establece contactos con personas que están transformando sus negocios y carreras con IA."
+        "Únete a una comunidad de gente COMO TÚ. No teóricos, sino profesionales y entusiastas que están HARTOS de tanto humo y quieren RESULTADOS REALES con IA.",
+        "Aquí no se viene a presumir sino a TRABAJAR. Vas a compartir, colaborar y conectar con personas que, como tú, quieren transformar su negocio con IA y no tienen tiempo que perder."
       ]
     },
     {
       icon: <Lightbulb className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
       title: "Conocimiento Práctico",
       content: [
-        "Accede a recursos exclusivos, workshops y eventos en directo enfocados en aplicaciones prácticas de IA para resultados inmediatos.",
-        "Obtén guías paso a paso para implementar soluciones de IA que multipliquen tu productividad y generen ventajas competitivas reales."
+        "¿Estás cansado de tutoriales que no te llevan a ninguna parte? Aquí todo es PRÁCTICO. Recursos EXCLUSIVOS, workshops sin relleno y eventos en directo donde resolvemos problemas DEL MUNDO REAL.",
+        "Tendrás guías paso a paso para implementar soluciones que MULTIPLICAN tu productividad desde el minuto UNO. Sin rodeos, sin teoría inútil, sin perder el tiempo."
       ]
     },
     {
       icon: <Trophy className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
       title: "Ventaja Competitiva",
       content: [
-        "Mantente a la vanguardia con acceso prioritario a las últimas herramientas, técnicas y estrategias de IA antes que el público general.",
-        "Implementa soluciones innovadoras que te separarán de la competencia y te posicionarán como líder en tu sector."
+        "Mientras los demás siguen estudiando, tú ya estarás APLICANDO. Acceso PRIORITARIO a las últimas herramientas y estrategias de IA ANTES que la masa.",
+        "Implementarás soluciones que te SEPARARÁN de tu competencia de forma tan evidente que hasta ellos lo notarán. Y para entonces será tarde (para ellos)."
       ]
     }
   ];
@@ -45,7 +45,7 @@ export function NewsletterBenefits() {
         </div>
 
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white">
-          Lo que obtendrás al unirte a <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">nuestra comunidad</span>
+          Lo que vas a conseguir (y NO es poca cosa) al unirte a <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">nuestra comunidad</span>
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
