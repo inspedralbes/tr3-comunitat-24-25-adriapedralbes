@@ -394,11 +394,12 @@ export function NewsletterHero() {
       </section>
 
       {/* Subscription Form - larger and with more impact */}
-      <section id="newsletter-form" className="relative py-32 bg-black">
-        {/* Fondo oscuro con degradado */}
-        <div className="absolute inset-0 bg-black/60 z-10"></div>
+      <section id="newsletter-form" className="relative py-32 mt-16 bg-black border-t border-[#C9A880]/10">
+        {/* Fondo con degradado muy sutil con el color principal */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050505] to-black z-10"></div>
         
-        {/* Se han eliminado los gradientes de colores del fondo */}
+        {/* Efecto de iluminación del color principal */}
+        <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[#C9A880]/5 blur-[120px] z-5"></div>
         
         {/* Contenido */}
         <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
@@ -417,12 +418,15 @@ export function NewsletterHero() {
             Conviértete en un pionero en la adopción de Inteligencia Artificial
           </h2>
           
-          {/* Subscription Form */}
-          <div className="bg-black/30 backdrop-blur-md p-8 rounded-3xl border border-white/10 max-w-2xl mx-auto space-y-6">
+          {/* Subscription Form - Elegante */}
+          <div className="bg-gradient-to-b from-black/40 to-black/80 backdrop-blur-md p-8 rounded-3xl border border-[#C9A880]/20 hover:border-[#C9A880]/30 shadow-lg max-w-2xl mx-auto space-y-6 transition-all duration-300">
             <NewsletterAvatarCircles />
             
             {errorMessage && (
-              <div className="text-red-400 bg-red-500/20 p-4 rounded-lg text-sm text-center">
+              <div className="text-red-400 bg-red-500/10 p-4 rounded-lg text-sm border border-red-500/20 text-center animate-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mx-auto mb-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
                 {errorMessage}
               </div>
             )}
@@ -430,7 +434,7 @@ export function NewsletterHero() {
             <Input 
               type="text" 
               placeholder="Tu nombre" 
-              className="w-full p-5 h-14 rounded-lg bg-white/10 text-white border-white/20 placeholder:text-white/60 text-base"
+              className="w-full p-5 h-14 rounded-lg bg-black/30 text-white border-[#C9A880]/20 focus:border-[#C9A880]/60 focus:ring-[#C9A880]/10 placeholder:text-white/50 text-base transition-all duration-300"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -438,39 +442,69 @@ export function NewsletterHero() {
             <Input 
               type="email" 
               placeholder="Tu mejor email" 
-              className="w-full p-5 h-14 rounded-lg bg-white/10 text-white border-white/20 placeholder:text-white/60 text-base"
+              className="w-full p-5 h-14 rounded-lg bg-black/30 text-white border-[#C9A880]/20 focus:border-[#C9A880]/60 focus:ring-[#C9A880]/10 placeholder:text-white/50 text-base transition-all duration-300"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
             
-            <div className="flex items-start space-x-3 text-left">
-              <input 
-                type="checkbox" 
-                className="mt-1.5 w-4 h-4" 
-                id="privacy"
-                checked={accepted}
-                onChange={() => setAccepted(!accepted)}
-              />
-              <label htmlFor="privacy" className="text-base text-white/80">
-                He leído y acepto la <Link href="#" className="text-[#C9A880] hover:underline">política de cookies</Link> y <Link href="#" className="text-[#C9A880] hover:underline">privacidad</Link>.
+            <div className="flex items-start space-x-3 text-left p-3 rounded-lg bg-black/40">
+              <div className="relative flex mt-1">
+                <input 
+                  type="checkbox" 
+                  className="sr-only" 
+                  id="privacy"
+                  checked={accepted}
+                  onChange={() => setAccepted(!accepted)}
+                />
+                <div className={`w-5 h-5 rounded border transition-all duration-300 ${accepted ? 'bg-[#C9A880] border-[#C9A880]' : 'border-[#C9A880]/40 bg-black/30'} flex items-center justify-center`}>
+                  {accepted && (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-black" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <label htmlFor="privacy" className="text-base text-white/90 cursor-pointer">
+                He leído y acepto la <Link href="#" className="text-[#C9A880] hover:underline font-medium">política de cookies</Link> y <Link href="#" className="text-[#C9A880] hover:underline font-medium">privacidad</Link>.
               </label>
             </div>
             
-            <div className="pt-3">
+            <div className="pt-4">
               {isSuccess ? (
-                <div className="text-green-400 bg-green-400/20 p-5 rounded-lg">
-                  <p className="text-base">¡Gracias por unirte! Te notificaremos cuando la comunidad esté lista.</p>
+                <div className="text-green-400 bg-green-500/10 p-5 rounded-lg border border-green-500/30 flex items-center flex-col">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-base font-medium">¡Gracias por unirte! Te notificaremos cuando la comunidad esté lista.</p>
                 </div>
               ) : (
-                <RainbowButtonDemo 
-                  onClick={handleSubmit} 
-                  disabled={isSubmitting}
-                  className="w-full py-3"
-                >
-                  <span className="text-lg">
-                    {isSubmitting ? "ENVIANDO..." : "UNIRME A LA LISTA DE ESPERA"}
-                  </span>
-                </RainbowButtonDemo>
+                <div className="space-y-3">
+                  <RainbowButtonDemo 
+                    onClick={handleSubmit} 
+                    disabled={isSubmitting}
+                    className="w-full py-3.5 transform transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    <span className="text-lg font-medium flex items-center justify-center">
+                      {isSubmitting ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          ENVIANDO...
+                        </>
+                      ) : (
+                        <>
+                          UNIRME A LA LISTA DE ESPERA
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </>
+                      )}
+                    </span>
+                  </RainbowButtonDemo>
+                  <p className="text-xs text-[#C9A880]/70 text-center">Plazas limitadas · Acceso prioritario a recursos exclusivos</p>
+                </div>
               )}
             </div>
           </div>
