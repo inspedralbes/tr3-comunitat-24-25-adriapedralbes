@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { Logo } from "@/components/Logo";
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { NewsletterAvatarCircles } from "@/components/Newsletter/newsletter-avatar-circles";
+import { motion, AnimatePresence } from "framer-motion";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 import { Input } from "@/components/ui/input";
 import { AnimatedBackground } from "@/components/Newsletter/backgrounds";
@@ -21,9 +22,34 @@ export function NewsletterHero() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
+  const [volume, setVolume] = useState(1);
+  const [showVolumeControl, setShowVolumeControl] = useState(false);
   const [showCaptions, setShowCaptions] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  
+  // Función para cerrar el menú de ajustes al hacer clic fuera
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (showSettings) {
+      setShowSettings(false);
+    }
+  }, [showSettings]);
+  
+  // Efecto para manejar clics fuera del menú de ajustes
+  useEffect(() => {
+    if (showSettings) {
+      // Añadir un pequeño delay para evitar que el mismo clic que abre
+      // el menú lo cierre inmediatamente
+      const timer = setTimeout(() => {
+        document.addEventListener('click', handleClickOutside, { capture: true });
+      }, 100);
+      
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('click', handleClickOutside, { capture: true });
+      };
+    }
+  }, [showSettings, handleClickOutside]);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   
   // Manejar la reproducción del video
@@ -66,12 +92,63 @@ export function NewsletterHero() {
   };
   
   // Manejar silencio/sonido
-  const toggleMute = () => {
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evitar que se propague al documento
     if (!videoRef.current) return;
     
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
+    if (isMuted) {
+      videoRef.current.muted = false;
+      setIsMuted(false);
+    } else {
+      videoRef.current.muted = true;
+      setIsMuted(true);
+    }
   };
+  
+  // Manejar cambio de volumen
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!videoRef.current) return;
+    
+    const newVolume = parseFloat(e.target.value);
+    videoRef.current.volume = newVolume;
+    setVolume(newVolume);
+    
+    // Si el volumen es 0, silenciar; de lo contrario, activar sonido
+    if (newVolume === 0) {
+      videoRef.current.muted = true;
+      setIsMuted(true);
+    } else if (isMuted) {
+      videoRef.current.muted = false;
+      setIsMuted(false);
+    }
+  };
+  
+  // Manejar el clic en el icono de volumen
+  const handleVolumeClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evitar que se propague al documento
+    setShowVolumeControl(!showVolumeControl);
+    // Cerrar otros menús abiertos
+    if (showSettings) setShowSettings(false);
+  };
+  
+  // Efecto para manejar clics fuera del control de volumen
+  useEffect(() => {
+    if (showVolumeControl) {
+      const handleClickOutside = (e: MouseEvent) => {
+        setShowVolumeControl(false);
+      };
+      
+      // Añadir un pequeño delay para evitar que el mismo clic lo cierre
+      const timer = setTimeout(() => {
+        document.addEventListener('click', handleClickOutside, { capture: true });
+      }, 100);
+      
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('click', handleClickOutside, { capture: true });
+      };
+    }
+  }, [showVolumeControl]);
   
   // Manejar subtítulos
   const toggleCaptions = () => {
@@ -113,7 +190,10 @@ export function NewsletterHero() {
   };
   
   // Manejar configuración
-  const toggleSettings = () => {
+  const toggleSettings = (e: React.MouseEvent) => {
+    // Detener la propagación para que el clic no llegue al documento
+    // y evitar que el listener de clickOutside cierre el menú inmediatamente
+    e.stopPropagation();
     setShowSettings(!showSettings);
   };
   
@@ -288,11 +368,12 @@ export function NewsletterHero() {
               {/* Video Background with Fallback */}
               <video 
                 ref={videoRef}
-                className="absolute inset-0 h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover cursor-pointer"
                 muted
                 playsInline
                 preload="metadata"
                 poster="/video-thumbnail.jpg"
+                onClick={togglePlayPause}
                 onLoadedMetadata={() => {
                   if (videoRef.current) {
                     setDuration(videoRef.current.duration);
@@ -355,6 +436,10 @@ export function NewsletterHero() {
                   <div 
                     className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden cursor-pointer relative"
                     onClick={handleProgressBarClick}
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={(currentTime / (duration || 1)) * 100}
                   >
                     <div 
                       className="h-full bg-[#C9A880]"
@@ -362,34 +447,184 @@ export function NewsletterHero() {
                     />
                   </div>
                   
+                  {/* Duration */}
+                  <span className="text-white text-xs ml-2 mr-2 font-medium">
+                    {formatTime(duration)}
+                  </span>
+                  
                   {/* Control buttons on the right */}
                   <div className="flex items-center ml-2">
+                    {/* Subtítulos - con icono más reconocible */}
                     <button 
                       className={`text-white mx-1 transition-opacity ${showCaptions ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
                       onClick={toggleCaptions}
-                      aria-label="Subtítulos"
+                      aria-label={showCaptions ? "Desactivar subtítulos" : "Activar subtítulos"}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect>
+                        <path d="M7 12h2"></path>
+                        <path d="M11 12h6"></path>
+                        <path d="M7 16h10"></path>
                       </svg>
                     </button>
-                    <button className="text-white mx-1 opacity-80 hover:opacity-100">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    <button className="text-white mx-1 opacity-80 hover:opacity-100">
+                    
+                    {/* Volumen con control deslizante */}
+                    <div className="relative flex items-center justify-center mx-1">
+                      <button 
+                        className={`flex items-center justify-center text-white h-8 w-8 transition-opacity ${!isMuted ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
+                        onClick={handleVolumeClick}
+                        aria-label={isMuted ? "Activar sonido" : "Silenciar"}
+                      >
+                        {isMuted ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <line x1="23" y1="9" x2="17" y2="15"></line>
+                            <line x1="17" y1="9" x2="23" y2="15"></line>
+                          </svg>
+                        ) : volume > 0.5 ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                          </svg>
+                        )}
+                      </button>
+                      
+                      {/* Control deslizante de volumen - Perfectamente alineado */}
+                      <AnimatePresence>
+                        {showVolumeControl && (
+                          <motion.div 
+                            className="absolute bottom-10 left-1/2 -translate-x-1/2"
+                            onClick={(e) => e.stopPropagation()}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 5 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            {/* Barra simple sin fondo ni bordes */}
+                            <div className="relative h-16 flex items-center justify-center">
+                              {/* Línea vertical */}
+                              <div className="w-[2px] h-16 bg-[#C9A880]/20 rounded-full overflow-hidden">
+                                {/* Nivel de volumen */}
+                                <div 
+                                  className="absolute bottom-0 left-0 right-0 w-[2px] bg-[#C9A880]"
+                                  style={{ height: `${volume * 100}%` }}
+                                ></div>
+                              </div>
+                              
+                              {/* Slider invisible pero funcional */}
+                              <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={volume}
+                                onChange={handleVolumeChange}
+                                className="absolute inset-0 opacity-0 cursor-pointer w-8 -left-4"
+                                style={{
+                                  WebkitAppearance: 'slider-vertical',
+                                  writingMode: 'bt-lr',
+                                }}
+                              />
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    
+                    {/* Ajustes */}
+                    <button 
+                      className={`text-white mx-1 transition-opacity ${showSettings ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
+                      onClick={toggleSettings}
+                      aria-label="Ajustes"
+                    >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                       </svg>
                     </button>
-                    <button className="text-white mx-1 opacity-80 hover:opacity-100">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
-                      </svg>
+                    
+                    {/* Pantalla completa - con icono mejorado */}
+                    <button 
+                      className={`text-white mx-1 transition-opacity ${isFullscreen ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
+                      onClick={toggleFullscreen}
+                      aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                    >
+                      {isFullscreen ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </div>
+                
+                {/* Menú de ajustes */}
+                <AnimatePresence>
+                  {showSettings && (
+                    <motion.div 
+                      className="absolute bottom-12 right-3 bg-black/90 border border-[#C9A880]/20 rounded-lg p-3 shadow-lg w-48"
+                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                      onClick={(e) => e.stopPropagation()} // Evitar que clics dentro del menú lo cierren
+                    >
+                      <div className="text-white text-xs font-medium mb-2">Ajustes</div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/80 text-xs">Velocidad</span>
+                          <select 
+                            className="bg-[#333] text-white text-xs rounded px-2 py-1"
+                            onChange={(e) => {
+                              if (videoRef.current) {
+                                videoRef.current.playbackRate = parseFloat(e.target.value);
+                              }
+                            }}
+                            defaultValue="1"
+                          >
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1">Normal</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2x</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/80 text-xs">Calidad</span>
+                          <select 
+                            className="bg-[#333] text-white text-xs rounded px-2 py-1"
+                            defaultValue="auto"
+                          >
+                            <option value="auto">Auto</option>
+                            <option value="1080p">1080p</option>
+                            <option value="720p">720p</option>
+                            <option value="480p">480p</option>
+                            <option value="360p">360p</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/80 text-xs">Subtítulos</span>
+                          <button 
+                            className={`text-xs px-2 py-1 rounded ${showCaptions ? 'bg-[#C9A880] text-black' : 'bg-[#333] text-white'}`}
+                            onClick={toggleCaptions}
+                          >
+                            {showCaptions ? "Activados" : "Desactivados"}
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
@@ -406,24 +641,32 @@ export function NewsletterHero() {
         
         {/* Contenido */}
         <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
-          <div className="flex justify-center mb-6">
-            <Logo 
-              width={96}
-              height={96}
-              className="h-24 w-auto"
-            />
+          {/* Banner de "Spots limitados" destacado - Con estilo de la plataforma */}
+          <div className="inline-flex items-center justify-center px-6 py-2.5 bg-gradient-to-r from-[#C9A880] to-[#A78355] text-black rounded-full font-medium text-sm mb-8 mx-auto shadow-lg border border-[#C9A880]/30">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+            PLAZAS LIMITADAS - SOLO 200 MIEMBROS FUNDADORES
           </div>
+          
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
             Únete a la <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Comunidad</span>
           </h1>
           
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-medium mb-10 text-white">
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-medium mb-4 text-white">
             Conviértete en un pionero en la adopción de Inteligencia Artificial
           </h2>
           
+          <p className="text-white/80 max-w-2xl mx-auto mb-10">
+            Sé uno de los <span className="text-[#C9A880] font-medium">miembros fundadores</span> y asegura tu 
+            <span className="text-[#C9A880] font-medium"> precio especial para siempre</span>.
+            Únete a la lista de espera <span className="text-[#C9A880] font-medium">gratis</span> para reclamar tu plaza y serás contactado
+            cuando la comunidad esté lista.
+          </p>
+          
           {/* Subscription Form - Elegante con color principal muy oscuro */}
-          <div className="bg-gradient-to-b from-[#161310]/90 to-[#0c0a06]/95 backdrop-blur-md p-8 rounded-3xl border border-[#C9A880]/25 hover:border-[#C9A880]/40 shadow-lg max-w-2xl mx-auto space-y-4 transition-all duration-300">
-            <NewsletterAvatarCircles />
+          <div className="bg-gradient-to-b from-[#161310]/90 to-[#0c0a06]/95 backdrop-blur-md p-8 rounded-3xl border border-[#C9A880]/25 hover:border-[#C9A880]/40 shadow-lg max-w-2xl mx-auto space-y-6 transition-all duration-300">
+            <NewsletterAvatarCircles className="mb-2" />
             
             {errorMessage && (
               <div className="text-red-400 bg-red-500/10 p-4 rounded-lg text-sm border border-red-500/20 text-center animate-pulse">
@@ -506,7 +749,11 @@ export function NewsletterHero() {
                       )}
                     </span>
                   </RainbowButtonDemo>
-                  <p className="text-xs text-[#C9A880]/80 text-center font-medium">Plazas limitadas · Acceso prioritario a recursos exclusivos</p>
+                  <div className="px-4 py-3 bg-[#C9A880]/10 rounded-lg border border-[#C9A880]/20">
+                    <p className="text-xs text-[#C9A880] text-center font-medium">
+                      Acceso prioritario a recursos exclusivos · Precio especial para siempre
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

@@ -9,6 +9,7 @@ import { NewsletterGifts } from "@/components/Newsletter/gifts/newsletter-gifts"
 import { NewsletterHero } from "@/components/Newsletter/hero/newsletter-hero";
 import { NewsletterPricing } from "@/components/Newsletter/pricing/newsletter-pricing";
 import { NewsletterSkills } from "@/components/Newsletter/skills/newsletter-skills";
+import { ActivityNotifications } from "@/components/Newsletter/activity-notifications";
 import { MarqueeDemo } from "@/components/testimonials";
 
 export default function NewsletterPage() {
@@ -89,6 +90,9 @@ export default function NewsletterPage() {
 
       {/* Footer */}
       <Footer />
+      
+      {/* Notificaciones de actividad reciente */}
+      <ActivityNotifications />
     </div>
   );
 }
