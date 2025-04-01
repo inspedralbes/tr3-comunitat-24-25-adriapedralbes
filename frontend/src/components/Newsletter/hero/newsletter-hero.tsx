@@ -231,7 +231,7 @@ export function NewsletterHero() {
         <div className="absolute top-7 right-7 md:right-14 z-30">
           <Link href="#newsletter-form">
             <button className="bg-black border border-[#C9A880]/50 hover:border-[#C9A880] text-white text-sm px-5 py-2 rounded-full transition-all duration-300">
-              Reserve Your Spot Today!
+              ¡Reserva tu plaza hoy!
             </button>
           </Link>
         </div>
@@ -244,14 +244,14 @@ export function NewsletterHero() {
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-7 text-white leading-tight">
-              Master AI and <br />
-              Gain the <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Ultimate</span>
+              Domina la IA y <br />
+              Obtén la <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Ventaja</span>
               <br />
-              <span className="text-[#0f85ff]">Unfair Advantage</span>
+              <span className="text-[#C9A880]">Definitiva</span>
             </h1>
             
             <p className="text-white/90 text-lg mb-10 max-w-xl">
-              Join the #1 up-and-coming community for early AI adopters to master AI & AI Agents and transform their businesses and careers.
+              Únete a la comunidad emergente número 1 para pioneros en IA, domina la Inteligencia Artificial y los Agentes de IA, y transforma tu negocio y carrera profesional.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-5 mb-8 md:mb-0">
@@ -259,7 +259,7 @@ export function NewsletterHero() {
                 <div className="w-full sm:w-auto">
                   <RainbowButtonDemo className="px-7 py-3 text-base">
                     <span className="flex items-center">
-                      Join the Waitlist
+                      Únete a la Lista
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                       </svg>
@@ -270,7 +270,7 @@ export function NewsletterHero() {
               
               <Link href="#benefits">
                 <button className="border border-[#C9A880]/50 hover:border-[#C9A880] text-white font-medium py-3 px-7 rounded-xl text-base transition-all duration-300">
-                  Explore Course
+                  Explorar Curso
                 </button>
               </Link>
             </div>
@@ -312,7 +312,7 @@ export function NewsletterHero() {
               <div className="absolute inset-0 flex items-center justify-center z-20">
                 {!isPlaying && (
                   <button 
-                    className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#0f85ff] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
+                    className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#C9A880] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
                     aria-label="Play video"
                     onClick={togglePlayPause}
                   >
@@ -354,7 +354,7 @@ export function NewsletterHero() {
                     onClick={handleProgressBarClick}
                   >
                     <div 
-                      className="h-full bg-[#0f85ff]"
+                      className="h-full bg-[#C9A880]"
                       style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
                     />
                   </div>
@@ -398,9 +398,7 @@ export function NewsletterHero() {
         {/* Fondo oscuro con degradado */}
         <div className="absolute inset-0 bg-black/60 z-10"></div>
         
-        {/* Gradientes de colores */}
-        <div className="absolute top-0 -left-4 w-[30rem] h-[30rem] bg-[#C9A880]/30 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-[#C9A880]/25 rounded-full blur-3xl"></div>
+        {/* Se han eliminado los gradientes de colores del fondo */}
         
         {/* Contenido */}
         <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
