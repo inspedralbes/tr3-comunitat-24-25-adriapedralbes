@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
+import { SmoothScrollLink } from "@/components/SmoothScroll";
 
 export function NewsletterPricing() {
   return (
@@ -149,7 +150,7 @@ export function NewsletterPricing() {
             </div>
 
             {/* CTA Button */}
-            <Link href="#newsletter-form">
+            <SmoothScrollLink href="#newsletter-form">
               <RainbowButtonDemo className="w-full py-4 text-lg font-medium">
                 <span className="flex items-center justify-center">
                   DEBES RESERVAR TU PLAZA YA
@@ -158,7 +159,7 @@ export function NewsletterPricing() {
                   </svg>
                 </span>
               </RainbowButtonDemo>
-            </Link>
+            </SmoothScrollLink>
           </div>
         </div>
       </div>

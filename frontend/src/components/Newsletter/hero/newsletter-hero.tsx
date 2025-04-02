@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { SmoothScrollLink } from "@/components/SmoothScroll";
 import { NewsletterAvatarCircles } from "@/components/Newsletter/newsletter-avatar-circles";
 import { motion, AnimatePresence } from "framer-motion";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
@@ -312,11 +313,11 @@ export function NewsletterHero() {
         <AnimatedBackground />
         {/* Reserve Spot Button */}
         <div className="absolute top-7 right-7 md:right-14 z-30">
-          <Link href="#newsletter-form">
+          <SmoothScrollLink href="#newsletter-form">
             <button className="bg-black border border-[#C9A880]/50 hover:border-[#C9A880] text-white text-sm px-5 py-2 rounded-full transition-all duration-300">
               ¡DEBES RESERVAR AHORA!
             </button>
-          </Link>
+          </SmoothScrollLink>
         </div>
 
         <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row px-8 md:px-12 pb-12 pt-24 md:pt-20">
@@ -340,7 +341,7 @@ export function NewsletterHero() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-5 mb-8 md:mb-0">
-              <Link href="#newsletter-form">
+              <SmoothScrollLink href="#newsletter-form">
                 <div className="w-full sm:w-auto">
                   <RainbowButtonDemo className="px-7 py-3 text-base">
                     <span className="flex items-center">
@@ -351,7 +352,7 @@ export function NewsletterHero() {
                     </span>
                   </RainbowButtonDemo>
                 </div>
-              </Link>
+              </SmoothScrollLink>
               
               <Link href="#benefits">
                 <button className="border border-[#C9A880]/50 hover:border-[#C9A880] text-white font-medium py-3 px-7 rounded-xl text-base transition-all duration-300">

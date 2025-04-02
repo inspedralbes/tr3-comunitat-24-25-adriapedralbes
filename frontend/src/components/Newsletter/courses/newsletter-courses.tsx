@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { MagicCard } from "@/components/magicui/magic-card";
+import { SmoothScrollLink } from "@/components/SmoothScroll";
 import { Code, Users, Lightbulb, Clock, Database, Layout, Server, TestTube, BarChart, BookOpen, Brain, Rocket, ChevronDown, ChevronUp } from "lucide-react";
 
 // Tecnologías con sus rutas de imágenes
@@ -255,9 +256,11 @@ export function NewsletterCourses() {
               sobre planificación, construcción y despliegue de agentes IA. Los primeros módulos principales estarán
               disponibles cuando se abra la comunidad, ¡así que únete a la lista de espera para ser el primero en obtener acceso!
             </p>
-            <button className="mt-8 px-6 py-3 bg-black border border-[#C9A880]/50 hover:border-[#C9A880] text-white rounded-full font-medium transition-all duration-300">
-              Unirse a la Lista de Espera →
-            </button>
+            <SmoothScrollLink href="#newsletter-form">
+              <button className="mt-8 px-6 py-3 bg-black border border-[#C9A880]/50 hover:border-[#C9A880] text-white rounded-full font-medium transition-all duration-300">
+                Unirse a la Lista de Espera →
+              </button>
+            </SmoothScrollLink>
           </div>
 
           {/* Herramientas y frameworks */}

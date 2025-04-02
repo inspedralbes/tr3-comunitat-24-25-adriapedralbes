@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { AnimatedButton } from "@/components/animatedButton";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
+import { SmoothScrollLink } from "@/components/SmoothScroll";
 import { Card } from "@/components/ui/card";
 
 export function NewsletterTestimonials() {
@@ -113,11 +114,11 @@ export function NewsletterTestimonials() {
         </div>
 
         <div className="text-center mt-16">
-          <Link href="#newsletter-form" scroll={false}>
+          <SmoothScrollLink href="#newsletter-form">
             <RainbowButtonDemo>
               Sí, quiero recibir la newsletter
             </RainbowButtonDemo>
-          </Link>
+          </SmoothScrollLink>
         </div>
       </div>
     </section>

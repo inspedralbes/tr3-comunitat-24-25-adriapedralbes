@@ -56,7 +56,7 @@ export function NewsletterForm() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto text-center">
+    <div id="newsletter-form" className="w-full max-w-2xl mx-auto text-center scroll-mt-24">
       {/* Logo */}
       <div className="flex justify-center mb-6">
         <div className="relative w-20 h-20 flex items-center justify-center">
