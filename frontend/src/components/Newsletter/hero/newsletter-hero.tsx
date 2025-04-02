@@ -289,10 +289,27 @@ export function NewsletterHero() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Comprobar el mensaje específico de error
+        if (data.message && data.message.includes('ya está suscrito')) {
+          setErrorMessage("Los datos proporcionados ya están registrados");
+          setIsSubmitting(false);
+          return;
+        }
+        
+        // Comprobar si es error de validación de datos
+        if (data.errors) {
+          setErrorMessage("Los datos proporcionados no son válidos");
+          setIsSubmitting(false);
+          return;
+        }
+        
         throw new Error(data.message || 'Ha ocurrido un error al procesar la suscripción');
       }
 
-      setIsSuccess(true);
+      // Redireccionar a la página de agradecimiento en lugar de mostrar el mensaje de éxito
+      window.location.href = "/thank-you";
+      
+      // Limpiar formulario (aunque se redirige, por si acaso)
       setName("");
       setEmail("");
       setAccepted(false);
@@ -367,7 +384,6 @@ export function NewsletterHero() {
                 muted
                 playsInline
                 preload="metadata"
-                poster="/video-thumbnail.jpg"
                 onClick={togglePlayPause}
                 onLoadedMetadata={() => {
                   if (videoRef.current) {
@@ -377,14 +393,6 @@ export function NewsletterHero() {
                 }}
               >
                 <source src="/hero-video.mp4" type="video/mp4" />
-                {/* Fallback for browsers that don't support video */}
-                <Image
-                  src="/video-thumbnail.jpg"
-                  alt="AI Community"
-                  fill
-                  className="object-cover"
-                  priority
-                />
               </video>
 
               {/* Video Controls - Central play button, exactly like the reference */}
