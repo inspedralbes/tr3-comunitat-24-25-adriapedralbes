@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import { Code, Users, Lightbulb, Clock, Database, Layout, Server, TestTube, BarChart, BookOpen, Brain, Rocket, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
+import React, { useState } from "react";
+
 import { MagicCard } from "@/components/magicui/magic-card";
 import { SmoothScrollLink } from "@/components/SmoothScroll";
-import { Code, Users, Lightbulb, Clock, Database, Layout, Server, TestTube, BarChart, BookOpen, Brain, Rocket, ChevronDown, ChevronUp } from "lucide-react";
+
 
 // Tecnologías con sus rutas de imágenes
 const techImages = {

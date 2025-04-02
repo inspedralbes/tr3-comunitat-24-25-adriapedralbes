@@ -71,7 +71,7 @@ export const communityService = {
     const formData = new FormData();
     
     // Crear estructura de contenido enriquecido
-    let enrichedContent = {
+    const enrichedContent = {
       text: data.content,  // Texto original
       features: {} as Record<string, any>
     };

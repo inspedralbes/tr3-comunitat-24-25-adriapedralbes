@@ -1,11 +1,11 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import { Logo } from "@/components/Logo";
 import Link from "next/link";
 
 import { AnimatedButton } from "@/components/animatedButton";
 import { AvatarCirclesDemo } from "@/components/avatarCircles";
 import { Footer } from "@/components/footer-component";
+import { Logo } from "@/components/Logo";
 import { MagicCardDemo } from "@/components/magicCard";
 import { BentoDemo } from "@/components/our-services";
 import { RainbowButtonDemo } from "@/components/rainbowButton";

@@ -1,9 +1,10 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+
 import { AvatarCircles } from "@/components/magicui/avatar-circles";
 import { ProgressIndicator } from "@/components/Newsletter/progress-indicator";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 // Avatares predefinidos - Mejor lista con más variedad

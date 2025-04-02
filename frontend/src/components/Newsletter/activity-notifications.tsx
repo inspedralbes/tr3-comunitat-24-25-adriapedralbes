@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export function ActivityNotifications() {
   const [notification, setNotification] = useState<string | null>(null);

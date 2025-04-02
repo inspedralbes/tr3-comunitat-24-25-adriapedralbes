@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
+
+import { Logo } from "@/components/Logo";
 import { NewsletterAvatarCircles } from "@/components/Newsletter/newsletter-avatar-circles";
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 import { Input } from "@/components/ui/input";

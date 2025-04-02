@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { existsSync } from 'fs';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { existsSync } from 'fs';
+
+import { NextRequest, NextResponse } from 'next/server';
 
 // Función para generar un ID único basado en timestamp y random
 const generateUniqueId = () => {

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+
 import { Logo } from "@/components/Logo";
 
 export default function ThankYouPage() {
@@ -397,6 +398,7 @@ export default function ThankYouPage() {
                   className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden cursor-pointer relative"
                   onClick={handleProgressBarClick}
                   role="progressbar"
+                  tabIndex={0}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={(currentTime / (duration || 1)) * 100}

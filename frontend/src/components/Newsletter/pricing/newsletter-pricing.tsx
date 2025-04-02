@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
+import React from "react";
+
 import { RainbowButtonDemo } from "@/components/rainbowButton";
 import { SmoothScrollLink } from "@/components/SmoothScroll";
 

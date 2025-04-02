@@ -1,15 +1,16 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { SmoothScrollLink } from "@/components/SmoothScroll";
-import { NewsletterAvatarCircles } from "@/components/Newsletter/newsletter-avatar-circles";
-import { motion, AnimatePresence } from "framer-motion";
-import { RainbowButtonDemo } from "@/components/rainbowButton";
-import { Input } from "@/components/ui/input";
+
+import { Logo } from "@/components/Logo";
 import { AnimatedBackground } from "@/components/Newsletter/backgrounds";
+import { NewsletterAvatarCircles } from "@/components/Newsletter/newsletter-avatar-circles";
+import { RainbowButtonDemo } from "@/components/rainbowButton";
+import { SmoothScrollLink } from "@/components/SmoothScroll";
+import { Input } from "@/components/ui/input";
 
 export function NewsletterHero() {
   const [name, setName] = useState("");
@@ -440,6 +441,7 @@ export function NewsletterHero() {
                     className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden cursor-pointer relative"
                     onClick={handleProgressBarClick}
                     role="progressbar"
+                    tabIndex={0}
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={(currentTime / (duration || 1)) * 100}

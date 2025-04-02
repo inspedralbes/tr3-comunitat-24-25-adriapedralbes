@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 
 import { CourseGrid } from '@/components/Classroom/CourseGrid';
 import { CourseDetail } from '@/components/Classroom/Courses/CourseDetail';

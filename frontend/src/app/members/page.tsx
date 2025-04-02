@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 import MainLayout from "@/components/layouts/MainLayout";
 import { MembersList } from "@/components/Members/MembersList";

@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
-import { useTheme } from "next-themes";
 import { Check, ExternalLink } from "lucide-react";
+import { useTheme } from "next-themes";
+import React from "react";
 
 import { AnimatedButton } from "@/components/animatedButton";
 import { MagicCard } from "@/components/magicui/magic-card";

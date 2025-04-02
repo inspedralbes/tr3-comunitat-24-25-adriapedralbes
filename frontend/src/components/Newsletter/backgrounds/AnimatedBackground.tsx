@@ -1,7 +1,7 @@
 "use client";
 
-import { FloatingIcons } from './FloatingIcons';
 import { AbstractBackground } from './AbstractBackground';
+import { FloatingIcons } from './FloatingIcons';
 
 export function AnimatedBackground() {
   return (

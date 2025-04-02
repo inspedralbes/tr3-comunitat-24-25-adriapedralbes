@@ -95,18 +95,20 @@ export function FloatingIcons() {
       
       // Dibuja la forma según el tipo
       switch(obj.shape) {
-        case 'circle':
+        case 'circle': {
           ctx.beginPath();
           ctx.arc(0, 0, obj.size / 3, 0, Math.PI * 2);
           ctx.fill();
           break;
+        }
           
-        case 'square':
+        case 'square': {
           const size = obj.size / 3;
           ctx.fillRect(-size / 2, -size / 2, size, size);
           break;
+        }
           
-        case 'triangle':
+        case 'triangle': {
           const triangleSize = obj.size / 3;
           ctx.beginPath();
           ctx.moveTo(0, -triangleSize / 2);
@@ -115,8 +117,9 @@ export function FloatingIcons() {
           ctx.closePath();
           ctx.fill();
           break;
+        }
           
-        case 'diamond':
+        case 'diamond': {
           const diamondSize = obj.size / 3;
           ctx.beginPath();
           ctx.moveTo(0, -diamondSize / 2);
@@ -126,6 +129,7 @@ export function FloatingIcons() {
           ctx.closePath();
           ctx.fill();
           break;
+        }
       }
 
       ctx.restore();

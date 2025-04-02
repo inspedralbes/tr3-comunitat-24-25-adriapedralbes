@@ -1,5 +1,4 @@
 import { ThumbsUp, MessageCircle, Bell, Smile, CornerUpRight } from 'lucide-react';
-import { formatRelativeTime } from '@/utils/dateUtils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
@@ -12,6 +11,7 @@ import { authService, UserProfile } from '@/services/auth';
 import { communityService } from '@/services/community';
 import { Comment } from '@/types/Comment'; // Assuming Comment.ts is in '@/types/Comment'
 import { Post } from '@/types/Post';
+import { formatRelativeTime } from '@/utils/dateUtils';
 import { normalizeAvatarUrl, normalizeImageUrl } from '@/utils/imageUtils';
 
 interface PostDetailModalProps {

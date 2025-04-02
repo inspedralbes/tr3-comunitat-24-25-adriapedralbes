@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 
 import { Calendar } from '@/components/Calendar/Calendar';
 import { EventDetailModal } from '@/components/Calendar/EventDetailModel';

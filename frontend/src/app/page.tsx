@@ -3,15 +3,15 @@
 import { useEffect } from "react";
 
 import { Footer } from "@/components/footer-component";
+import { ActivityNotifications } from "@/components/Newsletter/activity-notifications";
 import { NewsletterBenefits } from "@/components/Newsletter/benefits/newsletter-benefits";
 import { NewsletterCommunity } from "@/components/Newsletter/community/newsletter-community";
+import { NewsletterCourses } from "@/components/Newsletter/courses/newsletter-courses";
 import { NewsletterGifts } from "@/components/Newsletter/gifts/newsletter-gifts";
 import { NewsletterHero } from "@/components/Newsletter/hero/newsletter-hero";
 import { NewsletterPricing } from "@/components/Newsletter/pricing/newsletter-pricing";
 import { NewsletterSkills } from "@/components/Newsletter/skills/newsletter-skills";
-import { ActivityNotifications } from "@/components/Newsletter/activity-notifications";
 import { MarqueeDemo } from "@/components/testimonials";
-import { NewsletterCourses } from "@/components/Newsletter/courses/newsletter-courses";
 
 export default function Home() {
   // Implementar scroll suave para los enlaces de anclaje
