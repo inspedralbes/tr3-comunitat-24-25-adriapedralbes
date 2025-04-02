@@ -33,9 +33,9 @@ export function NewsletterCommunity() {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 text-white">
           La Comunidad para <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Ti</span>
         </h2>
-        
+
         <p className="text-gray-300 text-center max-w-3xl mx-auto mb-12">
-          Mira, seré claro. Esta comunidad NO es para todo el mundo.
+          Esta comunidad NO es para todo el mundo.
           Si buscas teoría, certificados bonitos o promesas vacías... este NO es tu sitio.
           Pero si quieres RESULTADOS TANGIBLES, sigue leyendo.
         </p>

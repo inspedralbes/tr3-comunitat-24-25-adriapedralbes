@@ -28,14 +28,14 @@ export function NewsletterHero() {
   const [showCaptions, setShowCaptions] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  
+
   // Función para cerrar el menú de ajustes al hacer clic fuera
   const handleClickOutside = useCallback((e: MouseEvent) => {
     if (showSettings) {
       setShowSettings(false);
     }
   }, [showSettings]);
-  
+
   // Efecto para manejar clics fuera del menú de ajustes
   useEffect(() => {
     if (showSettings) {
@@ -44,7 +44,7 @@ export function NewsletterHero() {
       const timer = setTimeout(() => {
         document.addEventListener('click', handleClickOutside, { capture: true });
       }, 100);
-      
+
       return () => {
         clearTimeout(timer);
         document.removeEventListener('click', handleClickOutside, { capture: true });
@@ -52,11 +52,11 @@ export function NewsletterHero() {
     }
   }, [showSettings, handleClickOutside]);
   const videoContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // Manejar la reproducción del video
   const togglePlayPause = () => {
     if (!videoRef.current) return;
-    
+
     if (isPlaying) {
       videoRef.current.pause();
     } else {
@@ -64,10 +64,10 @@ export function NewsletterHero() {
         console.error("Error al reproducir el video:", error);
       });
     }
-    
+
     setIsPlaying(!isPlaying);
   };
-  
+
   // Formatear el tiempo en formato m:ss
   const formatTime = (time: number) => {
     if (isNaN(time) || time < 0) return "0:00";
@@ -79,24 +79,24 @@ export function NewsletterHero() {
   // Manejar clic en la barra de progreso
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (!videoRef.current) return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const percentage = offsetX / rect.width;
-    
+
     // Asegurarse de que el percentage esté entre 0 y 1
     const clampedPercentage = Math.max(0, Math.min(1, percentage));
-    
+
     // Actualizar tiempo del video
     videoRef.current.currentTime = clampedPercentage * videoRef.current.duration;
     setCurrentTime(videoRef.current.currentTime);
   };
-  
+
   // Manejar silencio/sonido
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que se propague al documento
     if (!videoRef.current) return;
-    
+
     if (isMuted) {
       videoRef.current.muted = false;
       setIsMuted(false);
@@ -105,15 +105,15 @@ export function NewsletterHero() {
       setIsMuted(true);
     }
   };
-  
+
   // Manejar cambio de volumen
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!videoRef.current) return;
-    
+
     const newVolume = parseFloat(e.target.value);
     videoRef.current.volume = newVolume;
     setVolume(newVolume);
-    
+
     // Si el volumen es 0, silenciar; de lo contrario, activar sonido
     if (newVolume === 0) {
       videoRef.current.muted = true;
@@ -123,7 +123,7 @@ export function NewsletterHero() {
       setIsMuted(false);
     }
   };
-  
+
   // Manejar el clic en el icono de volumen
   const handleVolumeClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que se propague al documento
@@ -131,30 +131,30 @@ export function NewsletterHero() {
     // Cerrar otros menús abiertos
     if (showSettings) setShowSettings(false);
   };
-  
+
   // Efecto para manejar clics fuera del control de volumen
   useEffect(() => {
     if (showVolumeControl) {
       const handleClickOutside = (e: MouseEvent) => {
         setShowVolumeControl(false);
       };
-      
+
       // Añadir un pequeño delay para evitar que el mismo clic lo cierre
       const timer = setTimeout(() => {
         document.addEventListener('click', handleClickOutside, { capture: true });
       }, 100);
-      
+
       return () => {
         clearTimeout(timer);
         document.removeEventListener('click', handleClickOutside, { capture: true });
       };
     }
   }, [showVolumeControl]);
-  
+
   // Manejar subtítulos
   const toggleCaptions = () => {
     setShowCaptions(!showCaptions);
-    
+
     // Si el video tiene pistas de texto (subtítulos)
     if (videoRef.current && videoRef.current.textTracks.length > 0) {
       for (let i = 0; i < videoRef.current.textTracks.length; i++) {
@@ -162,11 +162,11 @@ export function NewsletterHero() {
       }
     }
   };
-  
+
   // Manejar pantalla completa
   const toggleFullscreen = () => {
     if (!videoContainerRef.current) return;
-    
+
     if (!document.fullscreenElement) {
       // Entrar en pantalla completa
       if (videoContainerRef.current.requestFullscreen) {
@@ -189,7 +189,7 @@ export function NewsletterHero() {
         });
     }
   };
-  
+
   // Manejar configuración
   const toggleSettings = (e: React.MouseEvent) => {
     // Detener la propagación para que el clic no llegue al documento
@@ -197,46 +197,46 @@ export function NewsletterHero() {
     e.stopPropagation();
     setShowSettings(!showSettings);
   };
-  
+
   // Actualizar la barra de progreso y el tiempo
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    
+
     // Establecer tiempo inicial y duración cuando se carga el video
     const handleLoaded = () => {
       console.log("Video cargado. Duración:", video.duration);
       setDuration(video.duration || 0);
       setCurrentTime(0);
     };
-    
+
     // Actualizar tiempo actual mientras se reproduce
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime || 0);
     };
-    
+
     // Cuando el video termina
     const handleEnded = () => {
       setIsPlaying(false);
       video.currentTime = 0;
       setCurrentTime(0);
     };
-    
+
     // Manejar pausa y reproducción
     const handlePause = () => setIsPlaying(false);
     const handlePlay = () => setIsPlaying(true);
-    
+
     // Asegurarnos de cargar metadata al principio
     const handleMetadataLoaded = () => {
       console.log("Metadatos cargados. Duración:", video.duration);
       setDuration(video.duration || 0);
     };
-    
+
     // Cargar duración si el video ya está cargado
     if (video.readyState >= 2) {
       setDuration(video.duration || 0);
     }
-    
+
     // Agregar eventos
     video.addEventListener('loadeddata', handleLoaded);
     video.addEventListener('loadedmetadata', handleMetadataLoaded);
@@ -244,7 +244,7 @@ export function NewsletterHero() {
     video.addEventListener('ended', handleEnded);
     video.addEventListener('pause', handlePause);
     video.addEventListener('play', handlePlay);
-    
+
     // Limpiar eventos
     return () => {
       video.removeEventListener('loadeddata', handleLoaded);
@@ -255,26 +255,26 @@ export function NewsletterHero() {
       video.removeEventListener('play', handlePlay);
     };
   }, []);
-  
+
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setErrorMessage(null);
-    
+
     if (!email) {
-      setErrorMessage("Mira, DEBES introducir tu email para poder continuar");
+      setErrorMessage("DEBES introducir tu email para poder continuar");
       return;
     }
-    
+
     if (!accepted) {
       setErrorMessage("¡OJO! Es OBLIGATORIO aceptar la política de privacidad para continuar");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
-      
+
       const response = await fetch(`${apiUrl}/newsletter/subscribe/`, {
         method: 'POST',
         headers: {
@@ -285,13 +285,13 @@ export function NewsletterHero() {
           email,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Ha ocurrido un error al procesar la suscripción');
       }
-      
+
       setIsSuccess(true);
       setName("");
       setEmail("");
@@ -311,14 +311,7 @@ export function NewsletterHero() {
       <section className="relative w-full bg-black min-h-screen flex items-center">
         {/* Animated Background */}
         <AnimatedBackground />
-        {/* Reserve Spot Button */}
-        <div className="absolute top-7 right-7 md:right-14 z-30">
-          <SmoothScrollLink href="#newsletter-form">
-            <button className="bg-black border border-[#C9A880]/50 hover:border-[#C9A880] text-white text-sm px-5 py-2 rounded-full transition-all duration-300">
-              ¡DEBES RESERVAR AHORA!
-            </button>
-          </SmoothScrollLink>
-        </div>
+        {/* El botón superior de reserva ha sido eliminado para una experiencia más limpia */}
 
         <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row px-8 md:px-12 pb-12 pt-24 md:pt-20">
           {/* Left Section - Made larger */}
@@ -326,26 +319,25 @@ export function NewsletterHero() {
             <div className="flex items-center mb-8">
               <Logo width={70} height={70} className="h-16 w-auto" />
             </div>
-            
+
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-7 text-white leading-tight">
-              Después de documentar<br />
-              <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">cientos de casos</span>
-              <br />
-              <span className="text-[#C9A880]">de éxito real...</span>
+              <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Domina la IA:</span><br />
+              Tu Ventaja Definitiva<br />
+              <span className="text-[#C9A880]">Sobre los Demás</span>
             </h1>
-            
+
             <p className="text-white/90 text-lg mb-10 max-w-xl">
-              ...he observado dos tendencias que necesitan atención inmediata:
-              La mayoría aprende IA de gente SIN resultados y con tanto ruido 
-              ahí fuera es IMPOSIBLE tomar buenas decisiones.
+              Únete a la comunidad #1 para pioneros de la IA donde aprenderás
+              a dominar la Inteligencia Artificial y los Agentes IA para
+              transformar por completo tu negocio y carrera profesional.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-5 mb-8 md:mb-0">
               <SmoothScrollLink href="#newsletter-form">
                 <div className="w-full sm:w-auto">
                   <RainbowButtonDemo className="px-7 py-3 text-base">
                     <span className="flex items-center">
-                      QUIERO APRENDER
+                      QUIERO UNIRME
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                       </svg>
@@ -353,7 +345,7 @@ export function NewsletterHero() {
                   </RainbowButtonDemo>
                 </div>
               </SmoothScrollLink>
-              
+
               <Link href="#benefits">
                 <button className="border border-[#C9A880]/50 hover:border-[#C9A880] text-white font-medium py-3 px-7 rounded-xl text-base transition-all duration-300">
                   Ver los beneficios
@@ -364,12 +356,12 @@ export function NewsletterHero() {
 
           {/* Right Section - Video/Image (positioned lower) */}
           <div className="w-full md:w-1/2 mt-12 md:mt-0 flex items-center z-10">
-            <div 
+            <div
               ref={videoContainerRef}
               className="rounded-2xl overflow-hidden shadow-xl bg-black/30 border border-white/10 relative w-full h-0 pb-[56.25%]"
             >
               {/* Video Background with Fallback */}
-              <video 
+              <video
                 ref={videoRef}
                 className="absolute inset-0 h-full w-full object-cover cursor-pointer"
                 muted
@@ -386,19 +378,19 @@ export function NewsletterHero() {
               >
                 <source src="/hero-video.mp4" type="video/mp4" />
                 {/* Fallback for browsers that don't support video */}
-                <Image 
-                  src="/video-thumbnail.jpg" 
-                  alt="AI Community" 
-                  fill 
-                  className="object-cover" 
-                  priority 
+                <Image
+                  src="/video-thumbnail.jpg"
+                  alt="AI Community"
+                  fill
+                  className="object-cover"
+                  priority
                 />
               </video>
 
               {/* Video Controls - Central play button, exactly like the reference */}
               <div className="absolute inset-0 flex items-center justify-center z-20">
                 {!isPlaying && (
-                  <button 
+                  <button
                     className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#C9A880] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
                     aria-label="Play video"
                     onClick={togglePlayPause}
@@ -414,7 +406,7 @@ export function NewsletterHero() {
               <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/60 to-transparent pt-10">
                 <div className="flex items-center px-3 py-2 w-full">
                   {/* Play button */}
-                  <button 
+                  <button
                     className="mr-2 flex items-center justify-center h-8 w-8 text-white"
                     aria-label={isPlaying ? "Pause video" : "Play video"}
                     onClick={togglePlayPause}
@@ -429,14 +421,14 @@ export function NewsletterHero() {
                       </svg>
                     )}
                   </button>
-                  
+
                   {/* Current time */}
                   <span className="text-white text-xs mr-2 font-medium">
                     {formatTime(currentTime)}
                   </span>
-                  
+
                   {/* Progress bar */}
-                  <div 
+                  <div
                     className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden cursor-pointer relative"
                     onClick={handleProgressBarClick}
                     role="progressbar"
@@ -444,21 +436,21 @@ export function NewsletterHero() {
                     aria-valuemax={100}
                     aria-valuenow={(currentTime / (duration || 1)) * 100}
                   >
-                    <div 
+                    <div
                       className="h-full bg-[#C9A880]"
                       style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
                     />
                   </div>
-                  
+
                   {/* Duration */}
                   <span className="text-white text-xs ml-2 mr-2 font-medium">
                     {formatTime(duration)}
                   </span>
-                  
+
                   {/* Control buttons on the right */}
                   <div className="flex items-center ml-2">
                     {/* Subtítulos - con icono más reconocible */}
-                    <button 
+                    <button
                       className={`text-white mx-1 transition-opacity ${showCaptions ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
                       onClick={toggleCaptions}
                       aria-label={showCaptions ? "Desactivar subtítulos" : "Activar subtítulos"}
@@ -470,10 +462,10 @@ export function NewsletterHero() {
                         <path d="M7 16h10"></path>
                       </svg>
                     </button>
-                    
+
                     {/* Volumen con control deslizante */}
                     <div className="relative flex items-center justify-center mx-1">
-                      <button 
+                      <button
                         className={`flex items-center justify-center text-white h-8 w-8 transition-opacity ${!isMuted ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
                         onClick={handleVolumeClick}
                         aria-label={isMuted ? "Activar sonido" : "Silenciar"}
@@ -497,11 +489,11 @@ export function NewsletterHero() {
                           </svg>
                         )}
                       </button>
-                      
+
                       {/* Control deslizante de volumen - Perfectamente alineado */}
                       <AnimatePresence>
                         {showVolumeControl && (
-                          <motion.div 
+                          <motion.div
                             className="absolute bottom-10 left-1/2 -translate-x-1/2"
                             onClick={(e) => e.stopPropagation()}
                             initial={{ opacity: 0, y: 5 }}
@@ -514,12 +506,12 @@ export function NewsletterHero() {
                               {/* Línea vertical */}
                               <div className="w-[2px] h-16 bg-[#C9A880]/20 rounded-full overflow-hidden">
                                 {/* Nivel de volumen */}
-                                <div 
+                                <div
                                   className="absolute bottom-0 left-0 right-0 w-[2px] bg-[#C9A880]"
                                   style={{ height: `${volume * 100}%` }}
                                 ></div>
                               </div>
-                              
+
                               {/* Slider invisible pero funcional */}
                               <input
                                 type="range"
@@ -539,9 +531,9 @@ export function NewsletterHero() {
                         )}
                       </AnimatePresence>
                     </div>
-                    
+
                     {/* Ajustes */}
-                    <button 
+                    <button
                       className={`text-white mx-1 transition-opacity ${showSettings ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
                       onClick={toggleSettings}
                       aria-label="Ajustes"
@@ -550,9 +542,9 @@ export function NewsletterHero() {
                         <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                       </svg>
                     </button>
-                    
+
                     {/* Pantalla completa - con icono mejorado */}
-                    <button 
+                    <button
                       className={`text-white mx-1 transition-opacity ${isFullscreen ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
                       onClick={toggleFullscreen}
                       aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
@@ -569,11 +561,11 @@ export function NewsletterHero() {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* Menú de ajustes */}
                 <AnimatePresence>
                   {showSettings && (
-                    <motion.div 
+                    <motion.div
                       className="absolute bottom-12 right-3 bg-black/90 border border-[#C9A880]/20 rounded-lg p-3 shadow-lg w-48"
                       initial={{ opacity: 0, scale: 0.9, y: 10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -585,7 +577,7 @@ export function NewsletterHero() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-white/80 text-xs">Velocidad</span>
-                          <select 
+                          <select
                             className="bg-[#333] text-white text-xs rounded px-2 py-1"
                             onChange={(e) => {
                               if (videoRef.current) {
@@ -604,7 +596,7 @@ export function NewsletterHero() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-white/80 text-xs">Calidad</span>
-                          <select 
+                          <select
                             className="bg-[#333] text-white text-xs rounded px-2 py-1"
                             defaultValue="auto"
                           >
@@ -617,7 +609,7 @@ export function NewsletterHero() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-white/80 text-xs">Subtítulos</span>
-                          <button 
+                          <button
                             className={`text-xs px-2 py-1 rounded ${showCaptions ? 'bg-[#C9A880] text-black' : 'bg-[#333] text-white'}`}
                             onClick={toggleCaptions}
                           >
@@ -638,10 +630,10 @@ export function NewsletterHero() {
       <section id="newsletter-form" className="relative pt-32 pb-16 mt-0 bg-[#080604] border-t border-[#C9A880]/15">
         {/* Fondo con degradado sutil basado en el color principal pero muy oscurecido */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0806] to-[#050302] z-10"></div>
-        
+
         {/* Efecto de iluminación del color principal */}
         <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[#C9A880]/8 blur-[120px] z-5"></div>
-        
+
         {/* Contenido */}
         <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
           {/* Banner de "Spots limitados" destacado - Con estilo de la plataforma */}
@@ -651,28 +643,28 @@ export function NewsletterHero() {
             </svg>
             ¡OJO! SOLO 200 PLAZAS PARA MIEMBROS FUNDADORES
           </div>
-          
+
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
-            Mira. <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">Esto es importante.</span>
+            Únete a la <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">waitlist</span>
           </h1>
-          
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-medium mb-4 text-white">
-            Todo lo que enseño es fruto de mi PROPIA experiencia. 
-          </h2>
-          
+
           <p className="text-white/80 max-w-2xl mx-auto mb-10">
-            NO toco de oídas. He sacado (y saco) <span className="text-[#C9A880] font-medium">miles de formaciones documentadas</span> con resultados reales.
-             
-            Si quieres dominar la IA, <span className="text-[#C9A880] font-medium">debes formarte con alguien que no sea un teórico</span>.
-            
-            Conmigo se forman arquitectos, programadores, empresarios, diseñadores, editores, médicos, abogados... 
-            Gente que quiere <span className="text-[#C9A880] font-medium">resultados DE VERDAD</span>.
+            <span className="text-[#C9A880] font-medium">Conviértete en miembro fundador</span> de nuestra Comunidad de Maestría en IA y bloquea tu precio especial de early adopter ¡para siempre! 🔥
+
+            <br /><br />
+
+            Apúntate <span className="text-[#C9A880] font-medium">gratis a la lista de espera</span>, reserva tu plaza y te avisaré personalmente cuando abramos las puertas. Las plazas son limitadas y los primeros tienen ventajas exclusivas.
+
+            <br /><br />
+
+            Conmigo aprenden arquitectos, programadores, empresarios, diseñadores, médicos, abogados...
+            Personas que buscan <span className="text-[#C9A880] font-medium">resultados REALES con la IA</span>, no teorías vacías.
           </p>
-          
+
           {/* Subscription Form - Elegante con color principal muy oscuro */}
           <div className="bg-gradient-to-b from-[#161310]/90 to-[#0c0a06]/95 backdrop-blur-md p-8 rounded-3xl border border-[#C9A880]/25 hover:border-[#C9A880]/40 shadow-lg max-w-2xl mx-auto space-y-6 transition-all duration-300">
             <NewsletterAvatarCircles className="mb-2" />
-            
+
             {errorMessage && (
               <div className="text-red-400 bg-red-500/10 p-4 rounded-lg text-sm border border-red-500/20 text-center animate-pulse">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mx-auto mb-1" viewBox="0 0 20 20" fill="currentColor">
@@ -681,28 +673,28 @@ export function NewsletterHero() {
                 {errorMessage}
               </div>
             )}
-            
-            <Input 
-              type="text" 
-              placeholder="Tu nombre aquí" 
+
+            <Input
+              type="text"
+              placeholder="Tu nombre aquí"
               className="w-full p-5 h-14 rounded-lg bg-[#13110d] text-white border-[#C9A880]/30 focus:border-[#C9A880]/70 focus:ring-[#C9A880]/15 placeholder:text-[#C9A880]/40 text-base transition-all duration-300"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-            
-            <Input 
-              type="email" 
-              placeholder="Tu MEJOR email (importante)" 
+
+            <Input
+              type="email"
+              placeholder="Tu MEJOR email"
               className="w-full p-5 h-14 rounded-lg bg-[#13110d] text-white border-[#C9A880]/30 focus:border-[#C9A880]/70 focus:ring-[#C9A880]/15 placeholder:text-[#C9A880]/40 text-base transition-all duration-300"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            
+
             <div className="flex items-start space-x-3 text-left p-3">
               <div className="relative flex mt-1">
-                <input 
-                  type="checkbox" 
-                  className="sr-only" 
+                <input
+                  type="checkbox"
+                  className="sr-only"
                   id="privacy"
                   checked={accepted}
                   onChange={() => setAccepted(!accepted)}
@@ -716,10 +708,10 @@ export function NewsletterHero() {
                 </div>
               </div>
               <label htmlFor="privacy" className="text-base text-white/90 cursor-pointer">
-                He leído y acepto la <Link href="#" className="text-[#C9A880] hover:underline font-medium">política de cookies</Link> y <Link href="#" className="text-[#C9A880] hover:underline font-medium">privacidad</Link>. (IMPORTANTE)
+                He leído y acepto la <Link href="#" className="text-[#C9A880] hover:underline font-medium">política de cookies</Link> y <Link href="#" className="text-[#C9A880] hover:underline font-medium">privacidad</Link>.
               </label>
             </div>
-            
+
             <div className="pt-2">
               {isSuccess ? (
                 <div className="text-green-400 bg-green-500/10 p-5 rounded-lg border border-green-500/30 flex items-center flex-col">
@@ -730,8 +722,8 @@ export function NewsletterHero() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <RainbowButtonDemo 
-                    onClick={handleSubmit} 
+                  <RainbowButtonDemo
+                    onClick={handleSubmit}
                     disabled={isSubmitting}
                     className="w-full py-3.5 transform transition-transform hover:scale-[1.01] active:scale-[0.99]"
                   >
