@@ -12,6 +12,7 @@ export const presentationComments: Comment[] = [
         content: "Hola Jose, muchas gracias por tu comentario. Es un placer tener a gente como tú dentro de esta comunidad. ¡Un fuerte abrazo! P.D.: ¿En qué sitios has estado de viaje?",
         timestamp: "12d",
         likes: 1,
+        created_at: "2024-01-01T12:00:00Z",
         replies: [
             {
                 id: "reply1",
@@ -23,7 +24,9 @@ export const presentationComments: Comment[] = [
                 content: "Gracias a ti por dar estas clases de ayuda y crear comunidades. En respuesta a tu pregunta, estuve dos años viviendo en Nueva Zelanda. Conociendo su cultura, su maravillosa gente y aprendiendo su idioma.",
                 timestamp: "12d",
                 likes: 1,
-                mentionedUser: "Patricia Juane"
+                created_at: "2024-01-01T13:00:00Z",
+                mentionedUser: "Patricia Juane",
+                parent_id: "comment1"
             }
         ]
     }
@@ -40,7 +43,8 @@ export const questionComments: Comment[] = [
         },
         content: "Hola Javier, yo también tuve ese problema. El error suele ocurrir cuando los parámetros no están bien formateados. ¿Podrías compartir el código que estás usando?",
         timestamp: "3d",
-        likes: 2
+        likes: 2,
+        created_at: "2024-01-02T12:00:00Z"
     },
     {
         id: "comment2",
@@ -51,7 +55,8 @@ export const questionComments: Comment[] = [
         },
         content: "Revisa la documentación en la página 42, hay un ejemplo muy similar a lo que necesitas implementar. La función calculateMetrics() necesita recibir un objeto con la estructura correcta.",
         timestamp: "2d",
-        likes: 3
+        likes: 3,
+        created_at: "2024-01-03T12:00:00Z"
     }
 ];
 

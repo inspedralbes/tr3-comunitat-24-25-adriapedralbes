@@ -8,10 +8,14 @@ logger = logging.getLogger(__name__)
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.reverse import reverse
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.conf import settings
+from functools import wraps
 
 from .models import Subscriber, User, Category, Post, Comment, PostLike, CommentLike, Course, Lesson, Event
 from .serializers import (
@@ -20,20 +24,187 @@ from .serializers import (
     CourseSerializer, CourseDetailSerializer, LessonSerializer, LessonDetailSerializer, EventSerializer
 )
 from django.conf import settings
-# Email and newsletter service imports removed
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.urls import reverse
+from .welcome_email import send_welcome_email
+from .beehiiv import add_subscriber_to_beehiiv
+from api.gamification.services import award_points
 from datetime import timedelta
 import datetime
 import uuid
 import os
+import logging
 
-# Test Beehiiv endpoint removed
+# Configurar logger
+logger = logging.getLogger(__name__)
+
+@api_view(['GET'])
+def test_post_creation(request):
+    """
+    Endpoint para probar la creación de un post directamente.
+    """
+    if not request.user.is_authenticated:
+        return Response({'success': False, 'message': 'Usuario no autenticado'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    try:
+        # Crear un post de prueba directamente en la base de datos
+        test_post = Post.objects.create(
+            author=request.user,
+            title="Post de prueba",
+            content="Este es un post de prueba creado directamente."
+        )
+        
+        # Verificar que el post se creó correctamente
+        post_exists = Post.objects.filter(id=test_post.id).exists()
+        
+        # Contar el total de posts del usuario
+        user_posts_count = Post.objects.filter(author=request.user).count()
+        
+        # Obtener el post más reciente para verificar que tiene los datos correctos
+        latest_post = Post.objects.filter(author=request.user).order_by('-created_at').first()
+        
+        return Response({
+            'success': True,
+            'message': 'Post de prueba creado exitosamente.',
+            'post_id': str(test_post.id),
+            'post_exists': post_exists,
+            'user_posts_count': user_posts_count,
+            'latest_post': {
+                'id': str(latest_post.id),
+                'title': latest_post.title,
+                'content': latest_post.content,
+                'created_at': latest_post.created_at
+            } if latest_post else None
+        })
+    except Exception as e:
+        import traceback
+        logger.error(f"Error al crear post de prueba: {str(e)}")
+        logger.error(traceback.format_exc())
+        return Response({
+            'success': False,
+            'message': f'Error al crear post de prueba: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+@api_view(['GET'])
+def check_gamification_config(request):
+    """
+    Endpoint para verificar la configuración del sistema de gamificación.
+    """
+    from api.gamification.models import UserAction
+    
+    # Verificar si existe la acción create_post
+    try:
+        create_post_action = UserAction.objects.filter(action_type='create_post').first()
+        if create_post_action:
+            return Response({
+                'success': True,
+                'message': f'La acción create_post existe y otorga {create_post_action.points} puntos.',
+                'action': {
+                    'id': create_post_action.id,
+                    'action_type': create_post_action.action_type,
+                    'points': create_post_action.points,
+                    'description': create_post_action.description,
+                    'is_active': create_post_action.is_active
+                }
+            })
+        else:
+            # Crear la acción si no existe
+            UserAction.objects.create(
+                action_type='create_post',
+                points=10,
+                description='Crear un post',
+                is_active=True
+            )
+            return Response({
+                'success': True,
+                'message': 'Acción create_post creada exitosamente.',
+                'action': {
+                    'action_type': 'create_post',
+                    'points': 10,
+                    'description': 'Crear un post',
+                    'is_active': True
+                }
+            })
+    except Exception as e:
+        import traceback
+        logger.error(f"Error al verificar configuración de gamificación: {str(e)}")
+        logger.error(traceback.format_exc())
+        return Response({
+            'success': False,
+            'message': f'Error al verificar configuración: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    """
+    Punto de entrada principal a la API. Muestra los endpoints disponibles.
+    """
+    return Response({
+        'users': reverse('user-list', request=request, format=format),
+        'categories': reverse('category-list', request=request, format=format),
+        'posts': reverse('post-list', request=request, format=format),
+        'comments': reverse('comment-list', request=request, format=format),
+        'auth': {
+            'register': reverse('register', request=request, format=format),
+            'me': reverse('me', request=request, format=format),
+            'token': reverse('token_obtain_pair', request=request, format=format),
+            'token_refresh': reverse('token_refresh', request=request, format=format),
+        },
+        'leaderboard': reverse('leaderboard', request=request, format=format),
+        'pinned-posts': reverse('pinned-posts', request=request, format=format),
+    })
+
+@api_view(['POST'])
+def test_beehiiv(request):
+    """
+    Endpoint de prueba para verificar la integración con Beehiiv.
+    """
+    email = request.data.get('email', 'test@example.com')
+    name = request.data.get('name', 'Usuario de Prueba')
+    
+    try:
+        print("\n[TEST BEEHIIV] Iniciando prueba de integración con Beehiiv")
+        success, message = add_subscriber_to_beehiiv(
+            email=email,
+            name=name,
+            source="Test Integration",
+            is_confirmed=True
+        )
+        
+        if success:
+            print(f"[TEST BEEHIIV] ÉXITO: {message}")
+            return Response({
+                'success': True,
+                'message': message
+            })
+        else:
+            print(f"[TEST BEEHIIV] ERROR: {message}")
+            return Response({
+                'success': False,
+                'message': message
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        error_message = f"Error en prueba de integración con Beehiiv: {str(e)}"
+        print(f"[TEST BEEHIIV] EXCEPCIÓN: {error_message}")
+        import traceback
+        print(traceback.format_exc())
+        
+        return Response({
+            'success': False,
+            'message': error_message
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])  # Explícitamente permitir acceso sin autenticación
 def subscribe(request):
     """
     API endpoint para suscribirse a la newsletter. No requiere autenticación.
-    Solo guarda la información en la base de datos.
     """
     serializer = SubscriberSerializer(data=request.data)
     
@@ -61,14 +232,47 @@ def subscribe(request):
             subscriber = Subscriber(
                 email=email,
                 name=name,
-                confirmed=True  # Marcar como confirmado automáticamente
+                confirmed=False
             )
             subscriber.save()
         
-        return Response({
-            'success': True,
-            'message': 'Suscripción registrada correctamente.'
-        }, status=status.HTTP_201_CREATED)
+        # Enviar email de confirmación
+        try:
+            send_confirmation_email(subscriber)
+            
+            # También registramos en Beehiiv (con confirmed=false)
+            try:
+                print("\n[BEEHIIV-PRE] Registrando preliminarmente en Beehiiv (antes de confirmación)")
+                success, message = add_subscriber_to_beehiiv(
+                    email=subscriber.email,
+                    name=subscriber.name,
+                    source="FuturPrive-PreConfirmation",
+                    is_confirmed=False
+                )
+                if success:
+                    print(f"[BEEHIIV-PRE] ÉXITO en registro preliminar: {message}")
+                else:
+                    print(f"[BEEHIIV-PRE] ERROR en registro preliminar: {message}")
+            except Exception as e:
+                print(f"[BEEHIIV-PRE] EXCEPCIÓN en registro preliminar: {str(e)}")
+                # No bloqueamos el flujo principal
+            
+            return Response({
+                'success': True,
+                'message': 'Te hemos enviado un correo para confirmar tu suscripción.'
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            # Log del error
+            import traceback
+            print(f"Error enviando email: {e}")
+            print(traceback.format_exc())
+            
+            # Guardamos el suscriptor pero informamos del problema con el correo
+            return Response({
+                'success': False,
+                'message': 'Hubo un problema al enviar el correo de confirmación, pero tus datos se han guardado. El administrador te contactará para confirmar.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     return Response({
         'success': False,
@@ -78,18 +282,57 @@ def subscribe(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([AllowAny])  # Explícitamente permitir acceso sin autenticación
 def confirm_subscription(request, token):
     """
     API endpoint para confirmar la suscripción.
-    Simplificado para solo actualizar la base de datos.
     """
     try:
         subscriber = Subscriber.objects.get(confirmation_token=token)
         
         if not subscriber.confirmed:
+            print(f"\n[CONFIRMACIÓN] Confirmando suscripción para: {subscriber.email}")
             subscriber.confirmed = True
             subscriber.save(update_fields=['confirmed'])
+            
+            # Enviar email de bienvenida con los recursos prometidos
+            try:
+                send_welcome_email(subscriber)
+                print(f"[CONFIRMACIÓN] Email de bienvenida enviado a: {subscriber.email}")
+            except Exception as e:
+                print(f"Error enviando email de bienvenida: {str(e)}")
+                import traceback
+                print(traceback.format_exc())
+            
+            # Agregar a Beehiiv
+            try:
+                print("\n[BEEHIIV] Iniciando registro en Beehiiv para suscriptor confirmado")
+                success, message = add_subscriber_to_beehiiv(
+                    email=subscriber.email,
+                    name=subscriber.name,
+                    source="FuturPrive Newsletter",
+                    is_confirmed=True
+                )
+                if success:
+                    print(f"[BEEHIIV] ÉXITO: Usuario {subscriber.email} registrado en Beehiiv. {message}")
+                else:
+                    print(f"[BEEHIIV] ERROR: {message}")
+                    # Intentar con correo directo
+                    print("[BEEHIIV] Intentando suscripción directa como fallback...")
+                    # Hacemos una llamada al endpoint de prueba como fallback
+                    import requests
+                    fallback_url = f"{settings.SITE_URL}/api/test/beehiiv/"
+                    fallback_data = {
+                        "email": subscriber.email,
+                        "name": subscriber.name if subscriber.name else "Suscriptor"
+                    }
+                    fallback_response = requests.post(fallback_url, json=fallback_data)
+                    print(f"[BEEHIIV] Respuesta de fallback: {fallback_response.status_code} - {fallback_response.text}")
+            except Exception as e:
+                print(f"[BEEHIIV] EXCEPCIÓN al registrar en Beehiiv: {str(e)}")
+                import traceback
+                print(traceback.format_exc())
+                # No hacemos que falle todo el proceso si hay un error con Beehiiv
             
             return Response({
                 'success': True,
@@ -109,11 +352,10 @@ def confirm_subscription(request, token):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([AllowAny])  # Explícitamente permitir acceso sin autenticación
 def unsubscribe(request, token):
     """
     API endpoint para cancelar la suscripción.
-    Simplificado para solo actualizar la base de datos.
     """
     try:
         subscriber = Subscriber.objects.get(confirmation_token=token)
@@ -132,7 +374,82 @@ def unsubscribe(request, token):
         }, status=status.HTTP_404_NOT_FOUND)
 
 
-# Email sending function removed
+def send_confirmation_email(subscriber):
+    """
+    Envía un email de confirmación al suscriptor.
+    """
+    # Ahora usamos la ruta del frontend en lugar de la API
+    confirmation_link = f"{settings.SITE_URL}/newsletter/confirm/{subscriber.confirmation_token}"
+    unsubscribe_link = f"{settings.SITE_URL}/newsletter/unsubscribe/{subscriber.confirmation_token}/"
+    
+    subject = '¿ERES UNA IA?'
+    
+    # Contenido HTML
+    context = {
+        'name': subscriber.name if subscriber.name else 'Usuario',
+        'confirmation_link': confirmation_link,
+        'unsubscribe_link': unsubscribe_link
+    }
+    
+    html_message = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Confirma tu correo</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 650px;
+            }}
+            p {{
+                font-size: 16px;
+                margin-bottom: 24px;
+            }}
+            .red {{
+                color: #ff0000;
+            }}
+            .bold {{
+                font-weight: bold;
+            }}
+        </style>
+    </head>
+    <body>
+        <p>Debes confirmar tu correo.</p>
+        
+        <p>Si es que NO te interesa saber cómo la IA puede ahorrarte cientos de horas este año, pues ignora este email y sigue haciendo todo manualmente.</p>
+        
+        <p>Pero si es que SÍ te interesa dejar que la tecnología trabaje PARA TI mientras duermes...</p>
+        
+        <p class="bold">DEBES CONFIRMAR HACIENDO CLIC EN EL ENLACE QUE TIENES DEBAJO.</p>
+        
+        <p>
+            <a href="{context['confirmation_link']}" class="red">CONFIRMAR AHORA</a>
+        </p>
+        
+        <p>Pd: Confirma arriba 👆 para acceder a tu regalo.</p>
+        
+        <p>Pasa un día productivo (o no),<br>
+        Adrià Estévez</p>
+        
+        <p>© FuturPrive - Todos los derechos reservados.</p>
+    </body>
+    </html>
+    """
+    
+    # Versión texto plano
+    plain_message = strip_tags(html_message)
+    
+    send_mail(
+        subject=subject,
+        message=plain_message,
+        html_message=html_message,
+        from_email='Adrià Estévez <adria@futurprive.com>',
+        recipient_list=[subscriber.email],
+        fail_silently=False,
+    )
 
 
 # ----------------------- API USUARIOS Y COMUNIDAD -----------------------
@@ -224,29 +541,92 @@ class UserMeView(APIView):
     
     def post(self, request):
         """Actualizar avatar del usuario"""
-        if 'avatar_url' not in request.FILES:
-            return Response({"error": "No se ha proporcionado una imagen"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Eliminar avatar anterior si existe
-        if request.user.avatar_url and hasattr(request.user.avatar_url, 'path') and os.path.isfile(request.user.avatar_url.path):
+        try:
+            # Importar utilidades de debug
+            from .debug_utils import log_request_details, log_exception, check_media_permissions
+            
+            # Registrar detalles de la solicitud para diagnosticar problemas
+            log_request_details(request, prefix="AVATAR")
+            
+            # Verificar permisos de carpetas media
+            check_media_permissions()
+            
+            if 'avatar_url' not in request.FILES:
+                return Response({"error": "No se ha proporcionado una imagen"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            logger.info(f"Procesando avatar: {request.FILES['avatar_url'].name}, tamaño: {request.FILES['avatar_url'].size} bytes")
+            
+            # Eliminar avatar anterior si existe
+            if request.user.avatar_url and hasattr(request.user.avatar_url, 'path') and os.path.isfile(request.user.avatar_url.path):
+                try:
+                    old_path = request.user.avatar_url.path
+                    logger.info(f"Eliminando avatar anterior: {old_path}")
+                    os.remove(old_path)
+                    logger.info(f"Avatar anterior eliminado exitosamente")
+                except Exception as e:
+                    logger.error(f"Error al eliminar avatar anterior: {e}")
+            
+            # Verificar que la carpeta destino exista
+            avatar_dir = os.path.join(settings.MEDIA_ROOT, 'avatars')
+            if not os.path.exists(avatar_dir):
+                logger.info(f"Creando carpeta de avatares: {avatar_dir}")
+                os.makedirs(avatar_dir, exist_ok=True)
+                logger.info(f"Carpeta de avatares creada exitosamente")
+                
+            # Asegurar permisos correctos
             try:
-                os.remove(request.user.avatar_url.path)
+                logger.info(f"Configurando permisos 775 para {avatar_dir}")
+                os.chmod(avatar_dir, 0o775)  # Permisos de escritura para el grupo
+                logger.info("Permisos configurados exitosamente")
             except Exception as e:
-                print(f"Error al eliminar avatar anterior: {e}")
-        
-        # Guardar nuevo avatar
-        request.user.avatar_url = request.FILES['avatar_url']
-        request.user.save()
-        
-        # Serializar la respuesta con datos completos
-        serializer = UserSerializer(request.user, context={'request': request})
-        user_data = serializer.data
-        
-        # Calcular la posición en el ranking
-        higher_ranked_users = User.objects.filter(points__gt=request.user.points).count()
-        user_data['position'] = higher_ranked_users + 1
-        
-        return Response(user_data)
+                logger.warning(f"No se pudieron cambiar permisos de carpeta avatars: {e}")
+            
+            # Guardar nuevo avatar
+            logger.info("Guardando nuevo avatar...")
+            request.user.avatar_url = request.FILES['avatar_url']
+            request.user.save()
+            
+            if hasattr(request.user.avatar_url, 'path'):
+                logger.info(f"Avatar guardado en: {request.user.avatar_url.path}")
+                
+                # Verificar que el archivo se haya creado correctamente
+                if os.path.exists(request.user.avatar_url.path):
+                    logger.info("El archivo existe en el sistema de archivos")
+                    # Asegurar permisos del archivo
+                    try:
+                        os.chmod(request.user.avatar_url.path, 0o664)  # rw-rw-r--
+                        logger.info("Permisos del archivo configurados correctamente")
+                    except Exception as e:
+                        logger.warning(f"No se pudieron cambiar permisos del archivo: {e}")
+                else:
+                    logger.error(f"El archivo {request.user.avatar_url.path} no existe después de guardar")
+            
+            # Serializar la respuesta con datos completos
+            serializer = UserSerializer(request.user, context={'request': request})
+            user_data = serializer.data
+            
+            # Calcular la posición en el ranking
+            higher_ranked_users = User.objects.filter(points__gt=request.user.points).count()
+            user_data['position'] = higher_ranked_users + 1
+            
+            # Verificar que la URL del avatar está presente
+            if 'avatar_url' in user_data and user_data['avatar_url']:
+                logger.info(f"URL del avatar generada: {user_data['avatar_url']}")
+            else:
+                logger.warning("No se generó URL para el avatar")
+            
+            return Response(user_data)
+        except Exception as e:
+            # Importar utilidades de debug (por si no se importaron antes)
+            try:
+                from .debug_utils import log_exception
+                log_exception(e, prefix="AVATAR")
+            except ImportError:
+                import traceback
+                logger.error(f"Error al actualizar avatar: {e}")
+                logger.error(traceback.format_exc())
+            
+            return Response({"error": f"Error interno: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -491,21 +871,45 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # Guardar el autor como el usuario autenticado
-        post = serializer.save(author=self.request.user)
+        logger.info(f"Creando post con datos: {serializer.validated_data}")
+        logger.info(f"Usuario autenticado: {self.request.user.username}")
         
-        # Otorgar puntos por crear un post
         try:
-            award_points(self.request.user, 'create_post', reference_id=str(post.id))
+            post = serializer.save(author=self.request.user)
+            logger.info(f"Post creado exitosamente con ID: {post.id}")
+            
+            # Otorgar puntos por crear un post
+            try:
+                award_points(self.request.user, 'create_post', reference_id=str(post.id))
+                logger.info(f"Puntos otorgados por crear post")
+            except Exception as e:
+                # Loggear el error pero permitir que la creación del post continúe
+                logger.error(f"Error al otorgar puntos: {str(e)}")
+                # No bloqueamos la creación del post si hay error en la gamificación
         except Exception as e:
-            # Loggear el error pero permitir que la creación del post continúe
-            logger.error(f"Error al otorgar puntos: {str(e)}")
-            # No bloqueamos la creación del post si hay error en la gamificación
+            logger.error(f"Error al crear post: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
 
     def get_queryset(self):
         queryset = Post.objects.all()
+        
+        # Agregar logs para depurar
+        post_count = queryset.count()
+        logger.info(f"Total de posts en la base de datos: {post_count}")
+        if post_count > 0:
+            latest_post = queryset.latest('created_at')
+            logger.info(f"Post más reciente: ID={latest_post.id}, autor={latest_post.author.username}, título={latest_post.title}")
+        
+        # Aplicar filtros si existen
         category = self.request.query_params.get('category', None)
         if category and category != 'all':
             queryset = queryset.filter(category__slug=category)
+            logger.info(f"Filtrando por categoría: {category}, posts resultantes: {queryset.count()}")
+        
+        # Log del queryset final
+        logger.info(f"Devolviendo {queryset.count()} posts")
+        
         return queryset
         
     def get_serializer_context(self):
@@ -830,24 +1234,42 @@ class CourseViewSet(viewsets.ModelViewSet):
         try:
             course = self.get_object()
             
-            # Eliminar thumbnail anterior si existe
-            if course.thumbnail and hasattr(course.thumbnail, 'path') and os.path.isfile(course.thumbnail.path):
-                try:
-                    os.remove(course.thumbnail.path)
-                except Exception as e:
-                    print(f"Error al eliminar thumbnail anterior: {e}")
+            # Log para ver qué datos estamos recibiendo
+            logger.info(f"Datos recibidos en upload_thumbnail: {request.data}")
             
-            # Verificar si hay un archivo en la solicitud
-            if 'thumbnail' not in request.FILES:
-                return Response({"error": "No se ha proporcionado una imagen"}, status=status.HTTP_400_BAD_REQUEST)
+            # Verificar si se está enviando una URL externa (desde Next.js)
+            if 'thumbnail_url' in request.data and isinstance(request.data['thumbnail_url'], str):
+                # Guardar la URL externa
+                thumbnail_url = request.data['thumbnail_url']
+                logger.info(f"Recibida URL externa de thumbnail: {thumbnail_url}")
                 
-            # Guardar nuevo thumbnail
-            course.thumbnail = request.FILES['thumbnail']
-            course.save()
+                # Guardar en el modelo
+                course.thumbnail_url_external = thumbnail_url
+                course.save(update_fields=['thumbnail_url_external'])
+                logger.info(f"URL guardada en la base de datos: {course.thumbnail_url_external}")
+                
+                # Serializar respuesta
+                serializer = self.get_serializer(course)
+                return Response(serializer.data)
             
-            # Serializar respuesta
-            serializer = self.get_serializer(course)
-            return Response(serializer.data)
+            # Manejo tradicional de archivo
+            elif 'thumbnail' in request.FILES:
+                # Eliminar thumbnail anterior si existe
+                if course.thumbnail and hasattr(course.thumbnail, 'path') and os.path.isfile(course.thumbnail.path):
+                    try:
+                        os.remove(course.thumbnail.path)
+                    except Exception as e:
+                        logger.error(f"Error al eliminar thumbnail anterior: {e}")
+                
+                # Guardar nuevo thumbnail
+                course.thumbnail = request.FILES['thumbnail']
+                course.save()
+                
+                # Serializar respuesta
+                serializer = self.get_serializer(course)
+                return Response(serializer.data)
+            else:
+                return Response({"error": "No se ha proporcionado una imagen o URL"}, status=status.HTTP_400_BAD_REQUEST)
             
         except Exception as e:
             logger.error(f"Error al subir thumbnail: {str(e)}")

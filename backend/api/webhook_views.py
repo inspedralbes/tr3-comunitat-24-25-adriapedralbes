@@ -26,71 +26,97 @@ def stripe_webhook(request):
     webhook_secret = settings.STRIPE_WEBHOOK_SECRET if settings.STRIPE_WEBHOOK_SECRET else None
     event = None
 
+    # Información detallada para diagnóstico
+    logger.info("🔔 Webhook de Stripe recibido")
+    logger.info(f"URL: {request.path}")
+    logger.info(f"Método: {request.method}")
+    logger.info(f"¿Tiene firma? {'Sí' if sig_header else 'No'}")
+    logger.info(f"¿Tiene secreto configurado? {'Sí' if webhook_secret else 'No'}")
+    if webhook_secret:
+        logger.info(f"Secreto de webhook configurado: {webhook_secret[:5]}...")
+
     try:
-        logger.info("Recibido webhook de Stripe")
+        logger.info(f"Headers recibidos: {json.dumps({k: v for k, v in request.META.items() if k.startswith('HTTP_')})}")
         
         if webhook_secret:
             # Verificar firma del webhook si está configurada
             try:
+                logger.info("Intentando verificar firma...")
                 event = stripe.Webhook.construct_event(
                     payload, sig_header, webhook_secret
                 )
+                logger.info("✅ Firma del webhook verificada correctamente")
             except ValueError as e:
                 # Invalid payload
-                logger.error(f"Payload inválido: {e}")
-                return HttpResponse(status=400)
+                logger.error(f"❌ Payload inválido: {e}")
+                return HttpResponse("Invalid payload", status=400)
             except stripe.error.SignatureVerificationError as e:
                 # Invalid signature
-                logger.error(f"Firma inválida: {e}")
-                return HttpResponse(status=400)
+                logger.error(f"❌ Firma inválida: {e}")
+                return HttpResponse("Invalid signature", status=400)
         else:
             # Si no hay webhook_secret, parsear el payload directamente
+            logger.warning("⚠️ No hay webhook_secret configurado, parseando el payload directamente")
             try:
                 data = json.loads(payload)
                 event = data
+                logger.info("✅ Payload parseado correctamente")
             except json.JSONDecodeError as e:
-                logger.error(f"Payload inválido (JSONDecodeError): {e}")
-                return HttpResponse(status=400)
+                logger.error(f"❌ Payload inválido (JSONDecodeError): {e}")
+                return HttpResponse("Invalid JSON", status=400)
         
         # Extraer el tipo de evento
         event_type = event.get('type', None) if isinstance(event, dict) else event.type
+        logger.info(f"📝 Tipo de evento: {event_type}")
         
         # Manejar tipos específicos de eventos
         if event_type == 'checkout.session.completed':
+            logger.info("Procesando evento checkout.session.completed")
             # Obtener el objeto evento dependiendo del formato
             session = event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object
             
             # Procesar el evento checkout.session.completed
             handle_checkout_session_completed(session)
+            logger.info("✅ Evento checkout.session.completed procesado correctamente")
             
         elif event_type == 'invoice.paid':
+            logger.info("Procesando evento invoice.paid")
             # Obtener el objeto evento dependiendo del formato
             invoice = event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object
             
             # Procesar el evento invoice.paid
             handle_invoice_paid(invoice)
+            logger.info("✅ Evento invoice.paid procesado correctamente")
             
         elif event_type == 'customer.subscription.updated':
+            logger.info("Procesando evento customer.subscription.updated")
             # Obtener el objeto evento dependiendo del formato
             subscription = event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object
             
             # Procesar el evento customer.subscription.updated
             handle_subscription_updated(subscription)
+            logger.info("✅ Evento customer.subscription.updated procesado correctamente")
             
         elif event_type == 'customer.subscription.deleted':
+            logger.info("Procesando evento customer.subscription.deleted")
             # Obtener el objeto evento dependiendo del formato
             subscription = event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object
             
             # Procesar el evento customer.subscription.deleted
             handle_subscription_deleted(subscription)
+            logger.info("✅ Evento customer.subscription.deleted procesado correctamente")
+            
+        else:
+            logger.info(f"⚠️ Tipo de evento no manejado: {event_type}")
         
-        # Añadir manejo para otros eventos según sea necesario
-        
-        return HttpResponse(status=200)
+        logger.info("✅ Webhook procesado correctamente")
+        return HttpResponse("Webhook received", status=200)
         
     except Exception as e:
-        logger.error(f"Error al procesar webhook: {e}")
-        return HttpResponse(status=500)
+        logger.error(f"❌ Error al procesar webhook: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return HttpResponse(f"Error: {str(e)}", status=500)
 
 
 def handle_checkout_session_completed(session):

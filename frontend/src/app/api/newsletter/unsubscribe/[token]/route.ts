@@ -9,7 +9,9 @@ export async function GET(
     const pathParts = url.pathname.split('/');
     const token = pathParts[pathParts.length - 1];
     
-    // Procesamos la baja directamente aquí
+    // Redireccionar a la página visual del frontend (si existiera)
+    // Si no existe aún, crearíamos una página similar a /newsletter/confirm/[token]/page.tsx
+    // Por ahora, procesamos la baja directamente:
     
     // Usar una URL consistente para el backend independientemente de si estamos en desarrollo o producción
     const backendUrlBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';

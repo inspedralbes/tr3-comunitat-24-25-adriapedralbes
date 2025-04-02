@@ -54,20 +54,6 @@ export interface TokenResponse {
 }
 
 // Servicio para autenticación de usuarios
-// Event bus para notificar cambios de autenticación
-const authEvents = {
-  listeners: new Set<() => void>(),
-  
-  subscribe(callback: () => void) {
-    this.listeners.add(callback);
-    return () => this.listeners.delete(callback);
-  },
-  
-  notify() {
-    this.listeners.forEach(callback => callback());
-  }
-};
-
 export const authService = {
   // Login 
   login: async (credentials: LoginCredentials): Promise<TokenResponse> => {
@@ -78,8 +64,7 @@ export const authService = {
       localStorage.setItem('auth_token', response.access);
       localStorage.setItem('refresh_token', response.refresh);
       
-      // Notificar a los componentes sobre el cambio de estado de autenticación
-      authEvents.notify();
+      // No recargamos la página, se gestionará en el componente
     }
     
     return response;
@@ -116,14 +101,16 @@ export const authService = {
     // Importar el servicio de subida de imágenes dinámicamente
     // para evitar problemas de dependencia circular
     const { default: imageUploadService } = await import('./imageUpload');
+    const { normalizeAvatarUrl } = await import('@/utils/imageUtils');
     
     try {
       // Subir la imagen a Next.js
       console.log('Iniciando subida de avatar al servidor local...');
-      const imageUrl = await imageUploadService.uploadImage(file, 'avatar');
+      const uploadResult = await imageUploadService.uploadImage(file, 'avatar');
+      const imageUrl = uploadResult.url;
       console.log('Imagen subida exitosamente. URL obtenida:', imageUrl);
       
-      // Actualizar el perfil con la URL de la imagen
+      // Actualizar el perfil con la URL de la imagen generada
       console.log('Enviando URL de avatar al servidor de Django para actualizar perfil...');
       
       // Imprimir datos que estamos enviando a la API
@@ -132,9 +119,9 @@ export const authService = {
       const updatedProfile = await api.patch('auth/me/', { avatar_url: imageUrl });
       console.log('Respuesta de actualización de perfil:', updatedProfile);
       
-      // Verificar que la URL se actualizó correctamente
-      if (updatedProfile && updatedProfile.avatar_url !== imageUrl) {
-        console.warn('La URL del avatar no coincide. Recibida:', updatedProfile.avatar_url, 'Esperada:', imageUrl);
+      // Normalizar URL del avatar para asegurar compatibilidad
+      if (updatedProfile && updatedProfile.avatar_url) {
+        updatedProfile.avatar_url = normalizeAvatarUrl(updatedProfile.avatar_url) || updatedProfile.avatar_url;
       }
       
       return updatedProfile;
@@ -149,13 +136,7 @@ export const authService = {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
     
-    // Notificar a los componentes sobre el cambio de estado de autenticación
-    authEvents.notify();
-  },
-  
-  // Suscribirse a cambios de autenticación
-  onAuthChange: (callback: () => void) => {
-    return authEvents.subscribe(callback);
+    // No recargamos la página, se gestionará en el componente que llama a logout
   },
   
   // Verificar si el usuario está autenticado

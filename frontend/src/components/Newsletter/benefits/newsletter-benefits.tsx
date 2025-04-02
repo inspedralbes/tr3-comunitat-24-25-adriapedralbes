@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Lightbulb, Trophy } from "lucide-react";
+import { AlertCircle, Zap, Coffee } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 
@@ -12,40 +12,40 @@ export function NewsletterBenefits() {
 
   const benefits = [
     {
-      icon: <Users className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
-      title: "Comunidad Exclusiva",
+      icon: <AlertCircle className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
+      title: "Entérate el primero de todo",
       content: [
-        "Únete a una comunidad de gente COMO TÚ. No teóricos, sino profesionales y entusiastas que están HARTOS de tanto humo y quieren RESULTADOS REALES con IA.",
-        "Aquí no se viene a presumir sino a TRABAJAR. Vas a compartir, colaborar y conectar con personas que, como tú, quieren transformar su negocio con IA y no tienen tiempo que perder."
+        `Te voy a confesar algo: hace dos años, cuando GPT-3 salió, yo pensaba que era "otra moda pasajera". Ignoré todo sobre IA durante 3 meses... y me arrepentí como nunca cuando vi a mi competencia avanzar a pasos agigantados con ella.`,
+        "Desde entonces, me prometí no volver a quedarme atrás. La semana pasada, detecté una herramienta de IA que está creando copias publicitarias con un 27% más de conversión. La compartí con mis suscriptores un mes antes de que los grandes medios comenzaran a hablar de ella. ¿El resultado? Ventaja competitiva pura y dura."
       ]
     },
     {
-      icon: <Lightbulb className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
-      title: "Conocimiento Práctico",
+      icon: <Zap className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
+      title: "Nos mojamos",
       content: [
-        "¿Estás cansado de tutoriales que no te llevan a ninguna parte? Aquí todo es PRÁCTICO. Recursos EXCLUSIVOS, workshops sin relleno y eventos en directo donde resolvemos problemas DEL MUNDO REAL.",
-        "Tendrás guías paso a paso para implementar soluciones que MULTIPLICAN tu productividad desde el minuto UNO. Sin rodeos, sin teoría inútil, sin perder el tiempo."
+        `"¿Esto de la IA es realmente tan revolucionario como dicen?" - me preguntó un cliente ayer. Mi respuesta fue clara: "Para algunos negocios ha sido transformador, para otros un despilfarro de dinero." Y esa honestidad brutal es lo que nos diferencia.`,
+        "En FuturPrive no vendemos humo. Si una tecnología de IA no vale la pena, te lo diremos sin rodeos. Si una herramienta merece cada euro invertido, también. Nuestra única lealtad es hacia ti y tus resultados, no hacia vendedores de software o modas pasajeras."
       ]
     },
     {
-      icon: <Trophy className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
-      title: "Ventaja Competitiva",
+      icon: <Coffee className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />,
+      title: "Sin tonterías",
       content: [
-        "Mientras los demás siguen estudiando, tú ya estarás APLICANDO. Acceso PRIORITARIO a las últimas herramientas y estrategias de IA ANTES que la masa.",
-        "Implementarás soluciones que te SEPARARÁN de tu competencia de forma tan evidente que hasta ellos lo notarán. Y para entonces será tarde (para ellos)."
+        "Si te digo que el mes pasado probé personalmente 17 herramientas de IA para un proyecto de automatización de marketing, ¿sabes cuántas valían realmente la pena? Solo 2. Las otras 15 eran básicamente una interfaz bonita sobre tecnologías genéricas.",
+        "Cada email que te envío tiene al menos una acción concreta que puedes implementar HOY MISMO. Sin teoría para impresionar, sin jerga técnica para parecer más inteligente, sin relleno. Solo estrategias prácticas que puedes aplicar inmediatamente. Porque la vida es demasiado corta para contenido que no te ayude a crecer."
       ]
     }
   ];
 
   return (
-    <section className="py-16 pb-12 bg-[#0a0a0a] mt-0">
+    <section className="py-16 pb-8 bg-[#0a0a0a] mt-16">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-center mb-2">
-          <AnimatedButton>Beneficios de la Comunidad</AnimatedButton>
+          <AnimatedButton>Nuestra filosofía</AnimatedButton>
         </div>
 
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white">
-          Lo que vas a conseguir (y NO es poca cosa) al unirte a <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">nuestra comunidad</span>
+          La actualidad de la mano de <span className="bg-gradient-to-r from-[#C9A880] to-[#A78355] bg-clip-text text-transparent">expertos del sector</span>
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -73,7 +73,12 @@ export function NewsletterBenefits() {
           ))}
         </div>
 
-        {/* Se eliminó el botón "Unirme a la Lista de Espera" */}
+        {/* Botón con margen inferior reducido */}
+        <div className="text-center mt-8 mb-0">
+          <Link href="#newsletter-form" scroll={false}>
+            <AnimatedButton>Quiero estar al día</AnimatedButton>
+          </Link>
+        </div>
       </div>
     </section>
   );

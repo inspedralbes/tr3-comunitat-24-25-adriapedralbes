@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
+import { AuthModal, AuthModalType } from '@/components/Auth';
 import MainLayout from '@/components/layouts/MainLayout';
 import NoNavbarLayout from '@/components/layouts/NoNavbarLayout';
 import { ProfileSettings } from '@/components/Profile/ProfileSettings';
 import { RequiredSubscriptionModal } from '@/components/Subscription';
 import { UserProfile, authService } from '@/services/auth';
-import { default as subscriptionService, SubscriptionStatus } from '@/services/subscription';
+import subscriptionService, { SubscriptionStatus } from '@/services/subscription';
+import { logoutTransition } from '@/utils/transitionUtils';
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
@@ -18,7 +20,9 @@ export default function ProfileSettingsPage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [_showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalType, setAuthModalType] = useState<AuthModalType>(AuthModalType.LOGIN);
 
   const [isSubscriptionRequired, setIsSubscriptionRequired] = useState(false);
 
@@ -97,7 +101,7 @@ export default function ProfileSettingsPage() {
 
   // Determinar si mostrar el navbar
   const hasSubscription = subscriptionStatus?.has_subscription || false;
-  
+
   // Iniciar proceso de suscripción
   const handleStartSubscription = async () => {
     try {
@@ -140,12 +144,41 @@ export default function ProfileSettingsPage() {
     }
   };
 
+  const handleLogout = () => {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+      // Cerrar el dropdown y actualizar el estado local
+      
+      // Llamar a logout para eliminar tokens
+      authService.logout();
+      
+      // Aplicar transición pero quedarse en la misma página, mostrar el modal de login automáticamente
+      // Usamos una función setTimeout para abrir el modal después de un pequeño delay para permitir que se complete la transición
+      logoutTransition(window.location.pathname);
+      setTimeout(() => {
+        setAuthModalType(AuthModalType.LOGIN);
+        setIsAuthModalOpen(true);
+      }, 500);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false);
+    window.location.reload(); // Recargar la página para actualizar el estado de autenticación
+  };
+
   // Elegir el layout adecuado según el estado de suscripción
   const Layout = hasSubscription ? MainLayout : NoNavbarLayout;
   const layoutProps = hasSubscription ? { activeTab: "profile" as const } : { activeTab: "profile" as const };
 
   return (
     <Layout {...layoutProps}>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        type={authModalType}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
+    
       {/* Barra de suscripción - siempre visible cuando no hay suscripción */}
       {!hasSubscription && (
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 shadow-md">
@@ -155,12 +188,7 @@ export default function ProfileSettingsPage() {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => {
-                  if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                    authService.logout();
-                    router.push('/');
-                  }
-                }}
+                onClick={handleLogout}
                 className="px-4 py-1 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors text-sm font-medium"
               >
                 Cerrar sesión
@@ -175,7 +203,7 @@ export default function ProfileSettingsPage() {
           </div>
         </div>
       )}
-      
+
       {/* Modal de suscripción obligatoria */}
       {isSubscriptionRequired && !hasSubscription && (
         <RequiredSubscriptionModal
@@ -194,7 +222,7 @@ export default function ProfileSettingsPage() {
             Volver al perfil
           </Link>
         </div>
-        
+
         {!hasSubscription && (
           <div className="mb-10 text-center">
             <div className="flex justify-center mb-1">
@@ -210,7 +238,7 @@ export default function ProfileSettingsPage() {
             </p>
           </div>
         )}
-        
+
         {isSubscriptionRequired && !hasSubscription && (
           <div className="mb-6 bg-amber-900/30 border border-amber-500/50 text-amber-200 p-4 rounded-md">
             <p className="font-medium">Debes completar tu suscripción para continuar</p>
@@ -277,7 +305,7 @@ export default function ProfileSettingsPage() {
                     Para acceder a nuestra comunidad y recursos exclusivos, necesitas activar tu suscripción.
                   </p>
                 </div>
-                
+
                 <div className="space-y-3 mb-6">
                   <div className="flex items-start gap-3">
                     <div className="text-green-400 mt-0.5">✓</div>

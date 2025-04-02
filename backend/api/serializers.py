@@ -30,8 +30,15 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
             request = self.context.get('request')
             if request is not None:
+                # Asegurar que la URL es absoluta
                 return request.build_absolute_uri(obj.avatar_url.url)
-            return obj.avatar_url.url
+            # Si no hay request en el contexto, construir la URL manualmente
+            from django.conf import settings
+            if settings.DEBUG:
+                base_url = 'http://127.0.0.1:8000'
+            else:
+                base_url = 'https://api.futurprive.com'
+            return f"{base_url}{obj.avatar_url.url}"
         return None
         
     def get_is_admin(self, obj):
@@ -84,8 +91,15 @@ class UserShortSerializer(serializers.ModelSerializer):
         if obj.avatar_url and hasattr(obj.avatar_url, 'url'):
             request = self.context.get('request')
             if request is not None:
+                # Asegurar que la URL es absoluta
                 return request.build_absolute_uri(obj.avatar_url.url)
-            return obj.avatar_url.url
+            # Si no hay request en el contexto, construir la URL manualmente
+            from django.conf import settings
+            if settings.DEBUG:
+                base_url = 'http://127.0.0.1:8000'
+            else:
+                base_url = 'https://api.futurprive.com'
+            return f"{base_url}{obj.avatar_url.url}"
         return None
         
     def get_is_admin(self, obj):
@@ -156,6 +170,17 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ['id', 'author', 'category', 'title', 'content', 'image', 'image_2_url', 'image_3_url', 'likes', 'is_pinned', 
                 'created_at', 'updated_at', 'comments_count', 'category_id', 'is_liked']
         read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'likes', 'is_pinned', 'is_liked']
+    
+    def create(self, validated_data):
+        # Log para debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"PostSerializer.create: datos validados = {validated_data}")
+        
+        # Crear el post
+        post = Post.objects.create(**validated_data)
+        logger.info(f"Post creado con ID: {post.id}")
+        return post
 
     def get_image_2_url(self, obj):
         if obj.image_2 and hasattr(obj.image_2, 'url'):
@@ -240,6 +265,11 @@ class CourseSerializer(serializers.ModelSerializer):
         return obj.lessons.count()
         
     def get_thumbnail_url(self, obj):
+        # Si hay una URL externa configurada, usarla primero
+        if obj.thumbnail_url_external:
+            return obj.thumbnail_url_external
+        
+        # Si no, usar el thumbnail de ImageField
         if obj.thumbnail and hasattr(obj.thumbnail, 'url'):
             request = self.context.get('request')
             if request is not None:

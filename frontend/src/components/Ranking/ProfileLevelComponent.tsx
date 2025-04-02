@@ -20,7 +20,7 @@ export const ProfileLevelComponent: React.FC<ProfileLevelComponentProps> = ({
 }) => {
     const [levelDistribution, setLevelDistribution] = useState<LevelDistribution[]>([]);
     const [loading, setLoading] = useState(true);
-    
+
     useEffect(() => {
         const fetchLevelDistribution = async () => {
             try {
@@ -33,16 +33,16 @@ export const ProfileLevelComponent: React.FC<ProfileLevelComponentProps> = ({
                 setLoading(false);
             }
         };
-        
+
         fetchLevelDistribution();
     }, []);
     return (
         <div className="bg-[#323230]/90 rounded-lg border border-white/10 p-8">
             <div className="flex flex-col items-center md:flex-row md:items-start gap-6">
-                <UserLargeAvatar 
-                    username={username} 
-                    avatarUrl={avatarUrl} 
-                    level={level} 
+                <UserLargeAvatar
+                    username={username}
+                    avatarUrl={avatarUrl}
+                    level={level}
                 />
 
                 {/* Información del usuario */}
@@ -65,23 +65,23 @@ export const ProfileLevelComponent: React.FC<ProfileLevelComponentProps> = ({
                     levelDistribution.length > 0 ? (
                         // Mostrar niveles con datos reales
                         levelDistribution.map((levelData) => (
-                            <LevelBlock 
+                            <LevelBlock
                                 key={levelData.level}
-                                level={levelData.level} 
-                                isUnlocked={level >= levelData.level} 
-                                percentage={levelData.percentage} 
-                                isActive={level === levelData.level} 
+                                level={levelData.level}
+                                isUnlocked={level >= levelData.level}
+                                percentage={levelData.percentage}
+                                isActive={level === levelData.level}
                             />
                         ))
                     ) : (
                         // Fallback por si no hay datos
                         Array.from({ length: 9 }, (_, i) => i + 1).map((levelNum) => (
-                            <LevelBlock 
+                            <LevelBlock
                                 key={levelNum}
-                                level={levelNum} 
-                                isUnlocked={level >= levelNum} 
-                                percentage={0} 
-                                isActive={level === levelNum} 
+                                level={levelNum}
+                                isUnlocked={level >= levelNum}
+                                percentage={0}
+                                isActive={level === levelNum}
                             />
                         ))
                     )
@@ -115,10 +115,10 @@ const LevelBlock: React.FC<LevelBlockProps> = ({ level, isUnlocked, isActive, pe
         };
         return colors[level] || 'bg-blue-500';
     };
-    
+
     // Determinar el color de texto según el nivel
     const textColorClass = level === 8 || level === 9 ? 'text-black' : 'text-white';
-    
+
     // Color de fondo actual para niveles activos
     const getActiveBgColor = (level: number) => {
         const colors: Record<number, string> = {
@@ -135,7 +135,7 @@ const LevelBlock: React.FC<LevelBlockProps> = ({ level, isUnlocked, isActive, pe
         };
         return colors[level] || 'bg-blue-900/20';
     };
-    
+
     return (
         <div className={`relative flex items-center p-3 rounded-lg ${isActive ? getActiveBgColor(level) : 'bg-[#2A2A28]'}`}>
             {isUnlocked ? (

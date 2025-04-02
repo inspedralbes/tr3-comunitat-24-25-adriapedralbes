@@ -3,15 +3,21 @@
  */
 
 // Tipos de imágenes aceptados
-export type ImageType = 'avatar' | 'post' | 'media';
+export type ImageType = 'avatar' | 'post' | 'media' | 'course_thumbnail';
+
+interface UploadResult {
+  url: string;
+  fileName: string;
+  originalName: string;
+}
 
 /**
  * Sube una imagen al sistema de archivos de Next.js
  * @param file Archivo a subir
  * @param type Tipo de imagen (avatar, post, etc.)
- * @returns URL de la imagen subida
+ * @returns Objeto con la URL y metadatos de la imagen subida
  */
-export const uploadImage = async (file: File, type: ImageType = 'media'): Promise<string> => {
+export const uploadImage = async (file: File, type: ImageType = 'media'): Promise<UploadResult> => {
   try {
     const formData = new FormData();
     formData.append('file', file);
@@ -31,7 +37,11 @@ export const uploadImage = async (file: File, type: ImageType = 'media'): Promis
 
     const data = await response.json();
     console.log('Imagen subida correctamente:', data.url);
-    return data.url;
+    return {
+      url: data.url,
+      fileName: data.fileName || '',
+      originalName: data.originalName || file.name
+    };
   } catch (error) {
     console.error('Error en la subida de imagen:', error);
     throw error;

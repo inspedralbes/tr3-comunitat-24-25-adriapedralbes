@@ -1,12 +1,10 @@
 "use client";
 
-import { ArrowLeft, Save } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Save } from 'lucide-react';
 import courseService from '@/services/courses';
 import { Lesson } from '@/types/Course';
-
 import MarkdownEditor from './MarkdownEditor/index';
 
 interface LessonEditorProps {
@@ -62,7 +60,7 @@ export default function LessonEditor({ courseId, lessonId, initialData }: Lesson
       return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
     }
     
-    return undefined;
+    return undefined; // Nunca devolver null, siempre undefined
   }
   
   // Función para convertir HTML a Markdown (mejorada)
@@ -168,7 +166,7 @@ export default function LessonEditor({ courseId, lessonId, initialData }: Lesson
   // Función para convertir Markdown a HTML (mejorada)
   function markdownToHtml(markdown: string): string {
     // Buscar y extraer el iframe si existe
-    const iframeMatch = markdown.match(/<iframe[^>]*>[\s\S]*?<\/iframe>/i);
+    let iframeMatch = markdown.match(/<iframe[^>]*>[\s\S]*?<\/iframe>/i);
     let iframeHtml = '';
     if (iframeMatch) {
       iframeHtml = iframeMatch[0];
@@ -257,11 +255,11 @@ export default function LessonEditor({ courseId, lessonId, initialData }: Lesson
         title,
         content: { 
           html: markdownToHtml(content),
-          video_url: extractVideoUrl(content) // Extraer URL del video si existe
+          video_url: extractVideoUrl(content) || undefined // Asegurar que sea string | undefined, nunca null
         },
         order: Number(order),
         course: courseId
-      };
+      } as Partial<Lesson>; // Asegurar que se ajusta al tipo esperado
 
       if (isEditMode) {
         // Modo edición

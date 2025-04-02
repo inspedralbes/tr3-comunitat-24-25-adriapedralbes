@@ -1,5 +1,5 @@
 // API configuration
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.futurprive.com/api';
 
 // App settings
 export const APP_NAME = 'TR3 Comunitat';

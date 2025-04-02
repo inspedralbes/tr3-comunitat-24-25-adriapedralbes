@@ -1,10 +1,11 @@
 "use client";
 
-// X no es utilizado
+import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { authService } from '@/services/auth';
+import { authTransition } from '@/utils/transitionUtils';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -31,24 +32,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setIsLoading(true);
 
     try {
-      // Login and get token response
-      const tokenResponse = await authService.login({ username, password });
+      await authService.login({ username, password });
       
-      // Immediately fetch user profile to update state before redirect
-      const userProfile = await authService.getProfile();
-      
-      // Call onSuccess only after we've retrieved the user profile
+      // Primero llamar a onSuccess para actualizar cualquier estado en el componente padre
       onSuccess();
       
-      // Give the UI a moment to update before reloading the page
-      setTimeout(() => {
-        // Recargar la página después del login para asegurar que el estado se actualiza completamente
-        window.location.reload();
-      }, 300);
+      // Aplicar transición y navegar a la página de comunidad
+      router.refresh();
+      authTransition('/comunidad');
     } catch (err: unknown) {
       const error = err as Error;
       setError(error.message || 'Credenciales inválidas. Por favor, intenta de nuevo.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -57,7 +51,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-      <div 
+      <div
         className="relative bg-[#323230] p-6 rounded-lg w-full max-w-md mx-4 md:mx-auto shadow-xl border border-white/10"
         role="dialog"
         aria-labelledby="login-dialog-title"
@@ -65,7 +59,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         {/* Botón de cierre eliminado para forzar la autenticación */}
 
         <h2 id="login-dialog-title" className="text-2xl font-bold text-white mb-6">Iniciar sesión</h2>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 text-red-200 rounded-md text-sm">
             {error}
@@ -103,9 +97,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
           <button
             type="submit"
-            className={`w-full py-2 px-4 rounded-md font-medium text-white transition-colors ${
-              isLoading ? 'bg-blue-700/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+            className={`w-full py-2 px-4 rounded-md font-medium text-white transition-colors ${isLoading ? 'bg-blue-700/50 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+              }`}
             disabled={isLoading}
           >
             {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}

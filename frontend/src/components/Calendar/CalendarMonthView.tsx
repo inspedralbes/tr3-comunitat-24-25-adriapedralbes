@@ -28,9 +28,9 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
 
             {/* Grid de días */}
             <div className="grid grid-cols-7">
-                {monthData.days.map((day, index) => (
+                {monthData.days.map((day, i) => (
                     <CalendarDay
-                        key={index}
+                        key={i}
                         day={day}
                         onEventClick={onEventClick}
                     />

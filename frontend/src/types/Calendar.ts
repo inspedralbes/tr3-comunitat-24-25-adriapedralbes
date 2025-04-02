@@ -1,5 +1,5 @@
 export interface CalendarEvent {
-    id: number | string;
+    id: number;
     title: string;
     start: Date;
     end?: Date;
@@ -8,10 +8,12 @@ export interface CalendarEvent {
     allDay?: boolean;
     description?: string;
     meetingUrl?: string;
-    location?: string;
+    location?: string; // Añadido para soportar el campo de ubicación
 }
 
 export type ViewMode = 'month' | 'week' | 'day' | 'list';
+
+export type HeaderViewMode = 'month' | 'list';
 
 export interface CalendarDay {
     date: Date;

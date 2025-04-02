@@ -1,9 +1,8 @@
 "use client";
 
-import { ArrowLeft, Save, Upload } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Save, Upload } from 'lucide-react';
 import api from '@/services/api';
 import courseService from '@/services/courses';
 import { Course } from '@/types/Course';
@@ -56,7 +55,7 @@ export default function CourseEditor({ courseId, initialData }: CourseEditorProp
       // Log de depuración
       console.log('Enviando datos del curso:', { title, description });
       
-      const courseData: any = {
+      let courseData: any = {
         title,
         description
         // El progreso no se envía ya que se calcula automáticamente
@@ -79,12 +78,32 @@ export default function CourseEditor({ courseId, initialData }: CourseEditorProp
       // Si hay un archivo de thumbnail, cargarlo
       if (thumbnailFile && newCourseId) {
         console.log(`Cargando thumbnail para curso ${newCourseId}`);
-        const formData = new FormData();
-        formData.append('thumbnail', thumbnailFile);
         
         try {
-          await api.upload(`courses/${newCourseId}/upload_thumbnail/`, formData);
-          console.log('Thumbnail cargado exitosamente');
+          // Usar nuestro servicio de carga de imágenes local
+          const { default: imageUploadService } = await import('@/services/imageUpload');
+          const uploadResult = await imageUploadService.uploadImage(thumbnailFile, 'course_thumbnail');
+          console.log('Thumbnail cargado exitosamente:', uploadResult.url);
+          
+          // Actualizar el curso con la URL del thumbnail
+          // Incluimos el título obligatorio para evitar el error 400
+          // Enviar la URL al endpoint específico de upload_thumbnail
+          try {
+            // Mostrar los datos que vamos a enviar para depuración
+            console.log('Enviando URL de thumbnail al servidor:', uploadResult.url);
+            
+            const formData = new FormData();
+            formData.append('thumbnail_url', uploadResult.url);
+            
+            // Llamar al endpoint específico para thumbnail
+            const updateResponse = await api.upload(`courses/${newCourseId}/upload_thumbnail/`, formData);
+            
+            console.log('Respuesta del servidor al actualizar thumbnail:', updateResponse);
+            console.log('Thumbnail actualizado correctamente en el servidor');
+          } catch (uploadError) {
+            console.error('Error al actualizar thumbnail en el servidor:', uploadError);
+          }
+          
         } catch (uploadError) {
           console.error('Error al cargar el thumbnail:', uploadError);
           // Continuamos aunque falle la carga del thumbnail

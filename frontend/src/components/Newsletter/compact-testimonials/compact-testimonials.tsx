@@ -48,14 +48,14 @@ export function CompactTestimonials() {
           Descubre cómo empresas de todos los tamaños están transformando su productividad y eficiencia con nuestras soluciones.
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {testimonials.map((testimonial, index) => (
           <div key={index} className="bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div className="flex items-center mb-4">
-              <Image 
-                src={testimonial.img} 
-                alt={`${testimonial.name} avatar`} 
+              <Image
+                src={testimonial.img}
+                alt={`${testimonial.name} avatar`}
                 width={48}
                 height={48}
                 className="w-12 h-12 rounded-full mr-4"
@@ -69,7 +69,7 @@ export function CompactTestimonials() {
           </div>
         ))}
       </div>
-      
+
       <div className="mt-12 text-center">
         <AnimatedButton>
           <Link href="#newsletter-signup" className="inline-block">

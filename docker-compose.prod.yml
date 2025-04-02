@@ -1,0 +1,157 @@
+services:
+  # Usar --remove-orphans para eliminar contenedores huérfanos
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/etc/traefik/acme:rw  # Volumen persistente para certificados
+    networks:
+      - web
+    command:
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.network=tr3-comunitat-24-25-adriapedralbes_web"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--certificatesresolvers.leresolver.acme.email=talkcompiler@gmail.com"
+      - "--certificatesresolvers.leresolver.acme.storage=/etc/traefik/acme/acme.json"  # Ruta actualizada
+      - "--certificatesresolvers.leresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+
+  nextjs:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: nextjs-app
+    restart: always
+    env_file:
+      - ./.env.prod
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://api.futurprive.com
+    networks:
+      - web
+    volumes:
+      - nextjs_public:/app/public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextjs.rule=Host(`futurprive.com`)"
+      - "traefik.http.routers.nextjs.entrypoints=websecure"
+      - "traefik.http.routers.nextjs.tls.certresolver=leresolver"
+      - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
+
+  postgres:
+    image: postgres:14-alpine
+    container_name: postgres-db
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./.env.prod
+    networks:
+      - web
+
+  django:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: django-app
+    restart: always
+    command: >-
+      sh -c "python manage.py collectstatic --noinput &&
+             python manage.py makemigrations &&
+             python manage.py migrate &&
+             python create_superuser.py && 
+             gunicorn --bind 0.0.0.0:8000 --timeout 120 --workers 3 config.wsgi:application"
+    env_file:
+      - ./backend/.env
+      - ./.env.prod
+    environment:
+      - DATABASE_HOST=postgres
+      # Forzar la creación del superusuario sin sobrescribir credenciales
+      - FORCE_SUPERUSER_CREATE=true
+      # Configuración de Gunicorn
+      - GUNICORN_TIMEOUT=120
+    networks:
+      - web
+    volumes:
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    depends_on:
+      - postgres
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.django.rule=Host(`api.futurprive.com`)"
+      - "traefik.http.routers.django.entrypoints=websecure"
+      - "traefik.http.routers.django.tls.certresolver=leresolver"
+      - "traefik.http.services.django.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.django-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.django-http.entrypoints=web"
+      - "traefik.http.routers.django-http.rule=Host(`api.futurprive.com`)"
+      - "traefik.http.routers.django-http.middlewares=django-https-redirect"
+      
+      # Ruta específica para archivos estáticos
+      - "traefik.http.routers.django-static.rule=Host(`api.futurprive.com`) && PathPrefix(`/static`)"
+      - "traefik.http.routers.django-static.entrypoints=websecure"
+      - "traefik.http.routers.django-static.tls.certresolver=leresolver"
+      - "traefik.http.routers.django-static.service=django"
+      
+      # Ruta específica para archivos media
+      - "traefik.http.routers.django-media.rule=Host(`api.futurprive.com`) && PathPrefix(`/media`)"
+      - "traefik.http.routers.django-media.entrypoints=websecure"
+      - "traefik.http.routers.django-media.tls.certresolver=leresolver"
+      - "traefik.http.routers.django-media.service=django"
+
+  adminer:
+    image: adminer:latest
+    container_name: adminer-prod
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`db.futurprive.com`)"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls.certresolver=leresolver"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+      - ADMINER_DESIGN=pepa-linha
+      
+  nginx-static:
+    image: nginx:alpine
+    container_name: nginx-static
+    restart: always
+    volumes:
+      - nextjs_public:/usr/share/nginx/html
+    networks:
+      - web
+    command: sh -c "nginx -g 'daemon off;' & sleep 2 && mkdir -p /usr/share/nginx/html/media/avatars /usr/share/nginx/html/media/posts /usr/share/nginx/html/media/course_thumbnails && chmod -R 755 /usr/share/nginx/html/media && echo 'Verificando contenido persistente en volumen:' && ls -la /usr/share/nginx/html/media/avatars && nginx -s reload && while sleep 3600; do :; done"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx-static.rule=Host(`futurprive.com`) && PathPrefix(`/media`)"
+      - "traefik.http.routers.nginx-static.entrypoints=websecure"
+      - "traefik.http.routers.nginx-static.tls.certresolver=leresolver"
+      - "traefik.http.services.nginx-static.loadbalancer.server.port=80"
+      - "traefik.http.routers.nginx-static.priority=200"
+
+networks:
+  web:
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:
+  traefik_certs:  # Volumen para certificados persistentes
+  nextjs_public:  # Volumen persistente para archivos públicos de Next.js

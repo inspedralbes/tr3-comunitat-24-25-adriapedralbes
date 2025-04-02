@@ -11,12 +11,12 @@ interface ScrollTopButtonProps {
   isSubscribeButton?: boolean;
 }
 
-export function ScrollTopButton({ 
-  children, 
-  type = "animated", 
-  isSubscribeButton = false 
+export function ScrollTopButton({
+  children,
+  type = "animated",
+  isSubscribeButton = false
 }: ScrollTopButtonProps) {
-  
+
   const handleClick = () => {
     if (!isSubscribeButton) {
       // Scroll al inicio de la página con animación suave
@@ -27,7 +27,7 @@ export function ScrollTopButton({
     }
     // Si es el botón de suscripción, no hacemos nada especial
   };
-  
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -42,7 +42,7 @@ export function ScrollTopButton({
 
   if (type === "rainbow") {
     return (
-      <div 
+      <div
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
@@ -57,7 +57,7 @@ export function ScrollTopButton({
   }
 
   return (
-    <div 
+    <div
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}

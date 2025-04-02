@@ -1,25 +1,14 @@
 // Base URL para API
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.futurprive.com';
 
-// Función para asegurar que usamos IPv4 en desarrollo
+// Función para retornar la URL de la API
 const getApiUrl = () => {
   // Sustituir localhost por 127.0.0.1 para evitar problemas con IPv6
   return API_URL.replace('localhost', '127.0.0.1');
 };
 
-// Función para construir la URL completa del endpoint
-const buildEndpointUrl = (endpoint: string, ensureTrailingSlash = false) => {
-  // Asegurarse de que endpoint no empieza con barra
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-  
-  // Añadir barra final si se requiere y no existe
-  let finalEndpoint = cleanEndpoint;
-  if (ensureTrailingSlash && !finalEndpoint.endsWith('/')) {
-    finalEndpoint += '/';
-  }
-  
-  return `${getApiUrl()}/${finalEndpoint}`;
-};
+// Declaramos la función para construir URLs de endpoints
+let buildEndpointUrl: (endpoint: string, ensureTrailingSlash?: boolean) => string;
 
 // Función para manejar errores
 const handleResponse = async (response: Response) => {
@@ -27,23 +16,23 @@ const handleResponse = async (response: Response) => {
   if (!response.ok && response.status !== 404) {
     console.log(`API Response: ${response.status} ${response.statusText} from ${response.url}`);
   }
-  
+
   if (!response.ok) {
     // Para errores 404, simplemente devolvemos un objeto/array vacío sin registrar errores ruidosos
     if (response.status === 404) {
       console.log(`Endpoint no implementado: ${response.url}`);
       return response.url.includes('progress') ? [] : {};
     }
-    
+
     let errorMessage = `Error ${response.status}: ${response.statusText}`;
-    
+
     try {
       // Intentar obtener el error como JSON
       const errorData = await response.json().catch(() => null);
-      
+
       if (errorData) {
         // Mensaje de error eliminado
-        
+
         if (errorData.error) {
           errorMessage = errorData.error;
         } else if (errorData.detail) {
@@ -75,11 +64,16 @@ const handleResponse = async (response: Response) => {
     } catch (e) {
       // Error de depuración eliminado
     }
-    
+
     throw new Error(errorMessage);
   }
-  
+
   try {
+    // Para respuestas 204 No Content o similares que no tienen cuerpo
+    if (response.status === 204) {
+      return {};
+    }
+
     const data = await response.json();
     // Log de respuesta exitosa eliminado
     return data;
@@ -108,6 +102,24 @@ const getHeaders = (includeContentType = true) => {
   }
 
   return headers;
+};
+
+// Implementamos la función declarada anteriormente
+buildEndpointUrl = (endpoint: string, ensureTrailingSlash = false) => {
+  // Asegurarse de que endpoint no empieza con barra
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+
+  // Añadir prefijo /api/ si no está presente
+  const apiEndpoint = cleanEndpoint.startsWith('api/') ? cleanEndpoint : `api/${cleanEndpoint}`;
+
+  // Asegurarse de que la URL termine con / si se requiere
+  // (para evitar redirecciones 301 que convierten POSTs en GETs)
+  let finalEndpoint = apiEndpoint;
+  if (ensureTrailingSlash && !finalEndpoint.endsWith('/')) {
+    finalEndpoint += '/';
+  }
+
+  return `${getApiUrl()}/${finalEndpoint}`;
 };
 
 // API general con funciones para peticiones HTTP
@@ -164,7 +176,7 @@ export const api = {
     const headers: Record<string, string> = {
       'Accept': 'application/json',
     };
-    
+
     // Añadir token de autenticación
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('auth_token');
@@ -172,14 +184,14 @@ export const api = {
         headers['Authorization'] = `Bearer ${token}`;
       }
     }
-    
+
     // Hacer la solicitud con URL que termina en slash
     const response = await fetch(buildEndpointUrl(endpoint, true), {
       method: 'POST',
       headers, // No incluir Content-Type para que el navegador maneje el boundary
       body: formData,
     });
-    
+
     return handleResponse(response);
   },
 };

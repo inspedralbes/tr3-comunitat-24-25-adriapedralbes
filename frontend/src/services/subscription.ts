@@ -37,9 +37,11 @@ export const subscriptionService = {
       return response;
     } catch (error) {
       console.error('Error en createCheckoutSession:', error);
-      throw new Error(
-        error instanceof Error ? error.message : 'Ocurrió un error en el servidor'
-      );
+      // Verificar si error es un objeto con propiedad message
+      if (error && typeof error === 'object' && 'message' in error) {
+        throw new Error(error.message as string);
+      }
+      throw new Error('Ocurrió un error en el servidor');
     }
   },
 

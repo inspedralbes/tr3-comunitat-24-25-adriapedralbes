@@ -133,26 +133,26 @@ const ReviewCard = ({
             className={cn(
                 "relative h-full w-56 sm:w-60 md:w-64 cursor-pointer overflow-hidden rounded-xl border p-3 mx-2 transition-all duration-300 opacity-90 hover:opacity-100 hover:scale-[1.02]",
                 // light styles
-                "border-[#C2A57C]/40 bg-gray-950/[.01] hover:bg-gray-950/[.05]",
+                "border-[#C9A880]/40 bg-gray-950/[.01] hover:bg-gray-950/[.05]",
                 // dark styles
-                "dark:border-[#C2A57C]/40 dark:bg-gray-50/[.05] dark:hover:bg-gray-50/[.08]",
+                "dark:border-[#C9A880]/40 dark:bg-gray-50/[.05] dark:hover:bg-gray-50/[.08]",
                 // Responsive shadow for better visibility
-                "shadow-md shadow-[#C2A57C]/10"
+                "shadow-md shadow-[#C9A880]/10"
             )}
         >
             <div className="flex flex-row items-center gap-2">
-                <Image 
-                    className="rounded-full" 
-                    width={32} 
-                    height={32} 
-                    alt={`${name}'s profile`} 
-                    src={img} 
+                <Image
+                    className="rounded-full"
+                    width={32}
+                    height={32}
+                    alt={`${name}'s profile`}
+                    src={img}
                 />
                 <div className="flex flex-col">
                     <figcaption className="text-sm font-medium text-white">
                         {name}
                     </figcaption>
-                    <p className="text-xs font-medium text-[#C2A57C]">{username}</p>
+                    <p className="text-xs font-medium text-[#C9A880]">{username}</p>
                 </div>
             </div>
             <blockquote className="mt-2 text-sm font-medium">{body}</blockquote>
@@ -164,7 +164,7 @@ export function MarqueeDemo() {
     return (
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden py-4">
             {/* Title para introducir las testimoniales */}
-            <div className="text-center mb-4 mt-8 w-full px-4">
+            <div className="text-center mb-4 mt-0 w-full px-4">
                 <h2 className="text-2xl md:text-3xl font-bold">Resultados reales</h2>
             </div>
 

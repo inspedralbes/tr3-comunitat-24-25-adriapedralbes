@@ -4,7 +4,8 @@ import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { ProfileConfigurationModal } from '@/components/Profile/ProfileConfigurationModal';
-import { UserProfile, authService } from '@/services/auth';
+
+import { authService, UserProfile } from '@/services/auth';
 
 interface RegisterModalProps {
   isOpen: boolean;

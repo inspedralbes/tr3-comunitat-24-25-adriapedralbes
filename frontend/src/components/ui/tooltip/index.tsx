@@ -3,28 +3,28 @@ import React, { useState, Children, isValidElement } from 'react';
 
 interface TooltipProviderProps {
   children: React.ReactNode;
-  _delayDuration?: number;
+  delayDuration?: number;
 }
 
 const TooltipProvider: React.FC<TooltipProviderProps> = ({ 
   children,
-  _delayDuration = 300 
+  delayDuration = 300 
 }) => {
   return <>{children}</>;
 };
 
 interface TooltipProps {
   children: React.ReactNode;
-  _delayDuration?: number;
-  _open?: boolean;
-  _onOpenChange?: (open: boolean) => void;
+  delayDuration?: number;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const TooltipComponent: React.FC<TooltipProps> = ({
   children,
-  _delayDuration,
-  _open: _controlledOpen,
-  _onOpenChange
+  delayDuration,
+  open: controlledOpen,
+  onOpenChange
 }) => {
   return <>{children}</>;
 };
@@ -75,18 +75,18 @@ interface TooltipContentProps {
   children: React.ReactNode;
   className?: string;
   sideOffset?: number;
-  _alignOffset?: number;
+  alignOffset?: number;
   side?: 'top' | 'right' | 'bottom' | 'left';
-  _align?: 'start' | 'center' | 'end';
+  align?: 'start' | 'center' | 'end';
 }
 
 const TooltipContent: React.FC<TooltipContentProps> = ({ 
   children,
   className,
   sideOffset = 5,
-  _alignOffset = 0,
+  alignOffset = 0,
   side = 'top',
-  _align = 'center'
+  align = 'center'
 }) => {
   // Comprobamos el estado del trigger padre
   const isOpen = (document.querySelector('[data-tooltip-trigger][data-state="open"]') !== null);

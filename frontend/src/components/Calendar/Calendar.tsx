@@ -76,7 +76,13 @@ export const Calendar: React.FC<CalendarProps> = ({ events, onEventClick }) => {
                 />
             )}
 
-            {/* Aquí se pueden agregar otras vistas (semana, día, lista) */}
+            {viewMode === 'list' && (
+                // Placeholder para la vista de lista
+                <div className="p-4">
+                    <h3 className="text-lg font-medium">Vista de Lista</h3>
+                    <p>Vista de lista no implementada aún.</p>
+                </div>
+            )}
         </div>
     );
 };

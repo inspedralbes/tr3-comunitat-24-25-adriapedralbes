@@ -105,6 +105,8 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 <button
                     className="flex items-center justify-between w-full px-4 py-2 bg-[#323230] rounded-lg text-white border border-white/10"
                     onClick={() => setShowDropdown(!showDropdown)}
+                    aria-haspopup="true"
+                    aria-expanded={showDropdown}
                 >
                     <div className="flex items-center gap-2">
                         {activeItem.icon}
@@ -114,7 +116,10 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 </button>
 
                 {showDropdown && (
-                    <div className="absolute top-12 left-0 right-0 bg-[#323230] rounded-lg shadow-lg z-10 border border-white/10">
+                    <div
+                        className="absolute top-12 left-0 right-0 bg-[#323230] rounded-lg shadow-lg z-10 border border-white/10"
+                        role="menu"
+                    >
                         {/* Sección de categorías */}
                         <div className="py-2">
                             {categoryItems.map((category) => (
@@ -128,6 +133,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                                         onCategoryChange(category.id);
                                         setShowDropdown(false);
                                     }}
+                                    role="menuitem"
                                 >
                                     {category.icon && <span>{category.icon}</span>}
                                     {category.label}
@@ -152,6 +158,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                                         onSortTypeChange(sort.id);
                                         setShowSortDropdown(false);
                                     }}
+                                    role="menuitem"
                                 >
                                     {sort.icon}
                                     {sort.label}
@@ -172,6 +179,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                             : 'bg-[#323230]/80 text-zinc-300 hover:bg-[#444442] hover:text-white border-white/10'
                             }`}
                         onClick={() => onCategoryChange(category.id)}
+                        data-active={activeCategory === category.id ? "true" : "false"}
                     >
                         {category.icon && <span>{category.icon}</span>}
                         {category.label}
@@ -183,12 +191,18 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                     <button
                         className="bg-[#323230]/80 text-zinc-300 p-1.5 rounded-full hover:bg-[#444442] hover:text-white border border-white/10"
                         onClick={() => setShowSortDropdown(!showSortDropdown)}
+                        aria-haspopup="true"
+                        aria-expanded={showSortDropdown}
+                        aria-label="Sort options"
                     >
                         <SlidersHorizontal size={18} />
                     </button>
 
                     {showSortDropdown && (
-                        <div className="absolute top-full right-0 mt-1 bg-[#323230] rounded-lg shadow-lg z-10 py-0 min-w-[160px] overflow-hidden border border-white/10">
+                        <div
+                            className="absolute top-full right-0 mt-1 bg-[#323230] rounded-lg shadow-lg z-10 py-0 min-w-[160px] overflow-hidden border border-white/10"
+                            role="menu"
+                        >
                             {sortTypes.map((sort) => (
                                 <button
                                     key={sort.id}
@@ -200,6 +214,8 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                                         onSortTypeChange(sort.id);
                                         setShowSortDropdown(false);
                                     }}
+                                    role="menuitem"
+                                    data-selected={activeSortType === sort.id ? "true" : "false"}
                                 >
                                     {sort.icon}
                                     {sort.label}

@@ -73,7 +73,7 @@ class CategoryAdmin(admin.ModelAdmin):
 # Admin personalizado para Post
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('id', 'author', 'category', 'content_preview', 'likes', 'comments_count', 'is_pinned', 'created_at')
+    list_display = ('id_truncated', 'author', 'category', 'content_preview', 'likes', 'comments_count', 'is_pinned', 'created_at')
     list_filter = ('is_pinned', 'created_at', 'category')
     search_fields = ('content', 'author__username')
     date_hierarchy = 'created_at'
@@ -81,8 +81,17 @@ class PostAdmin(admin.ModelAdmin):
     list_editable = ('is_pinned',)
     actions = ['pin_posts', 'unpin_posts']
     
+    def id_truncated(self, obj):
+        return str(obj.id)[:8] + "..."
+    id_truncated.short_description = 'ID'
+    
     def content_preview(self, obj):
-        return obj.content[:50] + "..." if len(obj.content) > 50 else obj.content
+        try:
+            if isinstance(obj.content, str):
+                return obj.content[:50] + "..." if len(obj.content) > 50 else obj.content
+            return str(obj.content)[:50] + "..."
+        except Exception as e:
+            return f"Error: {str(e)[:30]}"
     content_preview.short_description = 'Contenido'
     
     def comments_count(self, obj):
@@ -101,34 +110,50 @@ class PostAdmin(admin.ModelAdmin):
 # Admin personalizado para Comment
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'author', 'post_link', 'content_preview', 'likes', 'created_at')
+    list_display = ('id_truncated', 'author', 'post_link', 'content_preview', 'likes', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('content', 'author__username', 'post__content')
     date_hierarchy = 'created_at'
     list_select_related = ('author', 'post', 'parent', 'mentioned_user')
+    
+    def id_truncated(self, obj):
+        return str(obj.id)[:8] + "..."
+    id_truncated.short_description = 'ID'
     
     def content_preview(self, obj):
         return obj.content[:50] + "..." if len(obj.content) > 50 else obj.content
     content_preview.short_description = 'Contenido'
     
     def post_link(self, obj):
-        url = reverse('admin:api_post_change', args=[obj.post.id])
-        return format_html('<a href="{}">{}</a>', url, obj.post.content[:30] + "..." if len(obj.post.content) > 30 else obj.post.content)
+        try:
+            url = reverse('admin:api_post_change', args=[obj.post.id])
+            content = obj.post.content[:30] + "..." if len(obj.post.content) > 30 else obj.post.content
+            return format_html('<a href="{}">{}</a>', url, content)
+        except Exception as e:
+            return f"Error: {str(e)[:50]}"
     post_link.short_description = 'Post'
 
 
 # Admin personalizado para PostLike
 @admin.register(PostLike)
 class PostLikeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'post_link', 'created_at')
+    list_display = ('id', 'user', 'post_id_short', 'post_link', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('user__username', 'post__content')
     date_hierarchy = 'created_at'
     list_select_related = ('user', 'post')
     
+    def post_id_short(self, obj):
+        return str(obj.post.id)[:8] + "..."
+    post_id_short.short_description = 'Post ID'
+    
     def post_link(self, obj):
-        url = reverse('admin:api_post_change', args=[obj.post.id])
-        return format_html('<a href="{}">{}</a>', url, obj.post.content[:30] + "..." if len(obj.post.content) > 30 else obj.post.content)
+        try:
+            url = reverse('admin:api_post_change', args=[obj.post.id])
+            content = obj.post.content[:30] + "..." if len(obj.post.content) > 30 else obj.post.content
+            return format_html('<a href="{}">{}</a>', url, content)
+        except Exception as e:
+            return f"Error: {str(e)[:50]}"
     post_link.short_description = 'Post'
 
 
@@ -142,8 +167,12 @@ class CommentLikeAdmin(admin.ModelAdmin):
     list_select_related = ('user', 'comment')
     
     def comment_link(self, obj):
-        url = reverse('admin:api_comment_change', args=[obj.comment.id])
-        return format_html('<a href="{}">{}</a>', url, obj.comment.content[:30] + "..." if len(obj.comment.content) > 30 else obj.comment.content)
+        try:
+            url = reverse('admin:api_comment_change', args=[obj.comment.id])
+            content = obj.comment.content[:30] + "..." if len(obj.comment.content) > 30 else obj.comment.content
+            return format_html('<a href="{}">{}</a>', url, content)
+        except Exception as e:
+            return f"Error: {str(e)[:50]}"
     comment_link.short_description = 'Comentario'
 
 

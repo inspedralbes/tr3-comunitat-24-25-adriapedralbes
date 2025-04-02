@@ -15,7 +15,7 @@ export function MagicCardDemo() {
       ),
       title: "Agenda tu consulta",
       description:
-        "Agenda tu consulta gratuita y te mostramos cómo impulsar tu proyecto con tecnología.",
+        "30 minutos donde descubrirás exactamente cómo la tecnología puede hacer crecer tu negocio. Sin promesas vacías.",
     },
     {
       icon: (
@@ -23,14 +23,14 @@ export function MagicCardDemo() {
       ),
       title: "Planificar Soluciones",
       description:
-        "Planificamos y automatizamos procesos para reducir costes y maximizar beneficios.",
+        "Creamos un plan concreto para reducir costes donde realmente importa. Nada de soluciones genéricas.",
     },
     {
       icon: (
         <Download className="w-8 h-8 mb-4 text-white transition-colors duration-300 group-hover:text-[#C9A880]" />
       ),
       title: "Implementar automatización",
-      description: "Implementamos soluciones personalizadas para tu proyecto.",
+      description: "Ponemos todo en marcha sin que tengas que preocuparte por nada técnico. Tú céntrate en ver crecer los números.",
     },
   ];
 

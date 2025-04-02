@@ -1,8 +1,7 @@
-import { existsSync } from 'fs';
+import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-
-import { NextRequest, NextResponse } from 'next/server';
+import { existsSync } from 'fs';
 
 // Función para generar un ID único basado en timestamp y random
 const generateUniqueId = () => {
@@ -35,6 +34,9 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split('.').pop();
     const fileName = `${uniqueId}.${fileExtension}`;
     
+    // Guardar el nombre original para referencia (opcional)
+    const originalName = file.name;
+    
     // Determinar subpath basado en el tipo de imagen
     let subPath = 'media';
     const type = formData.get('type') as string;
@@ -42,6 +44,8 @@ export async function POST(request: NextRequest) {
       subPath = 'media/avatars';
     } else if (type === 'post') {
       subPath = 'media/posts';
+    } else if (type === 'course_thumbnail') {
+      subPath = 'media/course_thumbnails';
     }
     
     // Ruta completa al directorio de carga
@@ -62,6 +66,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       url: imageUrl,
+      fileName: fileName,
+      originalName: originalName,
       message: 'Archivo subido correctamente'
     });
   } catch (error) {

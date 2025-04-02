@@ -17,7 +17,7 @@ interface LeaderboardWidgetProps {
 
 export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
     users,
-    period = '30 días'
+    period = '30-day'
 }) => {
     // Función para obtener el color del badge según la posición
     const getPositionBadgeColor = (position: number) => {
@@ -59,7 +59,7 @@ export const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({
         <div className="bg-[#323230]/90 rounded-lg p-4 border border-white/10">
             <div className="flex items-center gap-2 mb-4">
                 <Trophy className="text-amber-400" size={18} />
-                <h3 className="font-medium text-white">Ranking ({period})</h3>
+                <h3 className="font-medium text-white">Leaderboard ({period})</h3>
             </div>
 
             <div className="space-y-3">

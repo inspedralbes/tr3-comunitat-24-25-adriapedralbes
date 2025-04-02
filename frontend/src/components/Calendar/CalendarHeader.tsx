@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, List, Calendar as CalendarIcon } from 'lucide-react';
 import React from 'react';
 
+import { HeaderViewMode } from '@/types/Calendar';
 import { getMonthName } from '@/utils/calendarUtils';
 
 interface CalendarHeaderProps {
@@ -9,8 +10,8 @@ interface CalendarHeaderProps {
     onPrevMonth: () => void;
     onNextMonth: () => void;
     onTodayClick: () => void;
-    onViewChange: (view: 'month' | 'list') => void;
-    currentView: 'month' | 'list';
+    onViewChange: (view: HeaderViewMode) => void;
+    currentView: HeaderViewMode;
 }
 
 export const CalendarHeader: React.FC<CalendarHeaderProps> = ({

@@ -19,20 +19,42 @@ def stripe_webhook(request):
     """
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+
+    logger.info("🔔 Webhook de Stripe recibido")
+    logger.info(f"URL: {request.path}")
+    logger.info(f"Método: {request.method}")
+    logger.info(f"¿Tiene firma? {'Sí' if sig_header else 'No'}")
+    logger.info(f"¿Tiene secreto configurado? {'Sí' if webhook_secret else 'No'}")
 
     try:
         # Verificar la firma si hay un secreto de webhook configurado
-        if settings.STRIPE_WEBHOOK_SECRET:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-            )
+        if webhook_secret:
+            logger.info(f"Intentando verificar firma con secreto: {webhook_secret[:5]}...")
+            try:
+                event = stripe.Webhook.construct_event(
+                    payload, sig_header, webhook_secret
+                )
+                logger.info("✅ Firma verificada correctamente")
+            except ValueError as e:
+                logger.error(f"❌ Error en la verificación (ValueError): {str(e)}")
+                return HttpResponse(status=400)
+            except stripe.error.SignatureVerificationError as e:
+                logger.error(f"❌ Error en la verificación de firma: {str(e)}")
+                return HttpResponse(status=400)
         else:
             # Si no hay secreto, simplemente parsear el JSON
-            payload_json = json.loads(payload)
-            event = payload_json
-            logger.warning("Webhook sin verificar - no hay STRIPE_WEBHOOK_SECRET configurado")
+            logger.warning("⚠️ No hay STRIPE_WEBHOOK_SECRET configurado")
+            try:
+                payload_json = json.loads(payload)
+                event = payload_json
+            except json.JSONDecodeError as e:
+                logger.error(f"❌ Error al parsear JSON: {str(e)}")
+                return HttpResponse(status=400)
         
-        logger.info(f"Webhook Stripe recibido: {event['type']}")
+        # Extraer el tipo de evento
+        event_type = event['type'] if isinstance(event, dict) else event.type
+        logger.info(f"📝 Evento recibido: {event_type}")
         
         # Manejar el evento según su tipo
         if event['type'] == 'checkout.session.completed':
@@ -64,14 +86,18 @@ def handle_checkout_session_completed(session):
     """
     Manejar evento de sesión de checkout completada
     """
-    logger.info(f"Checkout session completada: {session.id}")
+    logger.info(f"📦 Checkout session completada: {session.get('id')}")
+    logger.info(f"Datos de sesión: {json.dumps(session, default=str)[:500]}...")
     
     # Obtener el customer_id y subscription_id
     customer_id = session.get('customer')
     subscription_id = session.get('subscription')
     
-    if not customer_id or not subscription_id:
-        logger.warning(f"Sesión sin customer_id o subscription_id: {session.id}")
+    logger.info(f"Customer ID: {customer_id}")
+    logger.info(f"Subscription ID: {subscription_id}")
+    
+    if not customer_id:
+        logger.warning("⚠️ Sesión sin customer_id")
         return
     
     try:
@@ -79,28 +105,71 @@ def handle_checkout_session_completed(session):
         user = User.objects.filter(stripe_customer_id=customer_id).first()
         
         if not user:
-            logger.warning(f"No se encontró usuario con customer_id {customer_id}")
-            return
+            logger.warning(f"⚠️ No se encontró usuario con customer_id {customer_id}")
+            # Intentar buscar por otros medios (metadata, email)
+            if session.get('customer_email'):
+                logger.info(f"Intentando encontrar usuario por email: {session.get('customer_email')}")
+                user = User.objects.filter(email=session.get('customer_email')).first()
+                if user:
+                    logger.info(f"✅ Usuario encontrado por email: {user.username}")
+                    # Actualizar el customer_id del usuario
+                    user.stripe_customer_id = customer_id
+            
+            if not user and session.get('metadata', {}).get('user_id'):
+                logger.info(f"Intentando encontrar usuario por user_id en metadata: {session.get('metadata', {}).get('user_id')}")
+                user = User.objects.filter(id=session.get('metadata', {}).get('user_id')).first()
+                if user:
+                    logger.info(f"✅ Usuario encontrado por metadata: {user.username}")
+                    # Actualizar el customer_id del usuario
+                    user.stripe_customer_id = customer_id
+            
+            if not user:
+                logger.error("❌ No se pudo encontrar al usuario por ningún método")
+                return
+        
+        logger.info(f"✅ Usuario encontrado: {user.username}")
+        
+        # Actualizar datos básicos de cliente Stripe
+        user.stripe_customer_id = customer_id
         
         # Si hay un subscription_id, obtener detalles de la suscripción
-        subscription = stripe.Subscription.retrieve(subscription_id)
+        if subscription_id:
+            try:
+                logger.info(f"Obteniendo detalles de suscripción: {subscription_id}")
+                subscription = stripe.Subscription.retrieve(subscription_id)
+                
+                # Actualizar los datos del usuario
+                user.subscription_id = subscription_id
+                user.subscription_status = subscription.status
+                user.has_active_subscription = subscription.status == 'active'
+                user.is_premium = subscription.status == 'active'
+                
+                # Actualizar fechas de suscripción
+                if hasattr(subscription, 'current_period_start'):
+                    user.subscription_start_date = datetime.fromtimestamp(subscription.current_period_start)
+                if hasattr(subscription, 'current_period_end'):
+                    user.subscription_end_date = datetime.fromtimestamp(subscription.current_period_end)
+                
+                logger.info(f"✅ Detalles de suscripción actualizados. Estado: {subscription.status}")
+            except Exception as e:
+                logger.error(f"❌ Error al obtener detalles de suscripción: {str(e)}")
+                # Si no podemos obtener detalles, asumimos suscripción activa
+                user.subscription_id = subscription_id
+                user.subscription_status = 'active'
+                user.has_active_subscription = True
+                user.is_premium = True
+        else:
+            # Incluso sin subscription_id, si completó el checkout, asumimos que tiene acceso
+            logger.warning("⚠️ Checkout completado pero sin subscription_id")
+            user.has_active_subscription = True
+            user.is_premium = True
+            user.subscription_status = 'pending'
         
-        # Actualizar los datos del usuario
-        user.subscription_id = subscription_id
-        user.subscription_status = subscription.status
-        user.has_active_subscription = subscription.status == 'active'
-        user.is_premium = subscription.status == 'active'
-        
-        # Actualizar fechas de suscripción
-        if subscription.current_period_start:
-            user.subscription_start_date = datetime.fromtimestamp(subscription.current_period_start)
-        if subscription.current_period_end:
-            user.subscription_end_date = datetime.fromtimestamp(subscription.current_period_end)
-        
+        # Guardar todos los cambios
         user.save()
-        logger.info(f"Usuario {user.username} actualizado con suscripción {subscription_id}")
+        logger.info(f"✅ Usuario {user.username} actualizado correctamente")
     except Exception as e:
-        logger.error(f"Error al procesar checkout session: {str(e)}")
+        logger.error(f"❌ Error al procesar checkout session: {str(e)}")
 
 
 def handle_subscription_created(subscription):

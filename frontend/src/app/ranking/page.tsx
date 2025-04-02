@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import MainLayout from '@/components/layouts/MainLayout';
 import { LeaderboardTable, LeaderboardUser } from '@/components/Ranking/LeaderboardTable';

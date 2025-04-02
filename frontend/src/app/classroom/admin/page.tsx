@@ -1,11 +1,10 @@
 "use client";
 
-import { Edit, Plus, Trash2 } from 'lucide-react';
-import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-
+import Link from 'next/link';
+import { Edit, Plus, Trash2 } from 'lucide-react';
 import MainLayout from '@/components/layouts/MainLayout';
-import { default as courseService } from '@/services/courses';
+import courseService from '@/services/courses';
 import { Course } from '@/types/Course';
 
 export default function AdminClassroomPage() {

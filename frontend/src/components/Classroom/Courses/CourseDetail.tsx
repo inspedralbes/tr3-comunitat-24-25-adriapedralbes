@@ -3,14 +3,13 @@
 import { Check, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import ProgressIndicator from '../ProgressIndicator';
 import React, { useState, useEffect } from 'react';
-
+import userProgressService from '@/services/userProgress';
+import authService from '@/services/auth';
 import { toast } from '@/components/ui/toast';
-import { default as authService } from '@/services/auth';
-import { default as userProgressService } from '@/services/userProgress';
-import { CourseWithLessons, Lesson } from '@/types/Lesson';
 
-import { default as ProgressIndicator } from '../ProgressIndicator';
+import { CourseWithLessons, Lesson } from '@/types/Lesson';
 
 interface CourseDetailProps {
     course: CourseWithLessons;
@@ -29,7 +28,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
 
     // Estado para el progreso del curso
     const [progress, setProgress] = useState<number>(course.progress);
-    
+
     // Estado para indicar si está guardando el progreso
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
@@ -39,11 +38,10 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
             try {
                 // Verificar que el usuario esté autenticado antes de intentar obtener el progreso
                 if (!authService.isAuthenticated()) return;
-                
+
                 // Obtener el progreso guardado para este curso
-                // Convertimos a string para garantizar la compatibilidad de tipos
-                const courseProgress = await userProgressService.getCourseProgress(String(course.id));
-                
+                const courseProgress = await userProgressService.getCourseProgress(course.id.toString());
+
                 // Actualizar las lecciones completadas según el progreso guardado
                 if (courseProgress && courseProgress.completed_lessons) {
                     const completedLessonIds = new Set(
@@ -51,15 +49,15 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                             .filter(lp => lp.completed)
                             .map(lp => lp.lesson_id)
                     );
-                    
+
                     // Actualizar el estado local con las lecciones completadas
-                    setLessons(prevLessons => 
+                    setLessons(prevLessons =>
                         prevLessons.map(lesson => ({
                             ...lesson,
                             isCompleted: completedLessonIds.has(lesson.id)
                         }))
                     );
-                    
+
                     // Actualizar el progreso con el valor de la API
                     setProgress(courseProgress.progress_percentage || 0);
                 }
@@ -68,7 +66,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                 // No mostrar error al usuario para no interrumpir su experiencia
             }
         };
-        
+
         loadUserProgress();
     }, [course.id]);
 
@@ -80,37 +78,37 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
         // Encontrar la lección actual
         const lesson = lessons.find(l => l.id === lessonId);
         if (!lesson) return;
-        
+
         // Determinar el nuevo estado de completado
         const newCompletionStatus = !lesson.isCompleted;
-        
+
         try {
             setIsSaving(true);
-            
+
             // Actualizar en la base de datos
             if (newCompletionStatus) {
-                await userProgressService.markLessonAsCompleted(String(course.id), lessonId);
+                await userProgressService.markLessonAsCompleted(course.id.toString(), lessonId);
             } else {
-                await userProgressService.markLessonAsNotCompleted(String(course.id), lessonId);
+                await userProgressService.markLessonAsNotCompleted(course.id.toString(), lessonId);
             }
-            
+
             // Actualizar estado local
             const updatedLessons = lessons.map(l =>
                 l.id === lessonId
                     ? { ...l, isCompleted: newCompletionStatus }
                     : l
             );
-            
+
             setLessons(updatedLessons);
-            
+
             // Calcular el nuevo progreso
             const completedCount = updatedLessons.filter(l => l.isCompleted).length;
             const newProgress = Math.round((completedCount / updatedLessons.length) * 100);
             setProgress(newProgress);
-            
+
             // Mostrar notificación de éxito
-            toast.success(newCompletionStatus 
-                ? "Lección marcada como completada" 
+            toast.success(newCompletionStatus
+                ? "Lección marcada como completada"
                 : "Lección marcada como no completada"
             );
         } catch (error) {
@@ -166,7 +164,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                     </div>
 
                     <h2 className="text-xl font-medium text-white mb-2">{course.title}</h2>
-                    <ProgressIndicator 
+                    <ProgressIndicator
                         progress={progress || 0}
                         lessonsCount={lessons.length}
                         completedLessons={lessons.filter(l => l.isCompleted).length}
@@ -248,7 +246,7 @@ export const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack }) =>
                 {/* Contenido HTML si existe */}
                 {activeLesson.content.html && (
                     <div className="lesson-content text-white/80 prose prose-invert max-w-none"
-                         dangerouslySetInnerHTML={{ __html: activeLesson.content.html }}
+                        dangerouslySetInnerHTML={{ __html: activeLesson.content.html }}
                     ></div>
                 )}
 

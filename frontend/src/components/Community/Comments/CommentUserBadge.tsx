@@ -4,6 +4,7 @@ import Link from 'next/link';
 import React from 'react';
 
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
+
 import { formatPostDate } from '@/utils/dateUtils';
 import { formatAvatarUrl } from '@/utils/formatUtils';
 

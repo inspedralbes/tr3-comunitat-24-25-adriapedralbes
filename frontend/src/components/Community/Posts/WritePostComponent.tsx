@@ -2,8 +2,9 @@ import { User, Paperclip, Link2, Video, BarChart2, Smile, X } from 'lucide-react
 import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
 
-import { AuthModal, AuthModalType } from '@/components/Auth';
 import UserLevelBadge from '@/components/ui/UserLevelBadge';
+
+import { AuthModal, AuthModalType } from '@/components/Auth';
 import { authService } from '@/services/auth';
 import { normalizeAvatarUrl } from '@/utils/imageUtils';
 
@@ -21,11 +22,11 @@ interface PollOption {
 
 interface WritePostComponentProps {
     onSubmit?: (
-        content: string, 
-        title?: string, 
-        categoryId?: number, 
-        attachments?: File[], 
-        videoUrl?: string, 
+        content: string,
+        title?: string,
+        categoryId?: number,
+        attachments?: File[],
+        videoUrl?: string,
         linkUrl?: string,
         pollOptions?: PollOption[]
     ) => Promise<boolean>;
@@ -47,7 +48,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [error, setError] = useState('');
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    
+
     // Estados para las nuevas funcionalidades
     const [attachments, setAttachments] = useState<File[]>([]);
     const [showAttachmentPreview, setShowAttachmentPreview] = useState(false);
@@ -69,6 +70,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const categoryDropdownRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
+    const titleInputRef = useRef<HTMLInputElement>(null);
 
     // Detectar si estamos en vista móvil
     useEffect(() => {
@@ -101,15 +103,6 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         };
 
         fetchUserProfile();
-        
-        // Suscribirse a cambios de autenticación
-        const unsubscribe = authService.onAuthChange(() => {
-            fetchUserProfile();
-        });
-        
-        return () => {
-            unsubscribe();
-        };
     }, [isAuthModalOpen]); // Refetch cuando el modal se cierra
 
     // Cerrar dropdown de categorías al hacer clic fuera
@@ -159,20 +152,9 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         setIsExpanded(true);
     };
 
-    const handleAuthSuccess = async () => {
+    const handleAuthSuccess = () => {
         setIsAuthModalOpen(false);
-        
-        // Inmediatamente cargar el perfil del usuario tras el login exitoso
-        try {
-            if (authService.isAuthenticated()) {
-                const userProfile = await authService.getProfile();
-                setUser(userProfile);
-            }
-        } catch (error) {
-            console.error('Error al obtener perfil de usuario:', error);
-        }
-        
-        // Expandir el editor después de actualizar el estado
+        // Refrescar info de usuario y expandir el editor
         setIsExpanded(true);
     };
 
@@ -198,7 +180,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const handleOverlayClick = (e: React.MouseEvent) => {
         if (componentRef.current && !componentRef.current.contains(e.target as Node)) {
             // Si hay contenido, confirmar antes de cerrar
-            if (postTitle.trim() || postContent.trim() || attachments.length > 0 || linkUrl || videoUrl || 
+            if (postTitle.trim() || postContent.trim() || attachments.length > 0 || linkUrl || videoUrl ||
                 pollOptions.some(option => option.text.trim())) {
                 if (window.confirm("¿Estás seguro de que quieres descartar tu publicación?")) {
                     setIsExpanded(false);
@@ -227,7 +209,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
     const handleOverlayKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
             // Si hay contenido, confirmar antes de cerrar
-            if (postTitle.trim() || postContent.trim() || attachments.length > 0 || linkUrl || videoUrl || 
+            if (postTitle.trim() || postContent.trim() || attachments.length > 0 || linkUrl || videoUrl ||
                 pollOptions.some(option => option.text.trim())) {
                 if (window.confirm("¿Estás seguro de que quieres descartar tu publicación?")) {
                     setIsExpanded(false);
@@ -271,39 +253,39 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
         if (files && files.length > 0) {
             // Convertir FileList a array
             const newFiles = Array.from(files);
-            
+
             // Verificar que los archivos sean imágenes o documentos aceptados
-            let validFiles = newFiles.filter(file => 
-                file.type.startsWith('image/') || 
+            let validFiles = newFiles.filter(file =>
+                file.type.startsWith('image/') ||
                 file.type === 'application/pdf' ||
                 file.type === 'application/msword' ||
                 file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
                 file.type === 'text/plain'
             );
-            
+
             if (validFiles.length !== newFiles.length) {
                 alert('Algunos archivos no son soportados. Solo se permiten imágenes, PDF y documentos de texto.');
             }
-            
+
             // Contar cuántas imágenes ya tenemos y cuántas nuevas hay
             const currentImages = attachments.filter(file => file.type.startsWith('image/')).length;
             const newImages = validFiles.filter(file => file.type.startsWith('image/')).length;
-            
+
             // Verificar el límite de 3 imágenes
             if (currentImages + newImages > 3) {
                 alert('Solo se permiten un máximo de 3 imágenes por publicación.');
-                
+
                 // Filtrar para no exceder el límite
                 const remainingImageSlots = Math.max(0, 3 - currentImages);
-                
+
                 // Separar imágenes de otros archivos
                 const newImageFiles = validFiles.filter(file => file.type.startsWith('image/')).slice(0, remainingImageSlots);
                 const newNonImageFiles = validFiles.filter(file => !file.type.startsWith('image/'));
-                
+
                 // Combinar respetando el límite
                 validFiles = [...newImageFiles, ...newNonImageFiles];
             }
-            
+
             if (validFiles.length > 0) {
                 setAttachments([...attachments, ...validFiles]);
                 setShowAttachmentPreview(true);
@@ -361,7 +343,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
     // Handler para cambiar el texto de una opción de encuesta
     const handlePollOptionChange = (id: number, text: string) => {
-        setPollOptions(pollOptions.map(option => 
+        setPollOptions(pollOptions.map(option =>
             option.id === id ? { ...option, text } : option
         ));
     };
@@ -376,8 +358,8 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
     // Array de emojis comunes
     const commonEmojis = [
-        "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃", 
-        "😉", "😊", "😇", "🥰", "😍", "😘", "😗", "😚", "😙", "😋", 
+        "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃",
+        "😉", "😊", "😇", "🥰", "😍", "😘", "😗", "😚", "😙", "😋",
         "😛", "😜", "😝", "🤑", "🤗", "🤭", "🤫", "🤔", "🤐", "🤨",
         "😐", "😑", "😶", "😏", "😒", "🙄", "😬", "🤥", "😌", "😔",
         "😪", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥵", "🥶",
@@ -415,16 +397,16 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
             if (onSubmit) {
                 // Si hay título, enviarlo; de lo contrario, usar el contenido como título también
                 const title = postTitle.trim() || postContent.split('\n')[0]; // Usar la primera línea como título si no hay título
-                
+
                 // Filtrar opciones de encuesta válidas
-                const validPollOptions = showPollCreator 
+                const validPollOptions = showPollCreator
                     ? pollOptions.filter(option => option.text.trim().length > 0)
                     : undefined;
-                
+
                 const success = await onSubmit(
-                    postContent, 
-                    title, 
-                    selectedCategory, 
+                    postContent,
+                    title,
+                    selectedCategory,
                     attachments.length > 0 ? attachments : undefined,
                     showVideoInput && videoUrl ? videoUrl : undefined,
                     showLinkInput && linkUrl ? linkUrl : undefined,
@@ -579,6 +561,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                         {/* Campo de título */}
                         <div className="mb-4">
                             <input
+                                ref={titleInputRef}
                                 type="text"
                                 placeholder="Título"
                                 value={postTitle}
@@ -602,9 +585,9 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                             <div className="mb-4 p-3 bg-[#444442] rounded-lg border border-white/10">
                                 <h3 className="text-sm font-medium text-zinc-300 mb-2">
                                     Archivos adjuntos ({attachments.length})
-                                    {attachments.filter(file => file.type.startsWith('image/')).length > 0 && 
+                                    {attachments.filter(file => file.type.startsWith('image/')).length > 0 &&
                                         <span className="text-xs ml-2 text-blue-300">
-                                            {attachments.filter(file => file.type.startsWith('image/')).length === 1 
+                                            {attachments.filter(file => file.type.startsWith('image/')).length === 1
                                                 ? 'La imagen se mostrará en el post'
                                                 : `${attachments.filter(file => file.type.startsWith('image/')).length} imágenes se mostrarán en el post`}
                                             <span className="text-xs ml-1 text-zinc-300">(máx. 3)</span>
@@ -613,19 +596,18 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
                                     {attachments.map((file, index) => (
-                                        <div 
-                                            key={index} 
-                                            className={`flex items-center gap-2 p-2 rounded border border-white/10 ${
-                                                index === 0 && file.type.startsWith('image/') 
-                                                ? 'bg-[#2a3144]' 
-                                                : 'bg-[#323230]'
-                                            }`}
+                                        <div
+                                            key={index}
+                                            className={`flex items-center gap-2 p-2 rounded border border-white/10 ${index === 0 && file.type.startsWith('image/')
+                                                    ? 'bg-[#2a3144]'
+                                                    : 'bg-[#323230]'
+                                                }`}
                                         >
                                             {file.type.startsWith('image/') && (
                                                 <div className="w-8 h-8 flex-shrink-0 bg-[#444442] rounded overflow-hidden">
-                                                    <img 
-                                                        src={URL.createObjectURL(file)} 
-                                                        alt="Preview" 
+                                                    <img
+                                                        src={URL.createObjectURL(file)}
+                                                        alt="Preview"
                                                         className="w-full h-full object-cover"
                                                     />
                                                 </div>
@@ -634,7 +616,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                                 {file.name}
                                                 {file.type.startsWith('image/') && index === 0 ? ' (principal)' : ''}
                                             </span>
-                                            <button 
+                                            <button
                                                 onClick={() => handleRemoveAttachment(index)}
                                                 className="text-zinc-400 hover:text-zinc-200"
                                             >
@@ -689,7 +671,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                                 className="flex-1 bg-[#323230] text-white px-3 py-2 rounded border border-white/10 focus:outline-none focus:border-blue-500"
                                             />
                                             {pollOptions.length > 2 && (
-                                                <button 
+                                                <button
                                                     onClick={() => handleRemovePollOption(option.id)}
                                                     className="text-zinc-400 hover:text-zinc-200"
                                                 >
@@ -699,7 +681,7 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                                         </div>
                                     ))}
                                 </div>
-                                <button 
+                                <button
                                     onClick={handleAddPollOption}
                                     className="text-sm text-blue-400 hover:text-blue-300"
                                 >
@@ -710,13 +692,13 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
 
                         {/* Selector de emojis simple */}
                         {showEmojiPicker && (
-                            <div 
-                                ref={emojiPickerRef} 
+                            <div
+                                ref={emojiPickerRef}
                                 className="mb-4 p-3 bg-[#444442] rounded-lg border border-white/10 z-50 max-h-60 overflow-y-auto"
                             >
                                 <div className="flex flex-wrap gap-2">
                                     {commonEmojis.map((emoji, index) => (
-                                        <button 
+                                        <button
                                             key={index}
                                             onClick={() => handleEmojiSelect(emoji)}
                                             className="w-8 h-8 flex items-center justify-center hover:bg-[#323230] rounded-md text-lg"
@@ -731,37 +713,37 @@ export const WritePostComponent: React.FC<WritePostComponentProps> = ({
                         {/* Barra de herramientas */}
                         <div className="flex flex-wrap items-center">
                             <div className="flex flex-wrap space-x-2 mb-2 sm:mb-0">
-                                <button 
+                                <button
                                     onClick={handleAttachFile}
                                     className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showAttachmentPreview ? 'bg-[#444442]' : ''}`}
                                 >
                                     <Paperclip size={20} />
                                 </button>
-                                <button 
+                                <button
                                     onClick={handleLinkButton}
                                     className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showLinkInput ? 'bg-[#444442]' : ''}`}
                                 >
                                     <Link2 size={20} />
                                 </button>
-                                <button 
+                                <button
                                     onClick={handleVideoButton}
                                     className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showVideoInput ? 'bg-[#444442]' : ''}`}
                                 >
                                     <Video size={20} />
                                 </button>
-                                <button 
+                                <button
                                     onClick={handlePollButton}
                                     className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showPollCreator ? 'bg-[#444442]' : ''}`}
                                 >
                                     <BarChart2 size={20} />
                                 </button>
-                                <button 
+                                <button
                                     onClick={handleEmojiButton}
                                     className={`p-2 text-zinc-300 hover:bg-[#444442] rounded-full transition-colors border border-white/5 ${showEmojiPicker ? 'bg-[#444442]' : ''}`}
                                 >
                                     <Smile size={20} />
                                 </button>
-                                
+
                                 {/* Input oculto para la selección de archivos */}
                                 <input
                                     type="file"

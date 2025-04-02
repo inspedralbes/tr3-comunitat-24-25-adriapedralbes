@@ -1,7 +1,7 @@
 "use client";
 
-import { Video } from 'lucide-react';
 import React, { useState } from 'react';
+import { Video } from 'lucide-react';
 
 interface VideoButtonProps {
   onInsert: (videoHtml: string) => void;

@@ -22,7 +22,9 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply }) =>
 
     // Manejar la respuesta a un comentario
     const handleReply = () => {
-        onReply(comment.id, comment.author.username);
+        // Use author or user property (whichever is available)
+        const username = comment.author?.username || comment.user?.username || 'Usuario';
+        onReply(comment.id, username);
     };
 
     return (
@@ -31,24 +33,26 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply }) =>
                 {/* Avatar y detalles del autor - CORREGIDO CON flex-shrink-0, self-start y z-10 */}
                 <div className="relative flex-shrink-0 self-start">
                     <div className="w-8 h-8 bg-[#444442] rounded-full overflow-hidden border border-white/10">
-                        {comment.author.avatarUrl ? (
+                        {/* Use author or user property (whichever is available) */}
+                        {(comment.author?.avatarUrl || comment.user?.avatarUrl) ? (
                             <Image
-                                src={comment.author.avatarUrl}
-                                alt={comment.author.username}
+                                src={comment.author?.avatarUrl || comment.user?.avatarUrl || ''}
+                                alt={comment.author?.username || comment.user?.username || 'Usuario'}
                                 width={32}
                                 height={32}
                                 className="w-full h-full object-cover"
-                                unoptimized={comment.author.avatarUrl.includes('127.0.0.1') || comment.author.avatarUrl.includes('localhost')}
+                                unoptimized={(comment.author?.avatarUrl || comment.user?.avatarUrl || '').includes('127.0.0.1') || 
+                                          (comment.author?.avatarUrl || comment.user?.avatarUrl || '').includes('localhost')}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-zinc-400">
-                                {comment.author.username.charAt(0).toUpperCase()}
+                                {(comment.author?.username || comment.user?.username || 'U').charAt(0).toUpperCase()}
                             </div>
                         )}
                     </div>
-                    {comment.author.level && (
+                    {(comment.author?.level || comment.user?.level) && (
                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border border-zinc-900 z-10">
-                            {comment.author.level}
+                            {comment.author?.level || comment.user?.level}
                         </div>
                     )}
                 </div>
@@ -56,7 +60,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply }) =>
                 <div className="flex-1">
                     {/* Encabezado del comentario */}
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-white">{comment.author.username}</span>
+                        <span className="font-medium text-white">{comment.author?.username || comment.user?.username || 'Usuario'}</span>
                         <span className="text-xs text-zinc-400">{comment.timestamp}</span>
                     </div>
 
@@ -74,7 +78,6 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply }) =>
                             <button
                                 className={`p-1 rounded-full ${liked ? 'text-blue-400' : 'text-zinc-400 hover:text-zinc-300'}`}
                                 onClick={handleLike}
-                                aria-label={liked ? 'Quitar like' : 'Dar like'}
                             >
                                 <ThumbsUp size={14} />
                             </button>
@@ -87,7 +90,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply }) =>
                             onClick={handleReply}
                         >
                             <CornerUpRight size={14} />
-                            Responder
+                            Reply
                         </button>
                     </div>
                 </div>

@@ -484,7 +484,7 @@ function CommunityContent() {
   const handlePostClick = useCallback(async (postId: string) => {
     try {
       // Buscar el post en las listas existentes para preservar su estado (como is_liked)
-      const existingPost = [...pinnedPosts, ...regularPosts].find(post => post.id === postId);
+      let existingPost = [...pinnedPosts, ...regularPosts].find(post => post.id === postId);
       
       // Cargar el post directamente sin cambiar la URL mientras esté en la vista principal
       const loadedPost = await loadPostContent(postId, false);

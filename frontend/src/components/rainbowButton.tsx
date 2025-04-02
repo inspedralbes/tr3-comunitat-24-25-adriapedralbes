@@ -7,7 +7,7 @@ interface RainbowButtonDemoProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 export function RainbowButtonDemo({ children, ...props }: RainbowButtonDemoProps) {
   return (
     <RainbowButton {...props}>
-      <span className="text-black font-medium">{children}</span>
+      <span className="text-black">{children}</span>
     </RainbowButton>
   );
 }

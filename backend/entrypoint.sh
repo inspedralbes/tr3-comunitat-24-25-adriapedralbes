@@ -30,8 +30,8 @@ find . -path "*/migrations/*.pyc" -delete
 python manage.py makemigrations api
 python manage.py migrate
 
-# Crear superusuario si no existe
-echo "Creando superusuario..."
+# Crear superusuario
+echo "🔵 Configurando superusuario..."
 python create_superuser.py
 
 # Configurar Stripe (crear producto y precio si no existen)
@@ -54,9 +54,14 @@ echo "Configurando datos iniciales (categorías)..."
 python manage.py setup_initial_data || echo "No se pudo configurar los datos iniciales, continuando..."
 
 # Recopilar archivos estáticos
-echo "Recopilando archivos estáticos..."
-python manage.py collectstatic --noinput --clear --verbosity 0
+echo "🔵 Recopilando archivos estáticos..."
+python manage.py collectstatic --noinput
 
-# Iniciar el servidor
-echo "Iniciando servidor..."
-python manage.py runserver 0.0.0.0:8000
+echo "✅ Inicialización completada"
+
+# Iniciar el servidor con timeout extendido
+echo "🚀 Iniciando el servidor Django con timeout extendido..."
+gunicorn config.wsgi:application \
+  --bind 0.0.0.0:8000 \
+  --timeout ${GUNICORN_TIMEOUT:-120} \
+  --workers 3
