@@ -11,15 +11,15 @@ export function NewsletterSkills() {
   const { theme } = useTheme();
 
   const skillTopics = [
-    "Building Production-Ready AI Agents",
-    "AI Agent Architecture",
-    "AI Knowledge Experts (RAG & More)",
-    "Local AI (Secure & Private AI)",
-    "Real-World AI Use Cases",
-    "Using AI Coding Assistants",
-    "Monetizing AI Agents",
-    "Building AI Agents with No Code",
-    "AI Tools and Frameworks"
+    "Construyendo Agentes de IA Listos para Producción",
+    "Arquitectura de Agentes de IA",
+    "Expertos en Conocimiento de IA (RAG y Más)",
+    "IA Local (IA Segura y Privada)",
+    "Casos de Uso de IA en el Mundo Real",
+    "Uso de Asistentes de Programación con IA",
+    "Monetización de Agentes de IA",
+    "Construyendo Agentes de IA sin Código",
+    "Herramientas y Frameworks de IA"
   ];
 
   const stats = [
@@ -27,25 +27,25 @@ export function NewsletterSkills() {
       percentage: "92%",
       text: "de las empresas planean invertir más en IA en los próximos años, pero solo el 1% considera que su uso de IA es \"maduro\".",
       source: "McKinsey & Company",
-      link: "#"
+      link: "https://www.mckinsey.com/capabilities/mckinsey-digital/our-insights/superagency-in-the-workplace-empowering-people-to-unlock-ais-full-potential-at-work"
     },
     {
       percentage: "82%",
       text: "de las grandes empresas planean implementar agentes para 2027.",
       source: "Capgemini Research Institute",
-      link: "#"
+      link: "https://www.capgemini.com/wp-content/uploads/2024/05/Final-Web-Version-Report-Gen-AI-in-Organization-Refresh.pdf"
     },
     {
       percentage: "80%",
       text: "de todas las interacciones con clientes se proyecta que serán manejadas por IA para 2030.",
       source: "Gartner",
-      link: "#"
+      link: "https://www.gartner.com/en/newsroom/press-releases/2023-08-30-gartner-reveals-three-technologies-that-will-transform-customer-service-and-support-by-2028"
     },
     {
       percentage: "30%",
       text: "de las empresas Fortune 500 ofrecerán servicio solo a través de un canal habilitado por IA para 2028.",
       source: "Gartner",
-      link: "#"
+      link: "https://www.gartner.com/en/newsroom/press-releases/2024-12-11-gartner-predicts-that-30-percent-of-fortune-500-companies-will-offer-service-through-only-a-single-ai-enabled-channel-by-2028"
     }
   ];
 
@@ -114,10 +114,15 @@ export function NewsletterSkills() {
                     {stat.text}
                   </p>
                   
-                  <div className="flex items-center text-[#C9A880]/70 text-sm mt-auto">
+                  <a 
+                    href={stat.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center text-[#C9A880]/70 text-sm mt-auto hover:text-[#C9A880] transition-colors"
+                  >
                     <span>{stat.source}</span>
                     <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
-                  </div>
+                  </a>
                 </div>
               </MagicCard>
             ))}
