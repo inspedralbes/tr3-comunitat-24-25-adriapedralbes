@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  :root {
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      Oxygen,
+      Ubuntu,
+      Cantarell,
+      "Open Sans",
+      "Helvetica Neue",
+      sans-serif;
+    --color-1: 37 40% 65%;
+    --color-2: 37 45% 60%;
+    --color-3: 37 50% 55%;
+    --color-4: 37 55% 50%;
+    --color-5: 37 60% 45%;
+  }
+  .dark {
+    --color-1: 37 40% 65%;
+    --color-2: 37 45% 60%;
+    --color-3: 37 50% 55%;
+    --color-4: 37 55% 50%;
+    --color-5: 37 60% 45%;
+  }
+}
+
+html {
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+body {
+  /* Prevenir scroll horizontal en el contenido */
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Para asegurar que no haya cambios de anchura que afecten al layout */
+#root,
+#__next {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Para las transiciones suaves, puedes añadir: */
+.navbar-container {
+  transition: none !important;
+}
+
+.magic-card {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.magic-card:hover {
+  transform: translateY(-5px);
+  /* Ajuste del color de la sombra al color del logo */
+  box-shadow: 0 8px 32px rgba(201, 168, 128, 0.3);
+}
+
+/* Para ocultar la scrollbar pero mantener la funcionalidad */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+/* Animación pulsante para el botón CTA */
+@keyframes pulse-glow {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.01);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 0 0 rgba(201, 168, 128, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(201, 168, 128, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(201, 168, 128, 0);
+  }
+}
+
+.cta-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.cta-border-pulse {
+  animation: pulse-border 2s infinite;
+}
+
+/* Efecto de destello sutíl para CTA */
+@keyframes subtle-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.btn-shine {
+  background-size: 200% 100%;
+  background-image: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.2) 75%, rgba(255,255,255,0) 100%);
+  animation: subtle-shine 3s infinite ease-in-out;
+  position: relative;
+}
+
+/* Sutil efecto de rebote */
+@keyframes subtle-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.btn-attention {
+  animation: subtle-bounce 2s ease-in-out 1s infinite;
+}
+
+/* Efecto de parpadeo llamativo para CTA */
+@keyframes blink-effect {
+  0%, 100% {
+    box-shadow: 0 0 10px 3px rgba(201, 168, 128, 0.8);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px 5px rgba(201, 168, 128, 0.5);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes initial-attention {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0px 0px rgba(201, 168, 128, 0);
+  }
+  40% {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px 8px rgba(201, 168, 128, 0.9);
+  }
+  60% {
+    transform: scale(1.08);
+    box-shadow: 0 0 20px 5px rgba(201, 168, 128, 0.7);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px 3px rgba(201, 168, 128, 0.8);
+  }
+}
+
+.btn-blink {
+  animation: initial-attention 1.5s ease-out forwards, blink-effect 1.5s 1.5s infinite;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+@keyframes hover-effect {
+  0% {
+    transform: scale(1.02);
+    box-shadow: 0 0 12px 4px rgba(201, 168, 128, 0.7);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 15px 5px rgba(201, 168, 128, 0.8);
+  }
+  100% {
+    transform: scale(1.02);
+    box-shadow: 0 0 12px 4px rgba(201, 168, 128, 0.7);
+  }
+}
+
+.btn-blink:hover {
+  animation: hover-effect 1.5s ease-in-out infinite;
+  background-color: white;
+  transform: translateY(-2px);
+}
+
+.btn-blink:active {
+  animation: none;
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 0 8px 2px rgba(201, 168, 128, 0.6);
+  transition: all 0.1s ease;
+}
